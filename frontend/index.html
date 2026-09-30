@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mangan Yukkk | Kuliner Khas Cirebon</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <main class="page-container">
+    <p class="page-caption">Kuliner Khas Cirebon</p>
+
+    <section class="map-banner" aria-label="Peta kuliner">
+      <div class="map-placeholder">
+        <span>Foto</span>
+        <span>Peta</span>
+      </div>
+    </section>
+
+    <section class="search-section" aria-label="Cari kuliner">
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" placeholder="cari" aria-label="Cari nama kuliner">
+      </div>
+    </section>
+
+    <section class="category-section" aria-label="Kategori makanan">
+      <div class="category-list" id="categoryList">
+        <button class="category-btn active" data-category="semua">semua</button>
+        <button class="category-btn" data-category="camilan">camilan</button>
+        <button class="category-btn" data-category="makanan berat">makanan berat</button>
+        <button class="category-btn" data-category="minuman">minuman</button>
+      </div>
+    </section>
+
+    <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner"></section>
+    <p id="emptyMessage" class="empty-message" hidden>Kuliner tidak ditemukan.</p>
+  </main>
+
+  <script src="js/navbar.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
