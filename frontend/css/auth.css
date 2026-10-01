@@ -1,0 +1,153 @@
+.auth-container {
+  width: 100%;
+  max-width: 500px; /* Diperbesar agar fleksibel di layar tablet/laptop */
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.auth-header {
+  width: 100%;
+  background: var(--navy);
+  color: white;
+  text-align: center;
+  padding: 30px 20px 45px;
+  border-bottom-left-radius: 50% 30px;
+  border-bottom-right-radius: 50% 30px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--navy);
+}
+
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.auth-brand {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 26px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.auth-brand span:last-child {
+  font-size: 22px;
+  padding-left: 10px;
+}
+
+.auth-subtitle {
+  margin-top: 15px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 400px; /* Menjaga form tetap proporsional & rapi di tengah */
+  margin: 0 auto;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #e5e7eb;
+  border-radius: 20px;
+  padding: 8px 14px;
+  gap: 8px;
+}
+
+.input-icon {
+  font-size: 14px;
+}
+
+.input-wrapper input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 12px;
+}
+
+.btn-submit {
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.divider {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0;
+}
+
+.btn-google {
+  background: #e5e7eb;
+  border: none;
+  border-radius: 20px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.google-g {
+  color: #4285f4;
+  font-weight: 700;
+}
+
+.auth-footer {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+.auth-footer a {
+  color: var(--navy);
+  text-decoration: underline;
+}
