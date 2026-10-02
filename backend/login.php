@@ -10,7 +10,7 @@ $email = '';
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
 $client->setRedirectUri(
-    'http://localhost/mangan-yukkk/callback.php'
+    'https://solved-outcome-cnet-healthcare.trycloudflare.com/mangan-yukkk/callback.php'
 );
 
 $client->addScope([
@@ -166,6 +166,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </button>
 
     </form>
+	
+	<a href="index.php">
+    <button type="button">Kembali</button>
+</a>
 
     <hr>
 

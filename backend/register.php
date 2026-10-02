@@ -103,6 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button type="submit">Daftar</button>
     </form>
+	
+	<a href="index.php">
+    <button type="button">Kembali</button>
+</a>
 
     <p>Sudah punya akun?
         <a href="login_email.php">Login</a>

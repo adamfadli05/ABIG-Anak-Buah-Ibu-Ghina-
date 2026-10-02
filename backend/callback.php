@@ -8,7 +8,7 @@ require_once __DIR__ . '/config/database.php';
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
 $client->setRedirectUri(
-    'http://localhost/mangan-yukkk/callback.php'
+    'https://solved-outcome-cnet-healthcare.trycloudflare.com/mangan-yukkk/callback.php'
 );
 $client->addScope(['openid', 'email', 'profile']);
 
@@ -106,6 +106,32 @@ if (!$user) {
 
 session_regenerate_id(true);
 
+// Cek apakah email terdaftar sebagai admin
+$admin_result = pg_query_params(
+    $conn,
+    'SELECT * FROM admin WHERE email = $1',
+    [$email]
+);
+
+if (!$admin_result) {
+    exit('Gagal memeriksa role akun.');
+}
+
+$admin = pg_fetch_assoc($admin_result);
+
+if ($admin) {
+    // Login sebagai admin
+    $_SESSION['role'] = 'admin';
+    $_SESSION['id_admin'] = $admin['id_admin'];
+    $_SESSION['nama'] = $admin['nama'];
+    $_SESSION['email'] = $admin['email'];
+
+    header('Location: admin.php');
+    exit;
+}
+
+// Jika bukan admin, login sebagai user
+$_SESSION['role'] = 'user';
 $_SESSION['id_user'] = $user['id_user'];
 $_SESSION['nama'] = $user['nama'];
 $_SESSION['email'] = $user['email'];

@@ -3,38 +3,36 @@ session_start();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Mangan Yukkk</title>
 </head>
 <body>
 
-<h1>Mangan Yukkk</h1>
+    <h1>Mangan Yukkk</h1>
 
-<?php if (isset($_SESSION['id_user'])): ?>
+    <?php if (isset($_SESSION['role'])): ?>
 
-    <h2>Halo, <?= htmlspecialchars($_SESSION['nama']) ?></h2>
+        <h3>Halo, <?= htmlspecialchars($_SESSION['nama']) ?>!</h3>
 
-    <p>Email: <?= htmlspecialchars($_SESSION['email']) ?></p>
+        <p>Role: <?= htmlspecialchars($_SESSION['role']) ?></p>
 
-    <img 
-        src="<?= htmlspecialchars($_SESSION['foto_profil']) ?>" 
-        width="100"
-    >
+        <a href="logout.php">
+            <button>Logout</button>
+        </a>
 
-    <br><br>
+    <?php else: ?>
 
-    <a href="logout.php">
-        <button>Logout</button>
-    </a>
+        <a href="login.php">
+            <button>Login</button>
+        </a>
 
-<?php else: ?>
+        <a href="register.php">
+            <button>Daftar</button>
+        </a>
 
-    <a href="login.php">
-        <button>Login dengan Google</button>
-    </a>
-
-<?php endif; ?>
+    <?php endif; ?>
 
 </body>
 </html>
