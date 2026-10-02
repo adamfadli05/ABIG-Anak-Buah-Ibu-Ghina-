@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="auth-header">
+        <a href="index.html" class="back-btn" aria-label="Kembali">
+          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
+        </a>
+        <h1 class="auth-brand">
+          <span>MANGAN</span>
+          <span>yukkk</span>
+        </h1>
+        <p class="auth-subtitle">Kuliner Khas Cirebon</p>
+      </div>
+
+      <form class="auth-form" id="registerForm">
+        <div class="form-group">
+          <label>USERNAME :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input type="text" placeholder="Buat Username Anda" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>EMAIL :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <input type="email" placeholder="Masukan Email Anda" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>KATA SANDI :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="password" placeholder="Masukan Kata Sandi Anda" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>KONFIRMASI SANDI :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="password" placeholder="Masukan Ulang Kata Sandi Anda" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">DAFTAR</button>
+
+        <div class="divider">Atau :</div>
+
+        <button type="button" class="btn-google"><span class="google-g">G</span> Masuk Dengan Google</button>
+      </form>
+    </div>
+
+    <script>
+      document.getElementById("registerForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        alert("Pendaftaran berhasil! Silakan login.");
+        window.location.href = "login.html";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,150 @@
+.profile-container {
+  width: 100%;
+  max-width: 768px; /* Lebih lebar & fleksibel di layar tablet/desktop */
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  padding: 24px clamp(16px, 5vw, 40px); /* Padding menyesuaikan ukuran layar */
+  box-sizing: border-box;
+}
+
+/* Agar tombol menu profil tidak terlalu memanjang kaku di layar lebar */
+.profile-menu {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  background: var(--navy);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  text-decoration: none;
+}
+
+.back-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.profile-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.avatar-circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: white;
+  border: 2px solid white;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.user-name {
+  font-family: Georgia, serif;
+  color: var(--navy);
+  font-size: 20px;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-icon {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-email {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.login-link {
+  font-family: Georgia, serif;
+  color: var(--navy);
+  font-size: 15px;
+  text-decoration: underline;
+  margin-bottom: 30px;
+  display: inline-block;
+}
+
+.profile-menu {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-btn {
+  width: 100%;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  text-decoration: none; /* Menghilangkan garis bawah tautan */
+  box-sizing: border-box;
+}
+
+.menu-btn:hover {
+  background: var(--navy-dark);
+}
+
+.menu-icon {
+  font-size: 18px;
+}

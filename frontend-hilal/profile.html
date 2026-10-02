@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil Pengguna | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="profile-container">
+      <!-- Header Tombol Kembali -->
+      <div class="profile-header">
+        <a href="index.html" class="back-btn" aria-label="Kembali ke Beranda">
+          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
+        </a>
+      </div>
+
+      <!-- Bagian Info Profil -->
+      <div class="profile-body">
+        <div class="avatar-wrapper">
+          <div class="avatar-circle">
+            <span>Foto<br />Pengguna</span>
+          </div>
+          <button type="button" class="avatar-edit-btn" aria-label="Ubah foto profil">📷</button>
+        </div>
+
+        <h2 class="user-name">Nama Pengguna <span class="edit-icon">✏️</span></h2>
+        <p class="user-email">emailpengguna@gmail.com</p>
+
+        <!-- Link Masuk / Login jika belum login -->
+        <a href="login.html" class="login-link" id="authLinkAction">Masuk?</a>
+
+        <!-- Tombol Navigasi Fitur -->
+        <div class="profile-menu">
+          <a href="saved.html" class="menu-btn" id="savedKulinerBtn">
+            <span class="menu-icon">🔖</span>
+            <span>Kuliner Tersimpan</span>
+          </a>
+
+          <a href="reviews.html" class="menu-btn" id="userReviewsBtn">
+            <span class="menu-icon">📝</span>
+            <span>Ulasan Anda</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Cek status login untuk memperbarui tampilan tautan login/logout
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const authLinkAction = document.getElementById("authLinkAction");
+
+      if (isLoggedIn) {
+        authLinkAction.textContent = "Keluar?";
+        authLinkAction.href = "#";
+        authLinkAction.addEventListener("click", (e) => {
+          e.preventDefault();
+          localStorage.removeItem("isLoggedIn");
+          alert("Anda telah keluar.");
+          window.location.reload();
+        });
+      }
+    </script>
+  </body>
+</html>

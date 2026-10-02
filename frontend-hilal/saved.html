@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tersimpan | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/saved.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="saved-container">
+      <!-- Header Halaman -->
+      <div class="saved-header">
+        <a href="profile.html" class="back-btn" aria-label="Kembali ke Profil">
+          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
+        </a>
+        <h1 class="page-title">Tersimpan</h1>
+      </div>
+
+      <!-- Tampilan Sebelum Login -->
+      <div class="not-logged-in-view" id="notLoggedInView">
+        <button type="button" class="pill-btn">AYO BERKUNJUNG</button>
+
+        <p class="message-text">Masuk untuk menyimpan tempat kuliner favorit anda</p>
+
+        <a href="login.html" class="masuk-link">Masuk?</a>
+      </div>
+
+      <!-- Tampilan Setelah Login (Opsional / Konten Utama) -->
+      <div class="logged-in-view" id="loggedInView" style="display: none">
+        <!-- Daftar kuliner tersimpan akan muncul di sini jika sudah login -->
+        <p>Daftar kuliner tersimpan Anda.</p>
+      </div>
+    </div>
+
+    <script>
+      // Cek status login dari localStorage
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+      if (isLoggedIn) {
+        document.getElementById("notLoggedInView").style.display = "none";
+        document.getElementById("loggedInView").style.display = "block";
+      }
+    </script>
+  </body>
+</html>

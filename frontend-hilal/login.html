@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="auth-header">
+        <a href="index.html" class="back-btn" aria-label="Kembali">
+          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
+        </a>
+        <h1 class="auth-brand">
+          <span>MANGAN</span>
+          <span>yukkk</span>
+        </h1>
+        <p class="auth-subtitle">Kuliner Khas Cirebon</p>
+      </div>
+
+      <!-- 1. Form menggunakan ID agar ditangkap JavaScript -->
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label>EMAIL :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉</span>
+            <!-- 2. Input ditambahkan ID -->
+            <input type="email" id="emailInput" placeholder="Masukan Email Anda" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>KATA SANDI :</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <!-- 2. Input ditambahkan ID -->
+            <input type="password" id="passwordInput" placeholder="Masukan Kata Sandi Anda" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">MASUK</button>
+
+        <div class="divider">Atau :</div>
+
+        <!-- 3. Tombol Google (Tunggu info dari BE untuk URL pastinya) -->
+        <a href="#" id="googleBtn" class="btn-google" style="text-decoration: none; display: flex; justify-content: center; align-items: center;">
+          <span class="google-g">G</span> Masuk Dengan Google
+        </a>
+
+        <p class="auth-footer">Belum punya akun ? <a href="register.html">Daftar</a></p>
+      </form>
+    </div>
+
+    <!-- Script Fetch API untuk integrasi Backend JSON -->
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("emailInput").value;
+        const password = document.getElementById("passwordInput").value;
+
+        try {
+          // Menembak data JSON ke backend
+          const response = await fetch("http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/login.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+              email: email, 
+              password: password 
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.status === true) {
+            alert(result.message);
+            // Cek role untuk melempar ke halaman yang tepat
+            if (result.role === "admin") {
+              window.location.href = "admin.html"; // Sesuaikan nama file dashboard admin
+            } else {
+              window.location.href = "index.html";
+            }
+          } else {
+            alert("Gagal: " + result.message);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Terjadi kesalahan pada server saat mencoba login.");
+        }
+      });
+    </script>
+  </body>
+</html>
