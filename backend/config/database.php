@@ -13,5 +13,3 @@ $conn = pg_connect(
 if (!$conn) {
     die("Koneksi database gagal.");
 }
-
-echo "Database berhasil terhubung!";
