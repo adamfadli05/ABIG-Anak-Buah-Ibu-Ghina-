@@ -63,11 +63,49 @@
     </div>
 
     <script>
-      document.getElementById("registerForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        alert("Pendaftaran berhasil! Silakan login.");
-        window.location.href = "login.html";
+  const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const inputs  = e.target.querySelectorAll("input");
+    const nama    = inputs[0].value;
+    const email   = inputs[1].value;
+    const password = inputs[2].value;
+    const konfirmasi_password = inputs[3].value;
+    const btnSubmit = e.target.querySelector('.btn-submit');
+
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Memproses...";
+
+    try {
+      const res  = await fetch(`${BASE_URL}/api/register.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama, email, password, konfirmasi_password })
       });
-    </script>
+
+      const data = await res.json();
+
+      if (!data.status) {
+        alert(data.message);
+        return;
+      }
+
+      alert(data.message);
+      window.location.href = "login.html";
+
+    } catch (err) {
+      alert("Gagal terhubung ke server. Coba lagi.");
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "DAFTAR";
+    }
+  });
+
+  document.querySelector(".btn-google").addEventListener("click", () => {
+    window.location.href = `${BASE_URL}/google.php`;
+  });
+</script>
   </body>
 </html>
