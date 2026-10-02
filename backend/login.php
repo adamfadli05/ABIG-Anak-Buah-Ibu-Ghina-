@@ -10,7 +10,7 @@ $email = '';
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
 $client->setRedirectUri(
-    'https://solved-outcome-cnet-healthcare.trycloudflare.com/mangan-yukkk/callback.php'
+    'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
 );
 
 $client->addScope([
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['nama'] = $admin['nama'];
                     $_SESSION['email'] = $admin['email'];
 
-                    header('Location: admin.php');
+                    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/admin.html');
                     exit;
 
                 } else {
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['email'] = $user['email'];
                         $_SESSION['foto_profil'] = $user['foto_profil'];
 
-                        header('Location: index.php');
+                        header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html');
                         exit;
                     }
                 }

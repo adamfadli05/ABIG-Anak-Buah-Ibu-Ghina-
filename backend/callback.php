@@ -126,7 +126,7 @@ if ($admin) {
     $_SESSION['nama'] = $admin['nama'];
     $_SESSION['email'] = $admin['email'];
 
-    header('Location: admin.php');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/admin.html');
     exit;
 }
 
@@ -137,5 +137,5 @@ $_SESSION['nama'] = $user['nama'];
 $_SESSION['email'] = $user['email'];
 $_SESSION['foto_profil'] = $user['foto_profil'];
 
-header('Location: index.php');
+header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html');
 exit;
