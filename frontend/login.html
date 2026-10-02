@@ -48,14 +48,14 @@
       </form>
     </div>
 
-    <script>
+   <script>
   const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
   document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email    = document.getElementById("emailInput").value;
-    const password = document.getElementById("passwordInput").value;
+    const email    = e.target.querySelector('input[type="email"]').value;
+    const password = e.target.querySelector('input[type="password"]').value;
     const btnSubmit = e.target.querySelector('.btn-submit');
 
     btnSubmit.disabled = true;
@@ -92,9 +92,7 @@
     }
   });
 
-  // Tombol Google
-  document.getElementById("googleBtn").addEventListener("click", (e) => {
-    e.preventDefault();
+  document.getElementById("googleLoginBtn").addEventListener("click", () => {
     window.location.href = `${BASE_URL}/google.php`;
   });
 </script>
