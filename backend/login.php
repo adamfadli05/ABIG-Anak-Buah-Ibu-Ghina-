@@ -10,7 +10,7 @@ $email = '';
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
 $client->setRedirectUri(
-    'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
+    'https://parcel-departmental-tmp-bonds.trycloudflare.com/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
 );
 
 $client->addScope([
