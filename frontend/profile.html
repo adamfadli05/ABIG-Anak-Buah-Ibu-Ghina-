@@ -7,13 +7,18 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/profile.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   </head>
   <body>
     <div class="profile-container">
       <!-- Header Tombol Kembali -->
       <div class="profile-header">
         <a href="index.html" class="back-btn" aria-label="Kembali ke Beranda">
-          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
+          <!-- Sebelum (SVG): -->
+          <!-- <svg viewBox="0 0 24 24">...</svg> -->
+
+          <!-- Ganti jadi ini: -->
+          <i class="fa-solid fa-chevron-left"></i>
         </a>
       </div>
 
@@ -23,10 +28,12 @@
           <div class="avatar-circle">
             <span>Foto<br />Pengguna</span>
           </div>
-          <button type="button" class="avatar-edit-btn" aria-label="Ubah foto profil">📷</button>
+          <button type="button" class="avatar-edit-btn" aria-label="Ubah foto profil">
+  <i class="fa-solid fa-camera"></i>
+</button>
         </div>
 
-        <h2 class="user-name">Nama Pengguna <span class="edit-icon">✏️</span></h2>
+        <h2 class="user-name">Nama Pengguna <span class="edit-icon"><i class="fa-solid fa-pen"></i></span></h2>
         <p class="user-email">emailpengguna@gmail.com</p>
 
         <!-- Link Masuk / Login jika belum login -->
@@ -35,12 +42,12 @@
         <!-- Tombol Navigasi Fitur -->
         <div class="profile-menu">
           <a href="saved.html" class="menu-btn" id="savedKulinerBtn">
-            <span class="menu-icon">🔖</span>
+            <span class="menu-icon"><i class="fa-solid fa-bookmark"></i></span>
             <span>Kuliner Tersimpan</span>
           </a>
 
           <a href="reviews.html" class="menu-btn" id="userReviewsBtn">
-            <span class="menu-icon">📝</span>
+            <span class="menu-icon"><i class="fa-solid fa-pen-to-square"></i></span>
             <span>Ulasan Anda</span>
           </a>
         </div>
