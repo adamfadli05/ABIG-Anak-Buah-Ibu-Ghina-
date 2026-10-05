@@ -14,10 +14,6 @@
       <!-- Header Tombol Kembali -->
       <div class="profile-header">
         <a href="index.html" class="back-btn" aria-label="Kembali ke Beranda">
-          <!-- Sebelum (SVG): -->
-          <!-- <svg viewBox="0 0 24 24">...</svg> -->
-
-          <!-- Ganti jadi ini: -->
           <i class="fa-solid fa-chevron-left"></i>
         </a>
       </div>
@@ -25,19 +21,22 @@
       <!-- Bagian Info Profil -->
       <div class="profile-body">
         <div class="avatar-wrapper">
-          <div class="avatar-circle">
+          <div class="avatar-circle" id="avatarContainer">
             <span>Foto<br />Pengguna</span>
           </div>
           <button type="button" class="avatar-edit-btn" aria-label="Ubah foto profil">
-  <i class="fa-solid fa-camera"></i>
-</button>
+            <i class="fa-solid fa-camera"></i>
+          </button>
         </div>
 
-        <h2 class="user-name">Nama Pengguna <span class="edit-icon"><i class="fa-solid fa-pen"></i></span></h2>
-        <p class="user-email">emailpengguna@gmail.com</p>
+        <!-- Nama & Email Dinamis -->
+        <h2 class="user-name" id="profileName">
+          Nama Pengguna <span class="edit-icon"><i class="fa-solid fa-pen"></i></span>
+        </h2>
+        <p class="user-email" id="profileEmail">emailpengguna@gmail.com</p>
 
-        <!-- Link Masuk / Login jika belum login -->
-        <a href="login.html" class="login-link" id="authLinkAction">Masuk?</a>
+        <!-- Link Masuk? (Hanya tampil sebelum login) -->
+        <a href="login.html" class="login-link" id="loginLink">Masuk?</a>
 
         <!-- Tombol Navigasi Fitur -->
         <div class="profile-menu">
@@ -50,24 +49,89 @@
             <span class="menu-icon"><i class="fa-solid fa-pen-to-square"></i></span>
             <span>Ulasan Anda</span>
           </a>
+
+          <!-- Wadah Tombol Keluar (Hanya tampil setelah login) -->
+          <div id="authActionContainer" style="width: 100%; margin-top: 60px; text-align: center;"></div>
         </div>
       </div>
     </div>
 
     <script>
-      // Cek status login untuk memperbarui tampilan tautan login/logout
-      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      const authLinkAction = document.getElementById("authLinkAction");
+      // Ambil data user dari localStorage
+      const userDataRaw = localStorage.getItem("user");
+      const user = userDataRaw ? JSON.parse(userDataRaw) : null;
 
-      if (isLoggedIn) {
-        authLinkAction.textContent = "Keluar?";
-        authLinkAction.href = "#";
-        authLinkAction.addEventListener("click", (e) => {
-          e.preventDefault();
+      const profileName = document.getElementById("profileName");
+      const profileEmail = document.getElementById("profileEmail");
+      const avatarContainer = document.getElementById("avatarContainer");
+      const loginLink = document.getElementById("loginLink");
+      const authActionContainer = document.getElementById("authActionContainer");
+
+      if (user) {
+        // === TAMPILAN SETELAH LOGIN ===
+        // 1. Tampilkan nama user tanpa ikon pensil
+        profileName.textContent = user.nama || 'Pengguna';
+        
+        // 2. Tampilkan email user
+        profileEmail.textContent = user.email || '';
+
+        // 3. Sembunyikan link "Masuk?"
+        loginLink.style.display = "none";
+
+        // 4. Tampilkan foto profil dari Google OAuth / Inisial
+        if (user.foto_profil) {
+          avatarContainer.innerHTML = `<img src="${user.foto_profil}" alt="Foto Profil" class="avatar-img" />`;
+        } else {
+          const initial = user.nama ? user.nama.charAt(0).toUpperCase() : 'U';
+          avatarContainer.innerHTML = `<span class="avatar-initial">${initial}</span>`;
+        }
+
+        // 5. Tampilkan tombol Keluar warna biru terang dengan inline style agar pasti berwarna biru
+        authActionContainer.innerHTML = `
+          <button type="button" id="logoutBtn" style="
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: Georgia, serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+            transition: background-color 0.2s ease;
+          ">
+            <span>Keluar</span>
+            <i class="fa-solid fa-right-from-bracket" style="color: white; font-size: 14px;"></i>
+          </button>
+        `;
+
+        // Event Logout
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+          localStorage.removeItem("user");
+          localStorage.removeItem("role");
           localStorage.removeItem("isLoggedIn");
           alert("Anda telah keluar.");
-          window.location.reload();
+          window.location.href = "index.html";
         });
+
+      } else {
+        // === TAMPILAN SEBELUM LOGIN (Sesuai Desain Figma) ===
+        // 1. Tampilkan Nama Pengguna + Ikon Pensil
+        profileName.innerHTML = `Nama Pengguna <span class="edit-icon"><i class="fa-solid fa-pen"></i></span>`;
+        
+        // 2. Tampilkan email default
+        profileEmail.textContent = `emailpengguna@gmail.com`;
+
+        // 3. Tampilkan link "Masuk?"
+        loginLink.style.display = "inline-block";
+
+        // 4. Kosongkan tombol keluar di bagian bawah
+        authActionContainer.innerHTML = "";
       }
     </script>
   </body>

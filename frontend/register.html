@@ -60,52 +60,52 @@
 
         <button type="button" class="btn-google"><span class="google-g">G</span> Daftar Dengan Google</button>
       </form>
-    </div>w
+    </div>
 
     <script>
-  const BASE_URL = "https://parcel-departmental-tmp-bonds.trycloudflare.com/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
-  document.getElementById("registerForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const inputs  = e.target.querySelectorAll("input");
-    const nama    = inputs[0].value;
-    const email   = inputs[1].value;
-    const password = inputs[2].value;
-    const konfirmasi_password = inputs[3].value;
-    const btnSubmit = e.target.querySelector('.btn-submit');
+        const inputs = e.target.querySelectorAll("input");
+        const nama = inputs[0].value;
+        const email = inputs[1].value;
+        const password = inputs[2].value;
+        const konfirmasi_password = inputs[3].value;
+        const btnSubmit = e.target.querySelector('.btn-submit');
 
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Memproses...";
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Memproses...";
 
-    try {
-      const res  = await fetch(`${BASE_URL}/api/register.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, email, password, konfirmasi_password })
+        try {
+          const res = await fetch(`${BASE_URL}/api/register.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nama, email, password, konfirmasi_password })
+          });
+
+          const data = await res.json();
+
+          if (!data.status) {
+            alert(data.message);
+            return;
+          }
+
+          alert(data.message);
+          window.location.href = "login.html";
+
+        } catch (err) {
+          alert("Gagal terhubung ke server. Coba lagi.");
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = "DAFTAR";
+        }
       });
 
-      const data = await res.json();
-
-      if (!data.status) {
-        alert(data.message);
-        return;
-      }
-
-      alert(data.message);
-      window.location.href = "login.html";
-
-    } catch (err) {
-      alert("Gagal terhubung ke server. Coba lagi.");
-    } finally {
-      btnSubmit.disabled = false;
-      btnSubmit.textContent = "DAFTAR";
-    }
-  });
-
-  document.querySelector(".btn-google").addEventListener("click", () => {
-    window.location.href = `${BASE_URL}/google.php`;
-  });
-</script>
+      document.querySelector(".btn-google").addEventListener("click", () => {
+        window.location.href = `${BASE_URL}/google.php`;
+      });
+    </script>
   </body>
 </html>
