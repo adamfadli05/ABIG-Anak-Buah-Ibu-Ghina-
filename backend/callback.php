@@ -13,13 +13,15 @@ $client->setRedirectUri(
 $client->addScope(['openid', 'email', 'profile']);
 
 if (!isset($_GET['code'])) {
-    exit('Login Google gagal.');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Login+Google+gagal');
+    exit;
 }
 
 $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
 
 if (isset($token['error'])) {
-    exit('Gagal mendapatkan token Google.');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+mendapatkan+token+Google');
+    exit;
 }
 
 $client->setAccessToken($token);
@@ -36,7 +38,8 @@ if (
     empty($googleUser->verifiedEmail) ||
     !preg_match('/@gmail\.com$/i', $email)
 ) {
-    exit('Gunakan akun Google dengan email Gmail yang terverifikasi.');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gunakan+akun+Google+dengan+email+Gmail+yang+terverifikasi');
+    exit;
 }
 
 // Cari berdasarkan ID Google terlebih dahulu.
@@ -47,7 +50,8 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    exit('Gagal memeriksa akun.');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+akun');
+    exit;
 }
 
 $user = pg_fetch_assoc($result);
@@ -61,14 +65,16 @@ if (!$user) {
     );
 
     if (!$result) {
-        exit('Gagal memeriksa email akun.');
+        header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+email+akun');
+        exit;
     }
 
     $user = pg_fetch_assoc($result);
 
     if ($user) {
         if (!empty($user['google_id'])) {
-            exit('Email ini sudah terhubung ke akun Google lain.');
+            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Email+ini+sudah+terhubung+ke+akun+Google+lain');
+            exit;
         }
 
         $result = pg_query_params(
@@ -81,7 +87,8 @@ if (!$user) {
         );
 
         if (!$result) {
-            exit('Gagal menghubungkan akun Google.');
+            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+menghubungkan+akun+Google');
+            exit;
         }
 
         $user = pg_fetch_assoc($result);
@@ -97,10 +104,12 @@ if (!$user) {
         );
 
         if (!$result) {
-            exit('Gagal menyimpan akun Google.');
+            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+menyimpan+akun+Google');
+            exit;
         }
 
         $user = pg_fetch_assoc($result);
+        $is_new_user = true;
     }
 }
 
@@ -114,7 +123,8 @@ $admin_result = pg_query_params(
 );
 
 if (!$admin_result) {
-    exit('Gagal memeriksa role akun.');
+    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+role+akun');
+    exit;
 }
 
 $admin = pg_fetch_assoc($admin_result);
@@ -137,5 +147,9 @@ $_SESSION['nama'] = $user['nama'];
 $_SESSION['email'] = $user['email'];
 $_SESSION['foto_profil'] = $user['foto_profil'];
 
-header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html');
+$redirect = isset($is_new_user) && $is_new_user
+    ? 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html?success=Registrasi+Google+berhasil'
+    : 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html?success=Login+Google+berhasil';
+
+header('Location: ' . $redirect);
 exit;

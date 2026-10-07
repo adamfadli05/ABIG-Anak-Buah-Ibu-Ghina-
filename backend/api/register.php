@@ -57,7 +57,7 @@ if (!$cek) {
 }
 
 if (pg_num_rows($cek) > 0) {
-    echo json_encode(["status" => false, "message" => "Email sudah terdaftar. Silakan login"]);
+    echo json_encode(["status" => false, "message" => "Email sudah terdaftar. Silakan Login"]);
     exit;
 }
 
@@ -69,7 +69,7 @@ $result = pg_query_params(
 );
 
 if ($result && pg_num_rows($result) > 0) {
-    echo json_encode(["status" => true, "message" => "Registrasi berhasil. Silakan login"]);
+    echo json_encode(["status" => true, "message" => "Registrasi berhasil."]);
 } else {
     echo json_encode(["status" => false, "message" => "Registrasi gagal. Silakan coba lagi"]);
 }

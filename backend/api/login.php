@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
@@ -41,11 +43,15 @@ if (!preg_match('/@gmail\.com$/i', $email)) {
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Cek Admin
-|--------------------------------------------------------------------------
-*/
+if (strlen($password) < 8) {
+    echo json_encode([
+        "status" => false,
+        "message" => "Password minimal 8 karakter"
+    ]);
+    exit;
+}
+
+// Cek Admin
 
 $result = pg_query_params(
     $conn,
@@ -65,6 +71,12 @@ $admin = pg_fetch_assoc($result);
 
 if ($admin && password_verify($password, $admin['password'])) {
 
+    session_regenerate_id(true);
+    $_SESSION['role']     = 'admin';
+    $_SESSION['id_admin'] = $admin['id_admin'];
+    $_SESSION['nama']     = $admin['nama'];
+    $_SESSION['email']    = $admin['email'];
+
     echo json_encode([
         "status" => true,
         "message" => "Login admin berhasil",
@@ -79,11 +91,7 @@ if ($admin && password_verify($password, $admin['password'])) {
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Cek User
-|--------------------------------------------------------------------------
-*/
+// Cek User
 
 $result = pg_query_params(
     $conn,
@@ -117,11 +125,14 @@ if (empty($user['password']) || !password_verify($password, $user['password'])) 
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Login Berhasil
-|--------------------------------------------------------------------------
-*/
+// Login Berhasil
+
+session_regenerate_id(true);
+$_SESSION['role']       = 'user';
+$_SESSION['id_user']    = $user['id_user'];
+$_SESSION['nama']       = $user['nama'];
+$_SESSION['email']      = $user['email'];
+$_SESSION['foto_profil'] = $user['foto_profil'] ?? null;
 
 echo json_encode([
     "status" => true,
