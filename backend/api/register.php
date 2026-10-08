@@ -40,12 +40,12 @@ if (!preg_match('/@gmail\.com$/i', $email)) {
 }
 
 if (strlen($password) < 8) {
-    echo json_encode(["status" => false, "message" => "Password minimal 8 karakter"]);
+    echo json_encode(["status" => false, "message" => "Kata sandi minimal 8 karakter"]);
     exit;
 }
 
 if ($password !== $konfirmasi) {
-    echo json_encode(["status" => false, "message" => "Konfirmasi password tidak cocok"]);
+    echo json_encode(["status" => false, "message" => "Konfirmasi kata sandi tidak cocok"]);
     exit;
 }
 
@@ -57,7 +57,7 @@ if (!$cek) {
 }
 
 if (pg_num_rows($cek) > 0) {
-    echo json_encode(["status" => false, "message" => "Email sudah terdaftar. Silakan Login"]);
+    echo json_encode(["status" => false, "message" => "Email anda sudah terdaftar. Gunakan email lain."]);
     exit;
 }
 
@@ -69,7 +69,7 @@ $result = pg_query_params(
 );
 
 if ($result && pg_num_rows($result) > 0) {
-    echo json_encode(["status" => true, "message" => "Registrasi berhasil."]);
+    echo json_encode(["status" => true, "message" => "Pendaftaran berhasil."]);
 } else {
-    echo json_encode(["status" => false, "message" => "Registrasi gagal. Silakan coba lagi"]);
+    echo json_encode(["status" => false, "message" => "Pendaftaran gagal. Silakan coba lagi"]);
 }

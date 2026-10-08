@@ -30,7 +30,7 @@ $password = $data['password'] ?? '';
 if (empty($email) || empty($password)) {
     echo json_encode([
         "status" => false,
-        "message" => "Email dan password wajib diisi"
+        "message" => "Email dan kata sandi wajib diisi"
     ]);
     exit;
 }
@@ -79,7 +79,7 @@ if ($admin && password_verify($password, $admin['password'])) {
 
     echo json_encode([
         "status" => true,
-        "message" => "Login admin berhasil",
+        "message" => "Admin berhasil masuk.",
         "role" => "admin",
         "data" => [
             "id_admin" => $admin['id_admin'],
@@ -112,7 +112,7 @@ $user = pg_fetch_assoc($result);
 if (!$user) {
     echo json_encode([
         "status" => false,
-        "message" => "Email atau password salah"
+        "message" => "Email atau kata sandi salah"
     ]);
     exit;
 }
@@ -120,7 +120,7 @@ if (!$user) {
 if (empty($user['password']) || !password_verify($password, $user['password'])) {
     echo json_encode([
         "status" => false,
-        "message" => "Email atau password salah"
+        "message" => "Email atau kata sandi salah"
     ]);
     exit;
 }
@@ -136,7 +136,7 @@ $_SESSION['foto_profil'] = $user['foto_profil'] ?? null;
 
 echo json_encode([
     "status" => true,
-    "message" => "Login berhasil",
+    "message" => "Berhasil masuk.",
     "role" => "user",
     "data" => [
         "id_user" => $user['id_user'],

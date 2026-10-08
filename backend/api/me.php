@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if (!isset($_SESSION['role'])) {
     echo json_encode([
         "status"  => false,
-        "message" => "Belum login"
+        "message" => "Belum masuk"
     ]);
     exit;
 }
