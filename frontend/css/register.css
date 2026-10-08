@@ -1,0 +1,302 @@
+:root {
+  --primary: #001b7d;
+  --bg-color: #ffffff;
+  --input-bg: #e3e3e3;
+  --error-color: #e33629;
+  --font-title: "Instrument Serif";
+  --font-body: "Inter";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f6f9;
+  font-family: var(--font-body);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 100%; /* Di HP memenuhi layar */
+  min-height: 100vh; /* Tinggi full layar HP */
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Datar */
+.auth-header {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  text-align: center;
+  padding: 35px 20px 25px;
+  border-radius: 0;
+  position: relative;
+}
+
+/* Tombol Kembali */
+.back-btn {
+  position: absolute;
+  top: calc(50px + env(safe-area-inset-top));
+  left: 20px;
+  width: 38px;
+  height: 38px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  text-decoration: none;
+  transform: translateY(-50%);
+}
+
+.back-btn svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--primary);
+}
+
+.auth-brand {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: 40px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.auth-brand span:last-child {
+  font-size: 36px;
+  margin-top: 2px;
+}
+
+.auth-subtitle {
+  margin-top: 14px;
+  margin-bottom: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Form Styling */
+.auth-form {
+  width: 100%;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--primary);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--input-bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+  gap: 10px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+/* State Input Jika Belum Diisi / Error */
+.input-wrapper.error {
+  border: 1px solid var(--error-color) !important;
+}
+
+.input-icon {
+  font-size: 20px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+
+/* Kunci Miring ke Kanan Atas (+45deg) */
+.key-icon {
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
+.toggle-password {
+  font-size: 16px;
+  color: #555;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.input-wrapper input {
+  border: none;
+  background: transparent !important;
+  outline: none;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: #333;
+}
+
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus,
+.input-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: #333 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.input-wrapper input::placeholder {
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+/* Banner Pesan Error Merah */
+.error-banner {
+  display: none;
+  background-color: #e33629;
+  color: white;
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px 0;
+}
+
+/* Tombol Submit */
+.btn-submit {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 28px;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+  align-self: center;
+  margin-top: 6px;
+  min-width: 120px;
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.divider {
+  text-align: center;
+  font-size: 16px;
+  color: var(--primary);
+  margin: 2px 0;
+}
+
+.btn-google {
+  background: var(--input-bg);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.google-icon {
+  width: 25px;
+  height: 25px;
+}
+
+#errorBanner {
+  background-color: #ea3829; /* Warna merah sesuai desain */
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: center;
+
+  /* Ukuran ringkas di tengah */
+  width: fit-content;
+  max-width: 80%;
+  margin: 12px auto;
+  padding: 8px 20px;
+
+  /* Kelengkungan sudut disamakan dengan tombol (bukan oval/kapsul) */
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Memiringkan ikon kunci (Kata Sandi & Konfirmasi Sandi) */
+.input-wrapper iconify-icon[icon*="key"],
+.input-wrapper iconify-icon[icon*="lock"],
+.input-wrapper .input-icon[icon*="key"],
+.input-wrapper .input-icon[icon*="lock"] {
+  transform: rotate(-45deg); /* Miring ke kiri atas sesuai gambar */
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Menghilangkan ikon mata bawaan browser Edge / Chrome */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+@media (min-width: 768px) {
+  body {
+    background-color: #f4f6f9; /* Background luar abu-abu lembut */
+    padding: 40px 20px; /* Jarak aman atas-bawah */
+  }
+
+  .auth-container {
+    max-width: 420px; /* Membatasi lebar kotak form di laptop */
+    min-height: auto; /* Tinggi menyesuaikan isi form */
+    border-radius: 20px; /* Lengkungan di 4 sudut kotak */
+    overflow: hidden; /* Agar header biru ikut melengkung di atas */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Bayangan melayang */
+  }
+}
+.error-msg {
+  color: #ea3829;
+  font-size: 11px;
+  font-family: var(--font-body);
+  margin-top: 4px;
+  display: block;
+  min-height: 14px; /* Menjaga tata letak tetap stabil */
+}
+
+/* Opsional: memberi border merah pada input yang error */
+.input-wrapper.error {
+  border: 1px solid #ea3829;
+}

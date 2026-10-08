@@ -1,0 +1,286 @@
+:root {
+  --primary: #001b7d;
+  --bg-color: #ffffff;
+  --input-bg: #e3e3e3;
+  --font-title: "Instrument Serif";
+  --font-body: "Inter";
+  --error-bg: #ea3829;
+}
+
+/* Reset Box Sizing */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f6f9;
+  font-family: var(--font-body);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Container Utama Responsif (Card di Desktop, Full di HP) */
+.auth-container {
+  width: 100%;
+  max-width: 450px;
+  min-height: 100vh;
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Datar */
+.auth-header {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  text-align: center;
+  padding: 35px 20px 25px;
+  border-radius: 0;
+  position: relative;
+}
+
+/* Tombol Kembali */
+.back-btn {
+  position: absolute;
+  top: calc(50px + env(safe-area-inset-top));
+  left: 20px;
+  width: 38px;
+  height: 38px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  text-decoration: none;
+  transform: translateY(-50%);
+}
+
+.back-btn svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--primary);
+}
+
+/* Judul Brand */
+.auth-brand {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: 40px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.auth-brand span:last-child {
+  font-size: 36px;
+  margin-top: 2px;
+}
+
+.auth-subtitle {
+  margin-top: 14px;
+  margin-bottom: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Form Layout Login */
+.auth-form {
+  width: 100%;
+  padding: 28px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-grow: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--primary);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--input-bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+  gap: 10px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.input-wrapper.error {
+  border: 1px solid var(--error-bg);
+}
+
+.input-icon {
+  font-size: 20px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+
+/* Memiringkan ikon kunci (-45 derajat) */
+.key-icon,
+.input-wrapper iconify-icon[icon*="key"],
+.input-wrapper iconify-icon[icon*="lock"],
+.input-wrapper .input-icon[icon*="key"],
+.input-wrapper .input-icon[icon*="lock"] {
+  transform: rotate(-45deg);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.toggle-password {
+  cursor: pointer;
+}
+
+/* Menghilangkan Background Putih pada Input Teks & Autofill */
+.input-wrapper input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: #333;
+  background: transparent !important;
+}
+
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus,
+.input-wrapper input:-webkit-autofill:active,
+.input-wrapper input:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: #333 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.input-wrapper input::placeholder {
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+/* Sembunyikan ikon mata bawaan browser (Chrome & Edge) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+/* Banner Error Merah (Kompak di Tengah) */
+#errorBanner,
+.error-banner {
+  background-color: var(--error-bg);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  width: fit-content;
+  max-width: 85%;
+  margin: 4px auto 8px;
+  padding: 8px 22px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Tombol Masuk / Login */
+.btn-submit {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 28px;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+  align-self: center;
+  margin-top: 6px;
+  min-width: 120px;
+}
+
+.divider {
+  text-align: center;
+  font-size: 16px;
+  color: var(--primary);
+  margin: 2px 0;
+}
+
+.btn-google {
+  background: var(--input-bg);
+  border: none;
+  border-radius: 10px;
+  padding: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.google-icon {
+  width: 25px;
+  height: 25px;
+}
+
+/* Footer Teks "Belum punya akun? DAFTAR" */
+.auth-footer {
+  text-align: center;
+  color: var(--primary);
+  margin-top: auto;
+  padding-top: 20px;
+  padding-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.auth-footer p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-family: var(--font-title);
+  font-size: 20px;
+  text-decoration: underline;
+}
+
+/* Tampilan Responsif Desktop / Tablet */
+@media (min-width: 768px) {
+  .auth-container {
+    min-height: auto;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+}
