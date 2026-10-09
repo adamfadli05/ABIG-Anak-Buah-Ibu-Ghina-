@@ -8,17 +8,14 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/register.css" />
 
-    <!-- Google Fonts: Instrument Serif & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Iconify Script -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
   </head>
   <body>
     <div class="auth-container">
-      <!-- Header Datar -->
       <div class="auth-header">
         <a href="index.html" class="back-btn" aria-label="Kembali">
           <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
@@ -30,13 +27,12 @@
         <p class="auth-subtitle">Kuliner Khas Cirebon</p>
       </div>
 
-      <!-- Form Register -->
       <form class="auth-form" id="registerForm" novalidate>
         <div class="form-group">
           <label>NAMA PENGGUNA :</label>
           <div class="input-wrapper">
             <iconify-icon icon="bxs:id-card" class="input-icon"></iconify-icon>
-            <input type="text" id="namaInput" placeholder="Buat Username Anda" required />
+            <input type="text" id="namaInput" placeholder="Buat Nama Pengguna Anda" autocomplete="off" />
           </div>
         </div>
 
@@ -44,7 +40,7 @@
           <label>EMAIL :</label>
           <div class="input-wrapper">
             <iconify-icon icon="dashicons:email-alt" class="input-icon"></iconify-icon>
-            <input type="email" id="emailInput" placeholder="Masukan Email Anda" required />
+            <input type="email" id="emailInput" placeholder="Masukan Email Anda" autocomplete="off" />
           </div>
         </div>
 
@@ -52,8 +48,8 @@
           <label>KATA SANDI :</label>
           <div class="input-wrapper">
             <iconify-icon icon="boxicons:key-alt-filled" class="input-icon key-icon"></iconify-icon>
-            <input type="password" id="passwordInput" placeholder="Masukan Kata Sandi Anda" required />
-            <iconify-icon icon="ri:eye-off-line" class="toggle-password"></iconify-icon>
+            <input type="password" id="passwordInput" placeholder="Masukan Kata Sandi Anda" />
+            <iconify-icon icon="codicon:eye-closed" class="toggle-password"></iconify-icon>
           </div>
         </div>
 
@@ -61,13 +57,12 @@
           <label>KONFIRMASI SANDI :</label>
           <div class="input-wrapper">
             <iconify-icon icon="boxicons:key-alt-filled" class="input-icon key-icon"></iconify-icon>
-            <input type="password" id="confirmPasswordInput" placeholder="Masukan Ulang Kata Sandi Anda" required />
-            <iconify-icon icon="ri:eye-off-line" class="toggle-password"></iconify-icon>
+            <input type="password" id="confirmPasswordInput" placeholder="Masukan Ulang Kata Sandi Anda" />
+            <iconify-icon icon="codicon:eye-closed" class="toggle-password"></iconify-icon>
           </div>
         </div>
 
-        <!-- Banner Pesan Error Merah -->
-        <div class="error-banner" id="errorBanner">Harus diisi</div>
+        <div class="error-banner" id="errorBanner" style="display: none"></div>
 
         <button type="submit" class="btn-submit">DAFTAR</button>
 
@@ -85,131 +80,158 @@
       </form>
     </div>
 
+    <!-- MODAL POPUP RESPONSE -->
+    <div class="modal-overlay" id="responseModal">
+      <div class="modal-card">
+        <div class="modal-icon" id="modalIcon"></div>
+        <p class="modal-message" id="modalMessage"></p>
+        <a href="#" class="modal-btn-retry" id="modalRetryBtn" style="display: none">Coba lagi</a>
+      </div>
+    </div>
+
     <script>
-  const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-  const form = document.getElementById("registerForm");
-  const errorBanner = document.getElementById("errorBanner");
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+      const form = document.getElementById("registerForm");
+      const errorBanner = document.getElementById("errorBanner");
 
-  // Fitur Klik Toggle Buka / Tutup Password
-  document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
-    toggleIcon.addEventListener("click", function () {
-      const input = this.previousElementSibling;
-      if (input.type === "password") {
-        input.type = "text";
-        this.setAttribute("icon", "ri:eye-line");
-      } else {
-        input.type = "password";
-        this.setAttribute("icon", "ri:eye-off-line");
-      }
-    });
-  });
+      const responseModal = document.getElementById("responseModal");
+      const modalIcon = document.getElementById("modalIcon");
+      const modalMessage = document.getElementById("modalMessage");
+      const modalRetryBtn = document.getElementById("modalRetryBtn");
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
 
-  // Fungsi Pembantu Tampilkan Pesan Error Banner
-  function showError(message) {
-    errorBanner.textContent = message;
-    errorBanner.style.display = "block";
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const namaInput = document.getElementById("namaInput");
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
-
-    const nama = namaInput.value.trim();
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    const konfirmasi_password = confirmPasswordInput.value.trim();
-    const btnSubmit = e.target.querySelector(".btn-submit");
-
-    // Reset state error visual & banner
-    errorBanner.style.display = "none";
-    let hasEmptyField = false;
-
-    // Cek semua input yang belum diisi
-    [namaInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
-      const wrapper = input.closest(".input-wrapper");
-      if (!input.value.trim()) {
-        wrapper.classList.add("error");
-        hasEmptyField = true;
-      } else {
-        wrapper.classList.remove("error");
-      }
-    });
-
-    // 1. Jika ada form yang belum diisi, tampilkan pesan generik ini
-    if (hasEmptyField) {
-      showError("Semua kolom wajib di isi");
-      return;
-    }
-
-    // 2. Jika semua form sudah terisi, cek format spesifik satu per satu:
-
-    // A. Validasi Format Email (@gmail.com)
-    if (!email.toLowerCase().endsWith("@gmail.com")) {
-      emailInput.closest(".input-wrapper").classList.add("error");
-      showError("Gunakan email yang berakhiran @gmail.com");
-      return;
-    }
-
-    // B. Validasi Panjang Kata Sandi Minimal 8 Karakter
-    if (password.length < 8) {
-      passwordInput.closest(".input-wrapper").classList.add("error");
-      showError("Kata sandi harus minimal 8 karakter");
-      return;
-    }
-
-    // C. Validasi Kecocokan Kata Sandi
-    if (password !== konfirmasi_password) {
-      confirmPasswordInput.closest(".input-wrapper").classList.add("error");
-      showError("Kata sandi tidak cocok");
-      return;
-    }
-
-    btnSubmit.disabled = true;
-
-    try {
-      const res = await fetch(`${BASE_URL}/api/register.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, email, password, konfirmasi_password }),
+      // Toggle Password Buka / Tutup
+      document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
+        toggleIcon.addEventListener("click", function () {
+          const input = this.previousElementSibling;
+          if (input.type === "password") {
+            input.type = "text";
+            this.setAttribute("icon", "codicon:eye");
+          } else {
+            input.type = "password";
+            this.setAttribute("icon", "codicon:eye-closed");
+          }
+        });
       });
 
-      const data = await res.json();
+      function showError(message) {
+        errorBanner.textContent = message;
+        errorBanner.style.display = "block";
+      }
 
-      if (!data.status) {
-        // Cek jika pesan balasan backend mengindikasikan email terdaftar
-        if (data.message && data.message.toLowerCase().includes("terdaftar")) {
-          emailInput.closest(".input-wrapper").classList.add("error");
-          showError("Email sudah terdaftar");
+      function showPopupModal(isSuccess, isGoogle = false) {
+        if (isSuccess) {
+          modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 39px;"></iconify-icon>`;
+          modalMessage.textContent = isGoogle ? "Masuk dengan Google berhasil" : "Anda Berhasil mendaftar";
+          modalRetryBtn.style.display = "none";
         } else {
-          showError(data.message || "Pendaftaran gagal");
+          modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color: #ea3829; font-size: 39px;"></iconify-icon>`;
+          modalMessage.innerHTML = isGoogle ? "Masuk dengan Google gagal,<br>silahkan coba lagi" : "Anda Gagal mendaftar,<br>silahkan coba lagi";
+          modalRetryBtn.style.display = "inline-block";
         }
-        return;
+
+        if (themeColorMeta) {
+          themeColorMeta.setAttribute("content", "#a3a3a3");
+        }
+
+        responseModal.style.display = "flex";
       }
 
-      // Simpan data user ke localStorage jika backend mengembalikan data user
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
+      modalRetryBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        responseModal.style.display = "none";
+        if (themeColorMeta) {
+          themeColorMeta.setAttribute("content", "#001b7d");
+        }
+      });
 
-      alert(data.message || "Registrasi berhasil!");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      // Mengarahkan langsung ke Beranda (index.html)
-      window.location.href = "index.html";
-    } catch (err) {
-      showError("Gagal terhubung ke server. Coba lagi.");
-    } finally {
-      btnSubmit.disabled = false;
-      btnSubmit.textContent = "DAFTAR";
-    }
-  });
+        const namaInput = document.getElementById("namaInput");
+        const emailInput = document.getElementById("emailInput");
+        const passwordInput = document.getElementById("passwordInput");
+        const confirmPasswordInput = document.getElementById("confirmPasswordInput");
 
-  document.getElementById("googleRegisterBtn").addEventListener("click", () => {
-    window.location.href = `${BASE_URL}/google.php`;
-  });
-</script>
+        const nama = namaInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const konfirmasi_password = confirmPasswordInput.value.trim();
+        const btnSubmit = e.target.querySelector(".btn-submit");
+
+        errorBanner.style.display = "none";
+        let hasEmptyField = false;
+
+        [namaInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
+          const wrapper = input.closest(".input-wrapper");
+          if (!input.value.trim()) {
+            wrapper.classList.add("error");
+            hasEmptyField = true;
+          } else {
+            wrapper.classList.remove("error");
+          }
+        });
+
+        if (hasEmptyField) {
+          showError("Semua kolom wajib di isi");
+          return;
+        }
+
+        if (!email.toLowerCase().endsWith("@gmail.com")) {
+          emailInput.closest(".input-wrapper").classList.add("error");
+          showError("Gunakan email yang berakhiran @gmail.com");
+          return;
+        }
+
+        if (password.length < 8) {
+          passwordInput.closest(".input-wrapper").classList.add("error");
+          showError("Kata sandi harus minimal 8 karakter");
+          return;
+        }
+
+        if (password !== konfirmasi_password) {
+          confirmPasswordInput.closest(".input-wrapper").classList.add("error");
+          showError("Kata sandi tidak cocok");
+          return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Memproses...";
+
+        try {
+          const res = await fetch(`${BASE_URL}/api/register.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nama, email, password, konfirmasi_password }),
+          });
+
+          const data = await res.json();
+
+          if (!data.status) {
+            if (data.message && data.message.toLowerCase().includes("terdaftar")) {
+              emailInput.closest(".input-wrapper").classList.add("error");
+              showError("Email sudah terdaftar");
+            } else {
+              showPopupModal(false);
+            }
+            return;
+          }
+
+          showPopupModal(true);
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+        } catch (err) {
+          showPopupModal(false);
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = "DAFTAR";
+        }
+      });
+
+      document.getElementById("googleRegisterBtn").addEventListener("click", () => {
+        window.location.href = `${BASE_URL}/google.php`;
+      });
+    </script>
   </body>
 </html>

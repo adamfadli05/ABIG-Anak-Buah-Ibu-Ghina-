@@ -1,7 +1,7 @@
 :root {
   --primary: #001b7d;
   --bg-color: #ffffff;
-  --input-bg: #e3e3e3;
+  --input-bg: #d9d9d9;
   --error-color: #e33629;
   --font-title: "Instrument Serif";
   --font-body: "Inter";
@@ -24,14 +24,13 @@ body {
 
 .auth-container {
   width: 100%;
-  max-width: 100%; /* Di HP memenuhi layar */
-  min-height: 100vh; /* Tinggi full layar HP */
+  max-width: 100%;
+  min-height: 100vh;
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
 }
 
-/* Header Datar */
 .auth-header {
   width: 100%;
   background: var(--primary);
@@ -42,7 +41,6 @@ body {
   position: relative;
 }
 
-/* Tombol Kembali */
 .back-btn {
   position: absolute;
   top: calc(50px + env(safe-area-inset-top));
@@ -87,7 +85,6 @@ body {
   opacity: 0.9;
 }
 
-/* Form Styling */
 .auth-form {
   width: 100%;
   padding: 24px 20px;
@@ -120,7 +117,6 @@ body {
   transition: border-color 0.2s ease;
 }
 
-/* State Input Jika Belum Diisi / Error */
 .input-wrapper.error {
   border: 1px solid var(--error-color) !important;
 }
@@ -132,14 +128,13 @@ body {
   align-items: center;
 }
 
-/* Kunci Miring ke Kanan Atas (+45deg) */
 .key-icon {
   transform: rotate(45deg);
   display: inline-block;
 }
 
 .toggle-password {
-  font-size: 16px;
+  font-size: 20px;
   color: #555;
   cursor: pointer;
   margin-left: auto;
@@ -169,20 +164,18 @@ body {
   opacity: 0.7;
 }
 
-/* Banner Pesan Error Merah */
 .error-banner {
   display: none;
-  background-color: #e33629;
+  background-color: var(--error-color);
   color: white;
   text-align: center;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   margin: 4px 0;
 }
 
-/* Tombol Submit */
 .btn-submit {
   background: var(--primary);
   color: white;
@@ -232,37 +225,28 @@ body {
 }
 
 #errorBanner {
-  background-color: #ea3829; /* Warna merah sesuai desain */
+  background-color: var(--error-color);
   color: #ffffff;
   font-size: 16px;
   font-weight: 400;
   text-align: center;
 
-  /* Ukuran ringkas di tengah */
   width: fit-content;
   max-width: 80%;
   margin: 12px auto;
   padding: 8px 20px;
 
-  /* Kelengkungan sudut disamakan dengan tombol (bukan oval/kapsul) */
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Memiringkan ikon kunci (Kata Sandi & Konfirmasi Sandi) */
 .input-wrapper iconify-icon[icon*="key"],
 .input-wrapper iconify-icon[icon*="lock"],
 .input-wrapper .input-icon[icon*="key"],
 .input-wrapper .input-icon[icon*="lock"] {
-  transform: rotate(-45deg); /* Miring ke kiri atas sesuai gambar */
+  transform: rotate(-45deg);
   display: inline-block;
   vertical-align: middle;
-}
-
-/* Menghilangkan ikon mata bawaan browser Edge / Chrome */
-input::-ms-reveal,
-input::-ms-clear {
-  display: none;
 }
 
 input[type="password"]::-webkit-contacts-auto-fill-button,
@@ -275,28 +259,87 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 
 @media (min-width: 768px) {
   body {
-    background-color: #f4f6f9; /* Background luar abu-abu lembut */
-    padding: 40px 20px; /* Jarak aman atas-bawah */
+    background-color: #f4f6f9;
+    padding: 40px 20px;
   }
 
   .auth-container {
-    max-width: 420px; /* Membatasi lebar kotak form di laptop */
-    min-height: auto; /* Tinggi menyesuaikan isi form */
-    border-radius: 20px; /* Lengkungan di 4 sudut kotak */
-    overflow: hidden; /* Agar header biru ikut melengkung di atas */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Bayangan melayang */
+    max-width: 420px;
+    min-height: auto;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 }
 .error-msg {
-  color: #ea3829;
+  color: var(--error-color);
   font-size: 11px;
   font-family: var(--font-body);
   margin-top: 4px;
   display: block;
-  min-height: 14px; /* Menjaga tata letak tetap stabil */
+  min-height: 14px;
 }
 
-/* Opsional: memberi border merah pada input yang error */
 .input-wrapper.error {
-  border: 1px solid #ea3829;
+  border: 1px solid var(--error-color);
+}
+/* Sembunyikan ikon mata bawaan browser Edge / Chrome */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(217, 217, 217, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+/* Modal Card */
+.modal-card {
+  background: white;
+  width: 80%;
+  max-width: 280px;
+  padding: 24px 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.modal-icon {
+  margin-bottom: 12px;
+}
+
+.modal-icon iconify-icon {
+  font-size: 40px;
+}
+
+.modal-message {
+  color: var(--primary);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-btn-retry {
+  display: inline-block;
+  margin-top: 12px;
+  color: #001b7d;
+  font-size: 13px;
+  text-decoration: underline;
+  font-weight: 400;
+  cursor: pointer;
 }

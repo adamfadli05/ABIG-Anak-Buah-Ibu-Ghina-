@@ -1,13 +1,12 @@
 :root {
   --primary: #001b7d;
   --bg-color: #ffffff;
-  --input-bg: #e3e3e3;
+  --input-bg: #d9d9d9;
   --font-title: "Instrument Serif";
   --font-body: "Inter";
   --error-bg: #ea3829;
 }
 
-/* Reset Box Sizing */
 * {
   box-sizing: border-box;
 }
@@ -23,7 +22,6 @@ body {
   min-height: 100vh;
 }
 
-/* Container Utama Responsif (Card di Desktop, Full di HP) */
 .auth-container {
   width: 100%;
   max-width: 450px;
@@ -33,18 +31,15 @@ body {
   flex-direction: column;
 }
 
-/* Header Datar */
 .auth-header {
   width: 100%;
   background: var(--primary);
   color: white;
   text-align: center;
   padding: 35px 20px 25px;
-  border-radius: 0;
   position: relative;
 }
 
-/* Tombol Kembali */
 .back-btn {
   position: absolute;
   top: calc(50px + env(safe-area-inset-top));
@@ -56,7 +51,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
   text-decoration: none;
   transform: translateY(-50%);
 }
@@ -67,7 +61,6 @@ body {
   fill: var(--primary);
 }
 
-/* Judul Brand */
 .auth-brand {
   margin: 0;
   font-family: var(--font-title);
@@ -90,7 +83,6 @@ body {
   opacity: 0.9;
 }
 
-/* Form Layout Login */
 .auth-form {
   width: 100%;
   padding: 28px 24px 20px;
@@ -121,6 +113,7 @@ body {
   gap: 10px;
   border: 1px solid transparent;
   transition: border-color 0.2s ease;
+  position: relative;
 }
 
 .input-wrapper.error {
@@ -132,42 +125,23 @@ body {
   color: var(--primary);
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
-/* Memiringkan ikon kunci (-45 derajat) */
-.key-icon,
-.input-wrapper iconify-icon[icon*="key"],
-.input-wrapper iconify-icon[icon*="lock"],
-.input-wrapper .input-icon[icon*="key"],
-.input-wrapper .input-icon[icon*="lock"] {
+.key-icon {
   transform: rotate(-45deg);
-  display: inline-block;
-  vertical-align: middle;
 }
 
-.toggle-password {
-  cursor: pointer;
-}
-
-/* Menghilangkan Background Putih pada Input Teks & Autofill */
 .input-wrapper input {
   border: none;
   outline: none;
   width: 100%;
+  min-width: 0;
   font-family: var(--font-body);
   font-size: 16px;
   color: #333;
   background: transparent !important;
-}
-
-.input-wrapper input:-webkit-autofill,
-.input-wrapper input:-webkit-autofill:hover,
-.input-wrapper input:-webkit-autofill:focus,
-.input-wrapper input:-webkit-autofill:active,
-.input-wrapper input:focus {
-  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
-  -webkit-text-fill-color: #333 !important;
-  transition: background-color 5000s ease-in-out 0s;
+  padding-right: 30px;
 }
 
 .input-wrapper input::placeholder {
@@ -175,37 +149,50 @@ body {
   opacity: 0.7;
 }
 
-/* Sembunyikan ikon mata bawaan browser (Chrome & Edge) */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover,
+.input-wrapper input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+  -webkit-text-fill-color: #333 !important;
+}
+
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
 }
 
-input[type="password"]::-webkit-contacts-auto-fill-button,
-input[type="password"]::-webkit-credentials-auto-fill-button {
-  visibility: hidden;
-  pointer-events: none;
+.toggle-password {
+  font-size: 20px;
+  color: #555;
+  cursor: pointer;
   position: absolute;
-  right: 0;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
-/* Banner Error Merah (Kompak di Tengah) */
-#errorBanner,
-.error-banner {
+/* Pesan validasi merah */
+#errorBanner {
   background-color: var(--error-bg);
   color: #ffffff;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
   text-align: center;
   width: fit-content;
-  max-width: 85%;
-  margin: 4px auto 8px;
-  padding: 8px 22px;
-  border-radius: 8px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 8px 18px;
+  border-radius: 7px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Tombol Masuk / Login */
+#errorBanner[hidden] {
+  display: none !important;
+}
+
 .btn-submit {
   background: var(--primary);
   color: white;
@@ -219,6 +206,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   align-self: center;
   margin-top: 6px;
   min-width: 120px;
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .divider {
@@ -247,9 +239,9 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 .google-icon {
   width: 25px;
   height: 25px;
+  flex-shrink: 0;
 }
 
-/* Footer Teks "Belum punya akun? DAFTAR" */
 .auth-footer {
   text-align: center;
   color: var(--primary);
@@ -275,12 +267,80 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   text-decoration: underline;
 }
 
-/* Tampilan Responsif Desktop / Tablet */
+/* Modal Popup Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(217, 217, 217, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.modal-card {
+  background: #ffffff;
+  width: 80%;
+  max-width: 280px;
+  padding: 24px 20px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.modal-icon {
+  margin-bottom: 12px;
+}
+
+.modal-message {
+  color: var(--primary);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-btn-retry {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--primary);
+  font-size: 13px;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
 @media (min-width: 768px) {
   .auth-container {
     min-height: auto;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-form {
+    padding: 24px 20px 20px;
+  }
+
+  .form-group label {
+    font-size: 16px;
+  }
+
+  .input-wrapper input {
+    font-size: 16px;
+  }
+
+  #errorBanner {
+    max-width: 100%;
+    font-size: 14px;
+    padding: 8px 14px;
   }
 }
