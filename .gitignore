@@ -28,3 +28,7 @@ logs/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Configuration & Secrets
+backend/client_secret.json
+backend/config/database.php
