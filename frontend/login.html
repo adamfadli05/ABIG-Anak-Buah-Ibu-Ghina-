@@ -41,13 +41,13 @@
         </div>
 
         <div class="form-group">
-          <label>KATA SANDI :</label>
-          <div class="input-wrapper">
-            <!-- Tambah class key-icon untuk memiringkan ikon kunci -->
-            <iconify-icon icon="boxicons:key-alt-filled" class="input-icon key-icon"></iconify-icon>
-            <input type="password" placeholder="Masukan Kata Sandi Anda" required />
-          </div>
-        </div>
+  <label>KATA SANDI :</label>
+  <div class="input-wrapper" style="position: relative;">
+    <iconify-icon icon="boxicons:key-alt-filled" class="input-icon key-icon"></iconify-icon>
+    <input type="password" placeholder="Masukan Kata Sandi Anda" required style="padding-right: 40px;" />
+    <iconify-icon icon="ri:eye-off-line" class="toggle-password" style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #666; z-index: 10;"></iconify-icon>
+  </div>
+</div>
 
         <button type="submit" class="btn-submit">MASUK</button>
 
@@ -68,56 +68,68 @@
         </div>
       </form>
     </div>
-  </body>
-</html>
 
-   <script>
-  const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+    <script>
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const email    = e.target.querySelector('input[type="email"]').value;
-    const password = e.target.querySelector('input[type="password"]').value;
-    const btnSubmit = e.target.querySelector('.btn-submit');
-
-    btnSubmit.disabled = true;
-    btnSubmit.textContent = "Memproses...";
-
-    try {
-      const res  = await fetch(`${BASE_URL}/api/login.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+      // Fitur Klik Toggle Buka / Tutup Password
+      document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
+        toggleIcon.addEventListener("click", function () {
+          const input = this.previousElementSibling;
+          if (input.type === "password") {
+            input.type = "text";
+            this.setAttribute("icon", "ri:eye-line");
+          } else {
+            input.type = "password";
+            this.setAttribute("icon", "ri:eye-off-line");
+          }
+        });
       });
 
-      const data = await res.json();
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      if (!data.status) {
-        alert(data.message);
-        return;
-      }
+        const email    = e.target.querySelector('input[type="email"]').value;
+        const password = e.target.querySelector('input[type="password"]').value;
+        const btnSubmit = e.target.querySelector('.btn-submit');
 
-      localStorage.setItem("user", JSON.stringify(data.data));
-      localStorage.setItem("role", data.role);
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Memproses...";
 
-      if (data.role === "admin") {
-        window.location.href = "admin.html";
-      } else {
-        window.location.href = "index.html";
-      }
+        try {
+          const res  = await fetch(`${BASE_URL}/api/login.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
 
-    } catch (err) {
-      alert("Gagal terhubung ke server. Coba lagi.");
-    } finally {
-      btnSubmit.disabled = false;
-      btnSubmit.textContent = "MASUK";
-    }
-  });
+          const data = await res.json();
 
-  document.getElementById("googleLoginBtn").addEventListener("click", () => {
-    window.location.href = `${BASE_URL}/google.php`;
-  });
-</script>
+          if (!data.status) {
+            alert(data.message);
+            return;
+          }
+
+          localStorage.setItem("user", JSON.stringify(data.data));
+          localStorage.setItem("role", data.role);
+
+          if (data.role === "admin") {
+            window.location.href = "admin.html";
+          } else {
+            window.location.href = "index.html";
+          }
+
+        } catch (err) {
+          alert("Gagal terhubung ke server. Coba lagi.");
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = "MASUK";
+        }
+      });
+
+      document.getElementById("googleLoginBtn").addEventListener("click", () => {
+        window.location.href = `${BASE_URL}/google.php`;
+      });
+    </script>
   </body>
 </html>

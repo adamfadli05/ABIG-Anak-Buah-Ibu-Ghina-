@@ -80,129 +80,136 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
           </svg>
-          Masuk Dengan Google
+          Daftar Dengan Google
         </button>
       </form>
     </div>
 
     <script>
-      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-      const form = document.getElementById("registerForm");
-      const errorBanner = document.getElementById("errorBanner");
+  const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+  const form = document.getElementById("registerForm");
+  const errorBanner = document.getElementById("errorBanner");
 
-      // Fitur Klik Toggle Buka / Tutup Password
-      document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
-        toggleIcon.addEventListener("click", function () {
-          const input = this.previousElementSibling;
-          if (input.type === "password") {
-            input.type = "text";
-            this.setAttribute("icon", "ri:eye-line");
-          } else {
-            input.type = "password";
-            this.setAttribute("icon", "ri:eye-off-line");
-          }
-        });
+  // Fitur Klik Toggle Buka / Tutup Password
+  document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
+    toggleIcon.addEventListener("click", function () {
+      const input = this.previousElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        this.setAttribute("icon", "ri:eye-line");
+      } else {
+        input.type = "password";
+        this.setAttribute("icon", "ri:eye-off-line");
+      }
+    });
+  });
+
+  // Fungsi Pembantu Tampilkan Pesan Error Banner
+  function showError(message) {
+    errorBanner.textContent = message;
+    errorBanner.style.display = "block";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const namaInput = document.getElementById("namaInput");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+
+    const nama = namaInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    const konfirmasi_password = confirmPasswordInput.value.trim();
+    const btnSubmit = e.target.querySelector(".btn-submit");
+
+    // Reset state error visual & banner
+    errorBanner.style.display = "none";
+    let hasEmptyField = false;
+
+    // Cek semua input yang belum diisi
+    [namaInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
+      const wrapper = input.closest(".input-wrapper");
+      if (!input.value.trim()) {
+        wrapper.classList.add("error");
+        hasEmptyField = true;
+      } else {
+        wrapper.classList.remove("error");
+      }
+    });
+
+    // 1. Jika ada form yang belum diisi, tampilkan pesan generik ini
+    if (hasEmptyField) {
+      showError("Semua kolom wajib di isi");
+      return;
+    }
+
+    // 2. Jika semua form sudah terisi, cek format spesifik satu per satu:
+
+    // A. Validasi Format Email (@gmail.com)
+    if (!email.toLowerCase().endsWith("@gmail.com")) {
+      emailInput.closest(".input-wrapper").classList.add("error");
+      showError("Gunakan email yang berakhiran @gmail.com");
+      return;
+    }
+
+    // B. Validasi Panjang Kata Sandi Minimal 8 Karakter
+    if (password.length < 8) {
+      passwordInput.closest(".input-wrapper").classList.add("error");
+      showError("Kata sandi harus minimal 8 karakter");
+      return;
+    }
+
+    // C. Validasi Kecocokan Kata Sandi
+    if (password !== konfirmasi_password) {
+      confirmPasswordInput.closest(".input-wrapper").classList.add("error");
+      showError("Kata sandi tidak cocok");
+      return;
+    }
+
+    btnSubmit.disabled = true;
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/register.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama, email, password, konfirmasi_password }),
       });
 
-      // Fungsi Pembantu Tampilkan Pesan Error Banner
-      function showError(message) {
-        errorBanner.textContent = message;
-        errorBanner.style.display = "block";
+      const data = await res.json();
+
+      if (!data.status) {
+        // Cek jika pesan balasan backend mengindikasikan email terdaftar
+        if (data.message && data.message.toLowerCase().includes("terdaftar")) {
+          emailInput.closest(".input-wrapper").classList.add("error");
+          showError("Email sudah terdaftar");
+        } else {
+          showError(data.message || "Pendaftaran gagal");
+        }
+        return;
       }
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      // Simpan data user ke localStorage jika backend mengembalikan data user
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
 
-        const namaInput = document.getElementById("namaInput");
-        const emailInput = document.getElementById("emailInput");
-        const passwordInput = document.getElementById("passwordInput");
-        const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+      alert(data.message || "Registrasi berhasil!");
 
-        const nama = namaInput.value.trim();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-        const konfirmasi_password = confirmPasswordInput.value.trim();
-        const btnSubmit = e.target.querySelector(".btn-submit");
+      // Mengarahkan langsung ke Beranda (index.html)
+      window.location.href = "index.html";
+    } catch (err) {
+      showError("Gagal terhubung ke server. Coba lagi.");
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "DAFTAR";
+    }
+  });
 
-        // Reset state error visual & banner
-        errorBanner.style.display = "none";
-        let hasEmptyField = false;
-
-        // Cek semua input yang belum diisi
-        [namaInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
-          const wrapper = input.closest(".input-wrapper");
-          if (!input.value.trim()) {
-            wrapper.classList.add("error");
-            hasEmptyField = true;
-          } else {
-            wrapper.classList.remove("error");
-          }
-        });
-
-        // 1. Jika ada form yang belum diisi, tampilkan pesan generik ini
-        if (hasEmptyField) {
-          showError("Semua kolom wajib di isi");
-          return;
-        }
-
-        // 2. Jika semua form sudah terisi, cek format spesifik satu per satu:
-
-        // A. Validasi Format Email (@gmail.com)
-        if (!email.toLowerCase().endsWith("@gmail.com")) {
-          emailInput.closest(".input-wrapper").classList.add("error");
-          showError("Gunakan email yang berakhiran @gmail.com");
-          return;
-        }
-
-        // B. Validasi Panjang Kata Sandi Minimal 8 Karakter
-        if (password.length < 8) {
-          passwordInput.closest(".input-wrapper").classList.add("error");
-          showError("Kata sandi harus minimal 8 karakter");
-          return;
-        }
-
-        // C. Validasi Kecocokan Kata Sandi
-        if (password !== konfirmasi_password) {
-          confirmPasswordInput.closest(".input-wrapper").classList.add("error");
-          showError("Kata sandi tidak cocok");
-          return;
-        }
-
-        btnSubmit.disabled = true;
-
-        try {
-          const res = await fetch(`${BASE_URL}/api/register.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nama, email, password, konfirmasi_password }),
-          });
-
-          const data = await res.json();
-
-          if (!data.status) {
-            // Cek jika pesan balasan backend mengindikasikan email terdaftar
-            if (data.message && data.message.toLowerCase().includes("terdaftar")) {
-              emailInput.closest(".input-wrapper").classList.add("error");
-              showError("Email sudah terdaftar");
-            } else {
-              showError(data.message || "Pendaftaran gagal");
-            }
-            return;
-          }
-
-          alert(data.message);
-          window.location.href = "login.html";
-        } catch (err) {
-          showError("Gagal terhubung ke server. Coba lagi.");
-        } finally {
-          btnSubmit.disabled = false;
-          btnSubmit.textContent = "DAFTAR";
-        }
-      });
-
-      document.getElementById("googleRegisterBtn").addEventListener("click", () => {
-        window.location.href = `${BASE_URL}/google.php`;
-      });
-    </script>
+  document.getElementById("googleRegisterBtn").addEventListener("click", () => {
+    window.location.href = `${BASE_URL}/google.php`;
+  });
+</script>
   </body>
 </html>
