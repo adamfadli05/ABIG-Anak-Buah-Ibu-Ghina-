@@ -23,6 +23,10 @@ $result = pg_query($conn, $sql);
 
 $data = [];
 while ($row = pg_fetch_assoc($result)) {
+    // Skip data yang tidak memiliki koordinat
+    if (empty($row['latitude']) || empty($row['longitude'])) {
+        continue;
+    }
     $data[] = $row;
 }
 

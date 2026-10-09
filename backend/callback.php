@@ -5,6 +5,9 @@ session_start();
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
 
+define('FRONTEND_URL', 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
+define('ERROR_URL', FRONTEND_URL . '/register.html?error=Login+Google+gagal');
+
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
 $client->setRedirectUri(
@@ -13,14 +16,14 @@ $client->setRedirectUri(
 $client->addScope(['openid', 'email', 'profile']);
 
 if (!isset($_GET['code'])) {
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Login+Google+gagal');
+    header('Location: ' . ERROR_URL);
     exit;
 }
 
 $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
 
 if (isset($token['error'])) {
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+mendapatkan+token+Google');
+    header('Location: ' . ERROR_URL);
     exit;
 }
 
@@ -38,7 +41,7 @@ if (
     empty($googleUser->verifiedEmail) ||
     !preg_match('/@gmail\.com$/i', $email)
 ) {
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gunakan+akun+Google+dengan+email+Gmail+yang+terverifikasi');
+    header('Location: ' . ERROR_URL);
     exit;
 }
 
@@ -50,7 +53,7 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+akun');
+    header('Location: ' . ERROR_URL);
     exit;
 }
 
@@ -65,7 +68,7 @@ if (!$user) {
     );
 
     if (!$result) {
-        header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+email+akun');
+        header('Location: ' . ERROR_URL);
         exit;
     }
 
@@ -73,7 +76,7 @@ if (!$user) {
 
     if ($user) {
         if (!empty($user['google_id'])) {
-            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Email+ini+sudah+terhubung+ke+akun+Google+lain');
+            header('Location: ' . ERROR_URL);
             exit;
         }
 
@@ -87,7 +90,7 @@ if (!$user) {
         );
 
         if (!$result) {
-            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+menghubungkan+akun+Google');
+            header('Location: ' . ERROR_URL);
             exit;
         }
 
@@ -104,7 +107,7 @@ if (!$user) {
         );
 
         if (!$result) {
-            header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+menyimpan+akun+Google');
+            header('Location: ' . ERROR_URL);
             exit;
         }
 
@@ -123,7 +126,7 @@ $admin_result = pg_query_params(
 );
 
 if (!$admin_result) {
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/register.html?error=Gagal+memeriksa+role+akun');
+    header('Location: ' . ERROR_URL);
     exit;
 }
 
@@ -136,7 +139,7 @@ if ($admin) {
     $_SESSION['nama'] = $admin['nama'];
     $_SESSION['email'] = $admin['email'];
 
-    header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/admin.html');
+    header('Location: ' . FRONTEND_URL . '/admin.html');
     exit;
 }
 
@@ -148,8 +151,8 @@ $_SESSION['email'] = $user['email'];
 $_SESSION['foto_profil'] = $user['foto_profil'];
 
 $redirect = isset($is_new_user) && $is_new_user
-    ? 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html?success=Registrasi+Google+berhasil'
-    : 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html?success=Login+Google+berhasil';
+    ? FRONTEND_URL . '/index.html?success=Registrasi+Google+berhasil'
+    : FRONTEND_URL . '/index.html?success=Login+Google+berhasil';
 
 header('Location: ' . $redirect);
 exit;

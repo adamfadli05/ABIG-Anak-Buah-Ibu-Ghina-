@@ -35,22 +35,6 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
-if (!preg_match('/@gmail\.com$/i', $email)) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gunakan email Gmail"
-    ]);
-    exit;
-}
-
-if (strlen($password) < 8) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Password minimal 8 karakter"
-    ]);
-    exit;
-}
-
 // Cek Admin
 
 $result = pg_query_params(
