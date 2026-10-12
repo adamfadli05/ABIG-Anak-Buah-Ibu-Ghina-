@@ -7,19 +7,37 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    .map-banner {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    #map {
+      width: 100%;
+      height: 280px !important;
+      border-radius: 16px;
+      overflow: hidden !important;
+      position: relative;
+      background-color: #e0e0e0;
+    }
+  </style>
 </head>
 <body>
   <div id="navbar-container"></div>
+  
   <main class="page-container">
     <p class="page-caption">Kuliner Khas Cirebon</p>
 
+    <!-- Section Google Maps (AC 1-3) -->
     <section class="map-banner" aria-label="Peta kuliner">
-      <div class="map-placeholder">
-        <span>Foto</span>
-        <span>Peta</span>
+      <div id="map"></div>
+      <div id="mapError" style="display: none; padding: 15px; text-align: center; background: #fee2e2; color: #dc2626; border-radius: 16px; margin-top: 10px; font-weight: 500;">
+        Peta gagal dimuat. Silakan periksa koneksi internet Anda.
       </div>
     </section>
 
+    <!-- Section Pencarian -->
     <section class="search-section" aria-label="Cari kuliner">
       <div class="search-box">
         <span class="search-icon" aria-hidden="true">⌕</span>
@@ -27,6 +45,7 @@
       </div>
     </section>
 
+    <!-- Section Kategori (AC 1-3) -->
     <section class="category-section" aria-label="Kategori makanan">
       <div class="category-list" id="categoryList">
         <button class="category-btn active" data-category="semua">semua</button>
@@ -36,12 +55,153 @@
       </div>
     </section>
 
+    <!-- Grid Tempat Kuliner & Pesan Kosong (AC 2) -->
     <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner"></section>
-    <p id="emptyMessage" class="empty-message" hidden>Kuliner tidak ditemukan.</p>
+    <p id="emptyMessage" class="empty-message" style="display: none; text-align: center; padding: 20px; color: #666;">Kuliner untuk kategori ini belum tersedia.</p>
   </main>
 
   <script src="js/navbar.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+
+  <script>
+    const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+    let map;
+    let markers = [];
+
+    // 1. Integrasi Google Maps & Marker Lokasi
+    function initMap() {
+      try {
+        const cirebon = { lat: -6.732, lng: 108.552 }; 
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 12,
+          center: cirebon,
+          disableDefaultUI: true,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_TOP
+          },
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            position: google.maps.ControlPosition.LEFT_TOP
+          }
+        });
+
+        loadKulinerMarkers();
+      } catch (error) {
+        console.error("Error initMap:", error);
+        handleMapError();
+      }
+    }
+
+    async function loadKulinerMarkers() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/tempat_kuliner.php`);
+        const result = await res.json();
+
+        if (result.status && result.data && result.data.length > 0) {
+          const infoWindow = new google.maps.InfoWindow();
+
+          result.data.forEach((item) => {
+            const lat = parseFloat(item.latitude);
+            const lng = parseFloat(item.longitude);
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+              const marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: map,
+                title: item.nama_tempat || item.nama_kuliner
+              });
+
+              marker.addListener("click", () => {
+                infoWindow.setContent(`
+                  <div style="padding: 8px; max-width: 200px; color: #333;">
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px; color: #001b7d;">${item.nama_tempat}</h4>
+                    <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 600;">Menu: ${item.nama_kuliner}</p>
+                    <p style="margin: 0 0 4px 0; font-size: 11px; color: #555;">${item.alamat}</p>
+                    <p style="margin: 0; font-size: 11px; color: #28a745; font-weight: 600;">Rp ${parseInt(item.harga).toLocaleString('id-ID')}</p>
+                  </div>
+                `);
+                infoWindow.open(map, marker);
+              });
+
+              markers.push(marker);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Gagal memuat titik lokasi kuliner:", err);
+      }
+    }
+
+    function handleMapError() {
+      const mapContainer = document.getElementById("map");
+      const mapError = document.getElementById("mapError");
+
+      if (mapContainer) mapContainer.style.display = "none";
+      if (mapError) mapError.style.display = "block";
+    }
+
+    // 2. Alur Filter Kategori Kuliner
+    document.addEventListener("DOMContentLoaded", () => {
+      const categoryBtns = document.querySelectorAll(".category-btn");
+      
+      // Load data default saat pertama dibuka
+      filterKuliner("semua");
+
+      categoryBtns.forEach(btn => {
+        btn.addEventListener("click", function() {
+          categoryBtns.forEach(b => b.classList.remove("active"));
+          this.classList.add("active");
+
+          const selectedCategory = this.getAttribute("data-category");
+          filterKuliner(selectedCategory);
+        });
+      });
+    });
+
+    async function filterKuliner(kategori) {
+      const foodGrid = document.getElementById("foodGrid");
+      const emptyMessage = document.getElementById("emptyMessage");
+
+      try {
+        let url = `${BASE_URL}/api/tempat_kuliner.php`;
+        if (kategori && kategori !== "semua") {
+          url += `?kategori=${encodeURIComponent(kategori)}`;
+        }
+
+        const res = await fetch(url);
+        const result = await res.json();
+
+        if (result.status && result.data && result.data.length > 0) {
+          emptyMessage.style.display = "none";
+          foodGrid.style.display = "grid";
+          
+          foodGrid.innerHTML = result.data.map(item => `
+            <div class="food-card">
+              <img src="${item.foto_tempat || 'https://via.placeholder.com/300'}" alt="${item.nama_kuliner}">
+              <h3>${item.nama_kuliner}</h3>
+              <p>${item.nama_tempat}</p>
+              <span>Rp ${parseInt(item.harga).toLocaleString('id-ID')}</span>
+            </div>
+          `).join("");
+        } else {
+          // AC 2: Menampilkan pesan jika kategori tidak tersedia (misal: minuman)
+          foodGrid.style.display = "none";
+          emptyMessage.style.display = "block";
+        }
+      } catch (err) {
+        console.error("Gagal memfilter kuliner:", err);
+      }
+    }
+  </script>
+
+  <script 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMf_5rwK4D5TswcEAqEEGTc-YfeQsVoTA&callback=initMap" 
+    async 
+    defer 
+    onerror="handleMapError()">
+  </script>
 </body>
 </html>
