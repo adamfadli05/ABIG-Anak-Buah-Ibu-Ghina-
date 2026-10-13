@@ -6,7 +6,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
 
 define('FRONTEND_URL', 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
-define('ERROR_URL', FRONTEND_URL . '/register.html?error=Login+Google+gagal');
+define('ERROR_URL', FRONTEND_URL . '/login.html?google=failed');
 
 $client = new Google\Client();
 $client->setAuthConfig(__DIR__ . '/client_secret.json');
@@ -151,8 +151,8 @@ $_SESSION['email'] = $user['email'];
 $_SESSION['foto_profil'] = $user['foto_profil'];
 
 $redirect = isset($is_new_user) && $is_new_user
-    ? FRONTEND_URL . '/index.html?success=Registrasi+Google+berhasil'
-    : FRONTEND_URL . '/index.html?success=Login+Google+berhasil';
+    ? FRONTEND_URL . '/index.html?google=success&type=register'
+    : FRONTEND_URL . '/index.html?google=success&type=login';
 
 header('Location: ' . $redirect);
 exit;
