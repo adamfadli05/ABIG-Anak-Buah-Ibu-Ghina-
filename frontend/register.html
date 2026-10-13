@@ -48,7 +48,7 @@
           <label>KATA SANDI :</label>
           <div class="input-wrapper">
             <iconify-icon icon="boxicons:key-alt-filled" class="input-icon key-icon"></iconify-icon>
-            <input type="password" id="passwordInput" placeholder="Buat Kata Sandi Anda" />
+            <input type="password" id="passwordInput" placeholder="Masukan Kata Sandi Anda" />
             <iconify-icon icon="codicon:eye-closed" class="toggle-password"></iconify-icon>
           </div>
         </div>
@@ -85,7 +85,7 @@
       <div class="modal-card">
         <div class="modal-icon" id="modalIcon"></div>
         <p class="modal-message" id="modalMessage"></p>
-        <a href="#" class="modal-link-action" id="modalActionBtn">Oke</a>
+        <a href="#" class="modal-btn-retry" id="modalRetryBtn" style="display: none">Coba lagi</a>
       </div>
     </div>
 
@@ -97,24 +97,8 @@
       const responseModal = document.getElementById("responseModal");
       const modalIcon = document.getElementById("modalIcon");
       const modalMessage = document.getElementById("modalMessage");
-      const modalActionBtn = document.getElementById("modalActionBtn");
+      const modalRetryBtn = document.getElementById("modalRetryBtn");
       const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-
-      let isRegisterSuccess = false;
-
-      // ==========================================
-      // TAMBAHAN: Cek status dari URL (untuk Google Login Callback)
-      // ==========================================
-      window.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const googleStatus = urlParams.get("google");
-
-        if (googleStatus === "success") {
-          showPopupModal(true, "Masuk dengan Google berhasil", true);
-        } else if (googleStatus === "failed") {
-          showPopupModal(false, "Masuk dengan Google gagal,<br>silahkan coba lagi", true);
-        }
-      });
 
       // Toggle Password Buka / Tutup
       document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
@@ -131,42 +115,35 @@
       });
 
       function showError(message) {
-        const errorBanner = document.getElementById("errorBanner");
-        if (errorBanner) {
-          errorBanner.innerHTML = message;
-          errorBanner.style.display = "block";
-        }
+        errorBanner.textContent = message;
+        errorBanner.style.display = "block";
       }
 
-      function showPopupModal(isSuccess, messageText = "", isGoogle = false) {
-        isRegisterSuccess = isSuccess; // Simpan status sukses/gagal
-
+      function showPopupModal(isSuccess, isGoogle = false) {
         if (isSuccess) {
           modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 39px;"></iconify-icon>`;
-          modalMessage.textContent = messageText || (isGoogle ? "Masuk dengan Google berhasil" : "Anda Berhasil mendaftar");
-          modalActionBtn.textContent = "Oke";
+          modalMessage.textContent = isGoogle ? "Masuk dengan Google berhasil" : "Anda Berhasil mendaftar";
+          modalRetryBtn.style.display = "none";
         } else {
           modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color: #ea3829; font-size: 39px;"></iconify-icon>`;
-          modalMessage.innerHTML = messageText || (isGoogle ? "Masuk dengan Google gagal,<br>silahkan coba lagi" : "Anda Gagal mendaftar,<br>silahkan coba lagi");
-          modalActionBtn.textContent = "Coba lagi";
+          modalMessage.innerHTML = isGoogle ? "Masuk dengan Google gagal,<br>silahkan coba lagi" : "Anda Gagal mendaftar,<br>silahkan coba lagi";
+          modalRetryBtn.style.display = "inline-block";
         }
 
         if (themeColorMeta) {
-          themeColorMeta.setAttribute("content", "#d9d9d9");
+          themeColorMeta.setAttribute("content", "#a3a3a3");
         }
-        responseModal.style.display = "flex"; // Memunculkan pop-up
+
+        responseModal.style.display = "flex";
       }
 
-      modalActionBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        responseModal.style.display = "none"; // Tutup pop-up HANYA KETIKA DIKLIK
+      // CEK STATUS LOGIN GOOGLE DARI URL
+      window.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleStatus = urlParams.get("google");
 
-        if (themeColorMeta) {
-          themeColorMeta.setAttribute("content", "#001b7d");
-        }
-        // Pindah halaman ke login HANYA jika statusnya sukses dan yang diklik "Oke"
-        if (isRegisterSuccess) {
-          window.location.href = "login.html";
+        if (googleStatus === "failed") {
+          showPopupModal(false, true);
         }
       });
 
@@ -204,13 +181,13 @@
 
         if (!email.toLowerCase().endsWith("@gmail.com")) {
           emailInput.closest(".input-wrapper").classList.add("error");
-          showError("Gunakan email yang <br> berakhiran @gmail.com");
+          showError("Gunakan email yang berakhiran @gmail.com");
           return;
         }
 
         if (password.length < 8) {
           passwordInput.closest(".input-wrapper").classList.add("error");
-          showError("Kata sandi minimal<br>8 karakter");
+          showError("Kata sandi harus minimal 8 karakter");
           return;
         }
 
@@ -237,13 +214,17 @@
               emailInput.closest(".input-wrapper").classList.add("error");
               showError("Email sudah terdaftar");
             } else {
-              showPopupModal(false, data.message || "Pendaftaran gagal,<br>silahkan coba lagi");
+              showPopupModal(false);
             }
             return;
           }
-          showPopupModal(true, "Pendaftaran Berhasil");
+
+          showPopupModal(true);
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
         } catch (err) {
-          showPopupModal(false, "Terjadi kesalahan koneksi ke server");
+          showPopupModal(false);
         } finally {
           btnSubmit.disabled = false;
           btnSubmit.textContent = "DAFTAR";

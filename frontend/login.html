@@ -91,6 +91,25 @@
       const modalIcon = document.getElementById("modalIcon");
       const modalMessage = document.getElementById("modalMessage");
       const modalRetryBtn = document.getElementById("modalRetryBtn");
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+      // ==========================================
+      // CEK STATUS LOGIN GOOGLE DARI URL
+      // ==========================================
+      window.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleStatus = urlParams.get("google");
+        const role = urlParams.get("role");
+
+        if (googleStatus === "success") {
+          showPopupModal(true, "Masuk dengan Google berhasil");
+          setTimeout(() => {
+            window.location.href = role === "admin" ? "admin.html" : "index.html";
+          }, 1200);
+        } else if (googleStatus === "failed") {
+          showPopupModal(false, "Masuk dengan Google gagal,<br>silahkan coba lagi");
+        }
+      });
 
       // Toggle Password (codicon:eye)
       document.querySelectorAll(".toggle-password").forEach((toggleIcon) => {
@@ -112,23 +131,24 @@
         errorBanner.style.display = "block"; // Memastikan elemen muncul
       }
 
-      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-      function showPopupModal(isSuccess) {
+      // MODIFIKASI: Tambahkan parameter customMessage agar teks bisa disesuaikan
+      function showPopupModal(isSuccess, customMessage = null) {
         if (isSuccess) {
           modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 39px;"></iconify-icon>`;
-          modalMessage.textContent = "Anda Berhasil masuk";
+          modalMessage.innerHTML = customMessage ? customMessage : "Anda Berhasil masuk";
           modalRetryBtn.style.display = "none";
         } else {
           modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color: #ea3829; font-size: 39px;"></iconify-icon>`;
-          // Menambahkan <br> setelah koma agar teks berpindah ke baris baru
-          modalMessage.innerHTML = "Anda Gagal masuk,<br>silahkan coba lagi";
+          modalMessage.innerHTML = customMessage ? customMessage : "Anda Gagal masuk,<br>silahkan coba lagi";
           modalRetryBtn.style.display = "inline-block";
         }
+
         if (themeColorMeta) {
           themeColorMeta.setAttribute("content", "#d9d9d9");
         }
         responseModal.style.display = "flex";
       }
+
       modalRetryBtn.addEventListener("click", (e) => {
         e.preventDefault();
         responseModal.style.display = "none";
@@ -137,6 +157,9 @@
         if (themeColorMeta) {
           themeColorMeta.setAttribute("content", "#001b7d");
         }
+
+        // Hapus parameter error di URL agar pesan tidak muncul terus jika direfresh
+        window.history.replaceState(null, null, window.location.pathname);
       });
 
       loginForm.addEventListener("submit", async (e) => {
@@ -172,8 +195,8 @@
 
         // 2. Validasi Format Email (@gmail.com)
         if (!email.toLowerCase().endsWith("@gmail.com")) {
-          emailInput.closest(".input-wrapper").classList.add("error"); // Kotak input jadi merah
-          showError("Gunakan email yang berakhiran @gmail.com"); // Banner pesan merah muncul
+          emailInput.closest(".input-wrapper").classList.add("error");
+          showError("Gunakan email yang berakhiran @gmail.com");
           return;
         }
 
@@ -190,14 +213,14 @@
           const data = await res.json();
 
           if (!data.status) {
-            showPopupModal(false);
+            showPopupModal(false); // Memunculkan "Anda Gagal masuk..."
             return;
           }
 
           localStorage.setItem("user", JSON.stringify(data.data));
           localStorage.setItem("role", data.role);
 
-          showPopupModal(true);
+          showPopupModal(true); // Memunculkan "Anda Berhasil masuk"
 
           setTimeout(() => {
             if (data.role === "admin") {
