@@ -266,6 +266,34 @@ input {
   box-shadow: 0 2px 4px #00000016;
   border-bottom: 3px solid var(--primary);
 }
+/* Styling Tombol Toggle Filter NavBar */
+.nav-icon-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.nav-icon-btn iconify-icon {
+  pointer-events: none; /* Cegah icon menghalangi klik pada tombol */
+}
+
+/* Dropdown Menu Samping */
+.nav-dropdown-horizontal {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Tampilkan saat tombol dipencet (Class .show) */
+.nav-dropdown-horizontal.show {
+  display: flex !important;
+  opacity: 1 !important;
+}
 
 .food-photo {
   width: 100%;

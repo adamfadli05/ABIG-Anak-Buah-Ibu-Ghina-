@@ -5,32 +5,36 @@
   </a>
 
   <nav class="nav-actions" aria-label="Menu pengguna">
-    <div class="nav-dropdown-wrapper">
-      <!-- Tombol Toggle Filter/Menu -->
-      <button type="button" class="nav-icon-btn" id="navMenuToggle" aria-label="Buka menu" aria-expanded="false">
-        <iconify-icon icon="hugeicons:filter-horizontal" width="24" height="24"></iconify-icon>
-      </button>
-
-      <!-- Dropdown Menu Ke Samping (Horizontal) -->
-      <div class="nav-dropdown-horizontal" id="navDropdownMenu">
+    <div class="nav-dropdown-wrapper" style="position: relative; display: flex; align-items: center; gap: 8px; z-index: 9999;">
+      
+      <!-- Kapsul Menu Navigasi Horizontal -->
+      <div class="nav-dropdown-horizontal" id="navDropdownMenu" style="z-index: 10000;">
         <!-- 1. Ikon Ulasan -->
         <a href="reviews.html" class="nav-icon-link" id="reviewButton" title="Ulasan Kuliner" aria-label="Ulasan Kuliner">
           <iconify-icon icon="fluent:notepad-edit-20-filled" width="22" height="22"></iconify-icon>
         </a>
 
-        <!-- 2. Ikon Tersimpan (Bookmark) -->
+        <!-- 2. Ikon Tersimpan -->
         <a href="#" class="nav-icon-link" id="savedButton" title="Kuliner Tersimpan" aria-label="Kuliner Tersimpan">
           <iconify-icon icon="boxicons:bookmark-filled" width="22" height="22"></iconify-icon>
         </a>
 
         <!-- 3. Ikon / Foto Profil -->
         <a href="#" class="nav-icon-link" id="profileButton" title="Profil Pengguna" aria-label="Profil Pengguna">
-          <!-- Dinamis via JS -->
+          <iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>
         </a>
 
-        <!-- 4. Ikon Logout (Tampil jika sudah login) -->
-        <!-- Dinamis via JS -->
+        <!-- 4. Ikon Logout (Bawaan hidden, akan diaktifkan oleh JS jika login) -->
+        <button type="button" id="btnLogout" class="nav-icon-link btn-logout-icon" title="Keluar" aria-label="Keluar" style="display: none; background: transparent; border: none; padding: 0; color: inherit; cursor: pointer;">
+          <iconify-icon icon="basil:logout-solid" width="22" height="22"></iconify-icon>
+        </button>
       </div>
+
+      <!-- Tombol Filter Toggle -->
+      <button type="button" class="nav-icon-btn" id="navMenuToggle" aria-label="Buka menu" style="position: relative; z-index: 10000; cursor: pointer; background: transparent; border: none; padding: 6px; display: flex; align-items: center;">
+        <iconify-icon icon="hugeicons:filter-horizontal" width="24" height="24" style="color: #ffffff; pointer-events: none;"></iconify-icon>
+      </button>
+
     </div>
   </nav>
 </header>
