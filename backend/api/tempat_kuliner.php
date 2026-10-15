@@ -21,6 +21,14 @@ ORDER BY tk.id_tempat ASC";
 
 $result = pg_query($conn, $sql);
 
+if (!$result) {
+    echo json_encode([
+        "status" => false,
+        "message" => "Gagal mengambil data kuliner"
+    ]);
+    exit;
+}
+
 $data = [];
 while ($row = pg_fetch_assoc($result)) {
     // Skip data yang tidak memiliki koordinat
