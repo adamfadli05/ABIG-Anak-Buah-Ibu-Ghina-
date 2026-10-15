@@ -37,20 +37,23 @@
       }
       #responseModal .modal-card-custom {
         background: #ffffff !important;
+        width: 339px !important;
+        height: 185px !important;
         border-radius: 20px !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
         display: flex !important;
         flex-direction: column !important;
+        justify-content: space-between !important;
         align-items: center !important;
         padding: 24px 24px 16px 24px !important;
-        min-width: 280px !important;
-        max-width: 320px !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
       }
+
       #responseModal .modal-text {
         font-family: "Inter", sans-serif !important;
         font-size: 16px !important;
-        font-weight: 500 !important;
+        font-weight: 400 !important;
         text-align: center !important;
         color: #001b7d !important;
         margin: 12px 0 16px 0 !important;
@@ -66,7 +69,7 @@
         color: #001b7d !important;
         font-family: "Inter", sans-serif !important;
         font-size: 14px !important;
-        font-weight: bold !important;
+        font-weight: 400 !important;
         text-decoration: underline !important;
         cursor: pointer !important;
       }
@@ -80,7 +83,7 @@
         padding: 8px 16px !important;
         font-family: "Inter", sans-serif !important;
         font-size: 14px !important;
-        font-weight: 500 !important;
+        font-weight: 400 !important;
         cursor: pointer !important;
         transition: opacity 0.2s ease !important;
       }
@@ -122,7 +125,7 @@
     </div>
 
     <main class="page-container">
-      <p class="page-caption" style="text-align: center; color: #666; margin-bottom: 12px;">Kuliner Khas Cirebon</p>
+      <p class="page-caption" style="text-align: center; color: #666; margin-bottom: 12px">Kuliner Khas Cirebon</p>
 
       <!-- Google Maps -->
       <section class="map-banner" aria-label="Peta kuliner">
@@ -214,7 +217,7 @@
               content.style.color = "#333";
               content.innerHTML = `
                 <h4 style="margin:0 0 4px;font-size:14px;color:#001b7d">${item.nama_tempat || "Tempat kuliner"}</h4>
-                <p style="margin:0 0 4px;font-size:12px;font-weight:600">Menu: ${item.nama_kuliner || "-"}</p>
+                <p style="margin:0 0 4px;font-size:12px;font-weight:400">Menu: ${item.nama_kuliner || "-"}</p>
                 <p style="margin:0 0 4px;font-size:11px;color:#555">${item.alamat || "-"}</p>
               `;
               infoWindow.setContent(content);
@@ -233,16 +236,43 @@
         const emptyMessage = document.getElementById("emptyMessage");
         if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
         try {
-          const response = await fetch(`${BASE_URL}/api/tempat_kuliner.php`);
-          if (!response.ok) throw new Error("Gagal mengambil data kuliner.");
-          const result = await response.json();
-          if (!result.status || !Array.isArray(result.data)) throw new Error("Format data kuliner tidak sesuai.");
-          window.allKuliner = result.data;
+          // Mengambil data dari kedua endpoint secara bersamaan
+          const [resTempat, resKuliner] = await Promise.all([fetch(`${BASE_URL}/api/tempat_kuliner.php`), fetch(`${BASE_URL}/api/kuliner.php`)]);
+
+          if (!resTempat.ok || !resKuliner.ok) throw new Error("Gagal mengambil data dari server.");
+
+          const jsonTempat = await resTempat.json();
+          const jsonKuliner = await resKuliner.json();
+
+          if (!jsonTempat.status || !Array.isArray(jsonTempat.data)) throw new Error("Format data tempat kuliner tidak sesuai.");
+          if (!jsonKuliner.status || !Array.isArray(jsonKuliner.data)) throw new Error("Format data kuliner tidak sesuai.");
+
+          // Membuat map untuk data kuliner berdasarkan id_kuliner agar mudah digabungkan
+          const kulinerMap = new Map();
+          jsonKuliner.data.forEach((k) => {
+            kulinerMap.set(String(k.id_kuliner), k);
+          });
+
+          window.allKuliner = jsonTempat.data.map((item) => {
+            const detailKuliner = kulinerMap.get(String(item.id_kuliner)) || {};
+            return {
+              ...item,
+              deskripsi: detailKuliner.deskripsi || "",
+              foto: detailKuliner.foto || "", // Murni menggunakan foto dari kuliner.php
+            };
+          });
+
           renderKuliner();
         } catch (error) {
           console.error("Gagal memuat data kuliner:", error);
-          if (foodGrid) { foodGrid.innerHTML = ""; foodGrid.style.display = "none"; }
-          if (emptyMessage) { emptyMessage.textContent = "Data kuliner gagal dimuat. Periksa koneksi backend."; emptyMessage.style.display = "block"; }
+          if (foodGrid) {
+            foodGrid.innerHTML = "";
+            foodGrid.style.display = "none";
+          }
+          if (emptyMessage) {
+            emptyMessage.textContent = "Data kuliner gagal dimuat. Periksa koneksi backend.";
+            emptyMessage.style.display = "block";
+          }
         } finally {
           if (foodGrid) foodGrid.setAttribute("aria-busy", "false");
         }
@@ -260,39 +290,63 @@
           const name = String(item.nama_kuliner || "").toLocaleLowerCase("id-ID");
           const place = String(item.nama_tempat || "").toLocaleLowerCase("id-ID");
           const address = String(item.alamat || "").toLocaleLowerCase("id-ID");
+          const description = String(item.deskripsi || "").toLocaleLowerCase("id-ID");
+
           const matchesCategory = window.selectedCategory === "semua" || category === window.selectedCategory;
-          const matchesSearch = !keyword || name.includes(keyword) || place.includes(keyword) || address.includes(keyword);
+          const matchesSearch = !keyword || name.includes(keyword) || place.includes(keyword) || address.includes(keyword) || description.includes(keyword);
           return matchesCategory && matchesSearch;
         });
 
         if (filteredKuliner.length === 0) {
           foodGrid.innerHTML = "";
           foodGrid.style.display = "none";
-          if (emptyMessage) { emptyMessage.textContent = "Kuliner untuk pencarian atau kategori ini belum tersedia."; emptyMessage.style.display = "block"; }
+          if (emptyMessage) {
+            emptyMessage.textContent = "Kuliner untuk pencarian atau kategori ini belum tersedia.";
+            emptyMessage.style.display = "block";
+          }
           return;
         }
 
         if (emptyMessage) emptyMessage.style.display = "none";
         foodGrid.style.display = "grid";
-        foodGrid.innerHTML = filteredKuliner.map((item) => {
-          const name = escapeHTML(item.nama_kuliner || "Nama kuliner");
-          const place = escapeHTML(item.nama_tempat || "Lokasi belum tersedia");
-          const address = escapeHTML(item.alamat || "Alamat belum tersedia");
-          const numericPrice = Number(item.harga);
-          const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
-          const photo = getSafePhoto(item.foto_tempat);
-          return `
+        foodGrid.innerHTML = filteredKuliner
+          .map((item) => {
+            const name = escapeHTML(item.nama_kuliner || "Nama kuliner");
+            const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
+            const address = escapeHTML(item.alamat || "Alamat belum tersedia");
+            const description = escapeHTML(item.deskripsi || "");
+
+            // Mengambil harga spesifik per tempat
+            const numericPrice = Number(item.harga);
+            const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
+
+            // Mengambil foto yang sudah digabung
+            const photo = getSafePhoto(item.foto);
+
+            return `
             <article class="food-card">
               <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
               <h3 class="food-name">${name}</h3>
+              ${
+                description
+                  ? `<p class="food-description" style="font-size: 8px; color: #666; margin: 0 0 4px 0; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${description}</p>`
+                  : ""
+              }
               <div class="food-location">
                 <iconify-icon icon="lucide:map-pin" aria-hidden="true"></iconify-icon>
                 <span>${place} — ${address}</span>
               </div>
-              <div class="food-meta"><span>Rp ${price}</span></div>
+              <div class="food-meta">
+                <span>Rp ${price}</span>
+                <div style="display: flex; align-items: center; gap: 2px;">
+                  <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 14px;"></iconify-icon>
+                  <span style="font-weight: 900; font-size: 10px;">3.5</span>
+                </div>
+              </div>
             </article>
           `;
-        }).join("");
+          })
+          .join("");
       }
 
       function escapeHTML(value) {
@@ -318,11 +372,17 @@
         if (!modal || !modalIcon || !modalMessage) return;
 
         if (isSuccess) {
-          modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color:#28a745;font-size:39px;"></iconify-icon>`;
+          modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color:#28a745;font-size:39px; margin-bottom: 8px;"></iconify-icon>`;
         } else {
-          modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color:#ea3829;font-size:39px;"></iconify-icon>`;
+          modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color:#ea3829;font-size:39px; margin-bottom: 8px;"></iconify-icon>`;
         }
-        modalMessage.textContent = message || (isSuccess ? "Berhasil" : "Gagal, silahkan coba lagi");
+
+        modalMessage.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+            <span style="color: #001b7d; font-family: 'Inter'; font-weight: 400; font-size: 16px; text-align: center; margin: 0;">${message || (isSuccess ? "Berhasil" : "Gagal, silahkan coba lagi")}</span>
+          </div>
+        `;
+
         if (mapEl) mapEl.style.visibility = "hidden";
         modal.classList.add("show");
       }
@@ -338,25 +398,29 @@
         if (googleStatus === "success") {
           if (userDataRaw) {
             try {
-              let str = userDataRaw;
+              let decodedData = userDataRaw;
               for (let i = 0; i < 3; i++) {
-                if (str.includes("%")) str = decodeURIComponent(str);
+                if (decodedData.includes("%")) decodedData = decodeURIComponent(decodedData);
               }
-              const userObj = (typeof str === "object") ? str : JSON.parse(str);
+              const userObj = typeof decodedData === "string" ? JSON.parse(decodedData) : decodedData;
               localStorage.setItem("user", JSON.stringify(userObj));
               localStorage.setItem("role", role);
             } catch (e) {
-              console.error("Gagal simpan akun Google:", e);
+              console.error("Gagal simpan session Google:", e);
+              localStorage.setItem("user", JSON.stringify({ name: "Google User" }));
+              localStorage.setItem("role", role);
             }
+          } else {
+            localStorage.setItem("user", JSON.stringify({ name: "Google User" }));
+            localStorage.setItem("role", role);
           }
 
+          // Segera perbarui state navbar agar tombol logout langsung muncul
           if (typeof window.initNavbarState === "function") {
-            await window.initNavbarState();
+            window.initNavbarState();
           }
 
-          const pesan = googleType === "register"
-            ? "Pendaftaran dengan Google berhasil"
-            : "Masuk dengan Google berhasil";
+          const pesan = googleType === "register" ? "Pendaftaran dengan Google berhasil" : "Masuk dengan Google berhasil";
 
           showPopupModal(true, pesan);
           window.history.replaceState(null, null, window.location.pathname);
@@ -378,7 +442,9 @@
         });
 
         if (searchInput) {
-          searchInput.addEventListener("input", () => { renderKuliner(); });
+          searchInput.addEventListener("input", () => {
+            renderKuliner();
+          });
         }
 
         if (modalCloseBtn) {

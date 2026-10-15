@@ -4,7 +4,7 @@
   --input-bg: #d9d9d9;
   --font-title: "Instrument Serif";
   --font-body: "Inter";
-  --error-bg: #E33629;
+  --error-bg: #e33629;
 }
 
 * {
@@ -14,7 +14,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #f4f6f9;
+  background-color: #ffffff;
   font-family: var(--font-body);
   display: flex;
   justify-content: center;
@@ -278,7 +278,7 @@ input::-ms-clear {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: rgba(217, 217, 217, 0.7);
+  background: rgba(217, 217, 217, 0.7) !important;
   display: none;
   align-items: center;
   justify-content: center;

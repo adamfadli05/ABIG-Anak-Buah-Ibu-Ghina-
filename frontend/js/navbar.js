@@ -1,92 +1,111 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
   const navbarContainer = document.getElementById("navbar-container");
 
-  // 1. FETCH & INJECT NAVBAR.HTML
-  if (navbarContainer) {
-    try {
-      const response = await fetch("components/navbar.html");
-      if (response.ok) {
-        navbarContainer.innerHTML = await response.text();
-        await window.initNavbarState();
+  // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
+  if (!document.getElementById("figma-sweetalert-style")) {
+    const styleEl = document.createElement("style");
+    styleEl.id = "figma-sweetalert-style";
+    styleEl.innerHTML = `
+    .swal2-container.swal2-backdrop-show, .swal2-container.swal2-bg {
+        background: rgba(217, 217, 217, 0.7) !important;
       }
-    } catch (error) {
-      console.error("Gagal memuat navbar.html:", error);
-    }
+     .figma-logout-popup {
+        width: 339px !important;
+        height: 185px !important;
+        border-radius: 20px !important;
+        padding: 24px 20px 8px 20px !important;
+        box-sizing: border-box !important;
+        background-color: #ffffff !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+      }
+      .figma-btn-cancel,
+      .figma-btn-confirm {
+        width: 100px !important;
+        height: 35px !important;
+        border-radius: 0px !important;
+        font-weight: 400 !important;
+        font-size: 20px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 6px !important;
+        border: none !important;
+        cursor: pointer !important;
+      }
+      .figma-btn-cancel {
+        background-color: #d3d3d3 !important;
+        color: #001b7d !important;
+      }
+      .figma-btn-confirm {
+        background-color: #001b7d !important;
+        color: #ffffff !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
   }
 
-  // 2. FUNGSI UTAMA RENDER STATUS LOGGED IN / OUT
-  window.initNavbarState = async function () {
-    const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-    let userData = localStorage.getItem("user");
-    let user = null;
+  // 2. FETCH & INJECT NAVBAR.HTML
+  if (navbarContainer) {
+    fetch("components/navbar.html")
+      .then((response) => {
+        if (response.ok) return response.text();
+        throw new Error("Gagal memuat navbar.html");
+      })
+      .then((html) => {
+        navbarContainer.innerHTML = html;
+        window.initNavbarState();
+      })
+      .catch((error) => console.error("Gagal memuat navbar:", error));
+  }
 
-    if (userData) {
-      try {
-        user = JSON.parse(userData);
-        if (typeof user === "string") user = JSON.parse(user);
-      } catch (e) {
-        console.error("Gagal parse localStorage user:", e);
-        user = null;
-      }
-    }
+  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL LOGOUT
+  window.initNavbarState = function () {
+    const userData = localStorage.getItem("user");
+    const userRole = localStorage.getItem("role");
 
-    // FALLBACK: Cek PHP Session jika localStorage belum sempat terisi
-    if (!user) {
-      try {
-        const res = await fetch(`${BASE_URL}/api/me.php`, { credentials: "include" });
-        const data = await res.json();
-        if (data.status && data.data) {
-          user = data.data;
-          localStorage.setItem("user", JSON.stringify(data.data));
-          localStorage.setItem("role", data.role || "user");
-        }
-      } catch (err) {
-        console.log("Cek session backend skip.");
-      }
-    }
-
-    // Cek keberadaan user
-    const isLoggedIn = !!user;
+    const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
 
     const profileButton = document.getElementById("profileButton");
     const btnLogout = document.getElementById("btnLogout");
 
     if (profileButton) {
-      profileButton.title = isLoggedIn ? (user.nama || user.name || "Profil") : "Masuk / Profil";
-
-      const foto = user?.foto_profil || user?.picture || user?.avatar;
-      if (isLoggedIn && foto) {
-        profileButton.innerHTML = `
-          <img src="${foto}" alt="${user.nama || 'Profil'}" 
-               style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; display: block;" 
-               onerror="this.onerror=null; this.outerHTML='<iconify-icon icon=\\'famicons:person\\' width=\\'22\\' height=\\'22\\'></iconify-icon>';" />
-        `;
-      } else {
-        profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
-      }
+      profileButton.title = isLoggedIn ? "Profil" : "Masuk / Profil";
+      profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
     }
 
-    // PAKSA TAMPILKAN TOMBOL LOGOUT JIKA USER TERDAPAT PADA SESSION/LOCALSTORAGE
+    // ==========================================
+    // KONDISI IF-ELSE UTAMA UNTUK TOMBOL LOGOUT
+    // ==========================================
     if (btnLogout) {
       if (isLoggedIn) {
-        btnLogout.style.display = "inline-flex";
+        // SUDAH LOGIN: Tampilkan tombol logout
+        btnLogout.style.setProperty("display", "inline-flex", "important");
       } else {
-        btnLogout.style.display = "none";
+        // BELUM LOGIN: Sembunyikan tombol logout secara mutlak
+        btnLogout.style.setProperty("display", "none", "important");
       }
     }
   };
 
-  // 3. EVENT DELEGATION KLIK NAVBAR
+  // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
+  // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
   document.addEventListener("click", function (event) {
     const navMenuToggle = event.target.closest("#navMenuToggle");
     const navDropdownMenu = document.getElementById("navDropdownMenu");
     const btnLogout = event.target.closest("#btnLogout");
     const profileButton = event.target.closest("#profileButton");
     const savedButton = event.target.closest("#savedButton");
+    const reviewButton = event.target.closest("#reviewButton");
 
+    // Definisikan ulang status login secara konsisten di sini
     const userData = localStorage.getItem("user");
-    const isLoggedIn = !!userData;
+    const userRole = localStorage.getItem("role");
+    const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
 
+    // Toggle Dropdown Menu (Ikon Filter di Kanan)
     if (navMenuToggle) {
       event.preventDefault();
       event.stopPropagation();
@@ -96,23 +115,51 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    if (navDropdownMenu && !navDropdownMenu.contains(event.target)) {
+    // Tutup dropdown jika klik di luar area menu
+    if (navDropdownMenu && navDropdownMenu.classList.contains("show") && !navDropdownMenu.contains(event.target) && !navMenuToggle) {
       navDropdownMenu.classList.remove("show");
     }
 
+    // Proteksi Navigasi Halaman Profil
     if (profileButton) {
       event.preventDefault();
-      window.location.href = isLoggedIn ? "profile.html" : "login.html";
+      if (isLoggedIn) {
+        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa karena halaman belum ada
+        return;
+      } else {
+        // BELUM LOGIN: Arahkan ke halaman login
+        window.location.href = "login.html";
+      }
       return;
     }
 
+    // Proteksi Navigasi Halaman Saved
     if (savedButton) {
       event.preventDefault();
-      window.location.href = isLoggedIn ? "saved.html" : "login.html";
+      if (isLoggedIn) {
+        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa
+        return;
+      } else {
+        // BELUM LOGIN: Arahkan ke halaman login
+        window.location.href = "login.html";
+      }
       return;
     }
 
-    // SWEETALERT POPUP LOGOUT
+    // Proteksi Navigasi Halaman Reviews
+    if (reviewButton) {
+      event.preventDefault();
+      if (isLoggedIn) {
+        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa
+        return;
+      } else {
+        // BELUM LOGIN: Arahkan ke halaman login
+        window.location.href = "login.html";
+      }
+      return;
+    }
+
+    // SWEETALERT POPUP KONFIRMASI LOGOUT
     if (btnLogout) {
       event.preventDefault();
       event.stopPropagation();
@@ -125,33 +172,36 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
 
       Swal.fire({
-        title: '<span style="color: #001b7d; font-weight: 600; font-size: 18px;">Apakah anda yakin<br>ingin keluar ?</span>',
+        title: '<span style="color: #001b7d; font-weight: 400; font-size: 24px; display: inline-block; margin-bottom: 5px;">Apakah anda yakin<br>ingin keluar ?</span>',
         showCancelButton: true,
-        confirmButtonText: 'OKE',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#001b7d',
-        cancelButtonColor: '#d3d3d3',
+        confirmButtonText: "OKE",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#001b7d",
+        cancelButtonColor: "#d3d3d3",
         reverseButtons: true,
+        buttonsStyling: false,
         customClass: {
-          popup: 'figma-logout-popup',
-          confirmButton: 'figma-btn-confirm',
-          cancelButton: 'figma-btn-cancel'
-        }
+          popup: "figma-logout-popup",
+          confirmButton: "figma-btn-confirm",
+          cancelButton: "figma-btn-cancel",
+        },
       }).then((result) => {
         if (result.isConfirmed) {
           Swal.fire({
             html: `
-              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 10px;">
-                <iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 48px; margin-bottom: 12px;"></iconify-icon>
-                <p style="color: #001b7d; font-weight: 600; font-size: 17px; margin: 0 0 15px 0; text-align: center;">Anda berhasil keluar</p>
-                <div style="width: 100%; display: flex; justify-content: flex-end; padding-right: 5px;">
-                  <span id="swalCustomOkeBtn" style="color: #001b7d; font-weight: bold; text-decoration: underline; cursor: pointer; font-size: 14px;">Oke</span>
+           <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; height: 100%; box-sizing: border-box;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-top: 5px;">
+                  <iconify-icon icon="mdi:check-circle" style="color: #319F43; font-size: 38px; margin-bottom: 2px;"></iconify-icon>
+                  <p style="color: #001b7d; font-family: 'Inter'; font-weight: 400; font-size: 24px; margin: 0; text-align: center;">Anda berhasil keluar</p>
+                </div>
+                <div style="width: 100%; display: flex; justify-content: flex-end; margin-top: 15px; padding-right: 0px;">
+                  <button id="swalCustomOkeBtn" style="background: none !important; border: none !important; color: #001b7d !important; font-family: 'Inter' !important; font-size: 18px !important; font-weight: 400 !important; text-decoration: underline !important; cursor: pointer !important; padding: 0px !important;">Oke</button>
                 </div>
               </div>
             `,
             showConfirmButton: false,
             allowOutsideClick: false,
-            customClass: { popup: 'figma-logout-popup' },
+            customClass: { popup: "figma-logout-popup" },
             didOpen: () => {
               const okeBtn = document.getElementById("swalCustomOkeBtn");
               if (okeBtn) {
@@ -160,27 +210,25 @@ document.addEventListener("DOMContentLoaded", async function () {
                   executeLogout();
                 });
               }
-            }
+            },
           });
         }
       });
     }
   });
-
-  async function executeLogout() {
+  // Fungsi Eksekusi Hapus Sesi Logout
+  function executeLogout() {
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.clear();
 
-    try {
-      await fetch("http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/logout.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
+    fetch("http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/logout.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    })
+      .catch((err) => console.error("Logout backend error:", err))
+      .finally(() => {
+        window.location.replace("index.html");
       });
-    } catch (err) {
-      console.error("Gagal terhubung ke backend saat logout:", err);
-    } finally {
-      window.location.replace("index.html");
-    }
   }
 });

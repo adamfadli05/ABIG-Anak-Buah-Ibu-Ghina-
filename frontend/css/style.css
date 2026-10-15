@@ -24,8 +24,12 @@ input {
 }
 
 .navbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
   min-height: 84px;
-  width: 100%;
   background: var(--primary);
   color: white;
   display: flex;
@@ -91,10 +95,13 @@ input {
   gap: 12px;
   align-items: center;
   white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .nav-dropdown-horizontal.show {
-  display: flex;
+  display: flex !important;
+  opacity: 1 !important;
   animation: slideLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -123,6 +130,7 @@ input {
 .nav-icon-btn iconify-icon {
   color: white !important;
   display: inline-block !important;
+  pointer-events: none;
 }
 
 .nav-dropdown-horizontal iconify-icon {
@@ -147,13 +155,14 @@ input {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px 24px 40px;
+  padding-top: 104px !important;
   box-sizing: border-box;
 }
 
 .page-caption {
   text-align: center;
   font-size: 16px;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter";
   color: #000;
   font-weight: 400;
   margin: 0 auto 9px;
@@ -201,7 +210,7 @@ input {
 
 .search-box input::placeholder {
   color: #000;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter";
 }
 
 .category-section {
@@ -229,7 +238,7 @@ input {
   box-shadow: 0 2px 3px #00000020;
   cursor: pointer;
   white-space: nowrap;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter";
   transition: background-color 0.2s ease;
 }
 
@@ -249,89 +258,87 @@ input {
   margin-bottom: 20px;
 }
 
+/* PENGATURAN GRID UTAMA (DESKTOP DEFAULT: 4 KOLOM) */
 .food-grid,
 .card-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  justify-content: center !important;
+  margin-top: 20px !important;
 }
 
+/* UKURAN CARD KHUSUS DESKTOP */
+/* Mengatur ukuran card agar proporsional */
 .food-card {
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid #d3d7e2;
-  border-radius: 7px;
-  background: #fff;
-  box-shadow: 0 2px 4px #00000016;
+  width: 100% !important;
+  max-width: 240px !important;
+  min-height: 270px !important;
+  padding: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #d4d4d4 !important;
+  box-shadow: 0px 4px 4px #001b7d !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 auto !important;
   border-bottom: 3px solid var(--primary);
 }
-/* Styling Tombol Toggle Filter NavBar */
-.nav-icon-btn {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-}
 
-.nav-icon-btn iconify-icon {
-  pointer-events: none; /* Cegah icon menghalangi klik pada tombol */
-}
-
-/* Dropdown Menu Samping */
-.nav-dropdown-horizontal {
-  display: none;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-/* Tampilkan saat tombol dipencet (Class .show) */
-.nav-dropdown-horizontal.show {
-  display: flex !important;
-  opacity: 1 !important;
-}
-
+/* Mengatur foto agar mengikuti lebar card dengan tinggi yang pas dan tidak gepeng */
 .food-photo {
-  width: 100%;
-  height: clamp(100px, 15vw, 190px);
-  background: var(--placeholder);
-  object-fit: cover;
-  display: block;
-  margin-bottom: 7px;
+  width: 100% !important;
+  height: 135px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+  margin: 0 0 10px 0 !important;
+  display: block !important;
 }
 
 .food-name {
-  margin: 0 0 4px;
-  font-size: clamp(13px, 1.2vw, 17px);
-  font-weight: 500;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+  text-align: left !important;
+  color: #000000 !important;
+  margin: 0 0 6px 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .food-location {
-  display: flex;
-  align-items: flex-start;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 9px;
-  line-height: 1.35;
-  min-height: 30px;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+  color: #555555 !important;
+  font-size: 10px !important;
+  line-height: 14px !important;
+  min-height: 28px !important;
+  margin-bottom: 8px !important;
+}
+
+.food-location iconify-icon {
+  font-size: 12px !important;
+  color: #938f99 !important;
+  flex-shrink: 0 !important;
+  margin-top: 1px;
 }
 
 .food-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-top: 5px;
-  font-size: 12px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: auto !important;
+  font-family: "Inter", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
 }
 
-/* TAMPILAN TABLET*/
-
+/* TAMPILAN TABLET */
 @media (max-width: 768px) {
   .page-container {
     max-width: 100%;
@@ -347,8 +354,14 @@ input {
 
   .food-grid,
   .card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+
+  .food-card {
+    max-width: none !important;
+    min-height: auto !important;
   }
 
   .food-photo {
@@ -360,10 +373,14 @@ input {
   }
 }
 
-/* 10. MOBILE / HP */
-
+/* MOBILE / HP (PAS 2 KOLOM) */
 @media (max-width: 480px) {
   .navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
     min-height: 72px;
     padding: 12px 16px;
     gap: 12px;
@@ -420,35 +437,49 @@ input {
     margin-bottom: 14px;
   }
 
-  .food-grid,
-  .card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-  }
+  @media (max-width: 480px) {
+    /* Pengaturan grid 2 kolom di mobile */
+    .food-grid,
+    .card-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+      padding: 0 12px !important;
+    }
 
-  .food-card {
-    padding: 8px;
-  }
+    /* Ukuran card mobile agar pas menampung foto 145px */
+    .food-card {
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 220px !important;
+      padding: 8px !important;
+      margin: 0 !important;
+    }
 
-  .food-photo {
-    height: clamp(100px, 28vw, 145px);
-    margin-bottom: 7px;
-  }
+    /* Ukuran foto persis sesuai permintaan Figma (145x107px) */
+    .food-photo {
+      width: 145px !important;
+      height: 120px !important;
+      max-width: 100% !important;
+      object-fit: cover !important;
+      border-radius: 4px !important;
+      margin: 0 auto 8px auto !important;
+      display: block !important;
+    }
 
-  .food-name {
-    font-size: 13px;
-  }
+    .food-name {
+      font-size: 11px !important;
+      line-height: 14px !important;
+    }
 
-  .food-location {
-    font-size: 9px;
-    min-height: 30px;
-  }
+    .food-location {
+      font-size: 8px !important;
+      min-height: 22px !important;
+    }
 
-  .food-meta {
-    font-size: 11px;
-    gap: 5px;
-    flex-wrap: wrap;
+    .food-meta {
+      font-size: 11px !important;
+    }
   }
 
   .nav-dropdown-horizontal {
@@ -458,43 +489,40 @@ input {
   }
 }
 
-/*HP KECIL  */
+/* HP KECIL */
+.page-container {
+  padding-top: 88px !important; /* Sesuaikan jarak atas untuk layar HP */
+}
 
-@media (max-width: 360px) {
-  .page-container {
-    padding: 10px;
-  }
+.navbar {
+  padding: 10px 12px;
+}
 
-  .navbar {
-    padding: 10px 12px;
-  }
+.brand {
+  font-size: 22px;
+}
 
-  .brand {
-    font-size: 22px;
-  }
+.brand span:last-child {
+  font-size: 19px;
+}
 
-  .brand span:last-child {
-    font-size: 19px;
-  }
+.nav-actions {
+  gap: 8px;
+}
 
-  .nav-actions {
-    gap: 8px;
-  }
+.food-grid,
+.card-grid {
+  gap: 8px !important;
+}
 
-  .food-grid,
-  .card-grid {
-    gap: 8px;
-  }
+.food-card {
+  padding: 6px !important;
+}
 
-  .food-card {
-    padding: 6px;
-  }
+.food-photo {
+  height: 95px !important;
+}
 
-  .food-photo {
-    height: 100px;
-  }
-
-  .food-name {
-    font-size: 12px;
-  }
+.food-name {
+  font-size: 10px !important;
 }
