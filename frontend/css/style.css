@@ -1,5 +1,6 @@
 :root {
   --primary: #001b7d;
+  --navy-dark: #001258;
   --border: #d9dce5;
   --text: #34343a;
   --muted: #6c6c73;
@@ -14,15 +15,16 @@ body {
   margin: 0;
   background: #fffffff0;
   color: var(--text);
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   font-size: 14px;
 }
 
 button,
 input {
-  font: "inter";
+  font-family: "Inter", sans-serif;
 }
 
+/* NAVBAR */
 .navbar {
   position: fixed !important;
   top: 0 !important;
@@ -45,7 +47,7 @@ input {
   gap: 3px;
   color: white;
   text-decoration: none;
-  font-family: "Instrument Serif";
+  font-family: "Instrument Serif", serif;
   font-size: 26px;
   font-weight: 400;
   line-height: 1.05;
@@ -119,7 +121,6 @@ input {
     opacity: 0;
     transform: translate(10px, -50%);
   }
-
   to {
     opacity: 1;
     transform: translate(0, -50%);
@@ -149,7 +150,7 @@ input {
   display: block;
 }
 
-/*CONTAINER HALAMAN DESKTOP DEFAULT*/
+/* CONTAINER HALAMAN DESKTOP DEFAULT */
 .page-container {
   width: 100%;
   max-width: 1100px;
@@ -162,7 +163,7 @@ input {
 .page-caption {
   text-align: center;
   font-size: 16px;
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   color: #000;
   font-weight: 400;
   margin: 0 auto 9px;
@@ -210,45 +211,76 @@ input {
 
 .search-box input::placeholder {
   color: #000;
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
 }
 
-.category-section {
-  margin: 0 0 20px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.category-section::-webkit-scrollbar {
-  display: none;
-}
-
+/* 1. KANTONG / PEMBUNGKUS TOMBOL (Biar gak memotong lekukan tombol) */
+.category-section,
+.kategori-container,
 .category-list {
-  display: flex;
-  gap: 8px;
-  min-width: max-content;
+  display: flex !important;
+  gap: 8px !important;
+  padding: 4px 8px !important; /* Kasih sedikit ruang napas di pinggir */
+  margin-bottom: 20px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important; /* Mencegah lekukan kepotong */
 }
 
-.category-btn {
-  border: 1px solid #cbd0dc;
-  border-radius: 5px;
-  background: var(--primary);
-  color: white;
-  padding: 8px 13px;
-  box-shadow: 0 2px 3px #00000020;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: "Inter";
-  transition: background-color 0.2s ease;
+/* 2. PAKSA SEMUA SUDUT TOMBOL MEMBULAT 8PX KANAN-KIRI-ATAS-BAWAH */
+button.category-btn,
+button.btn-kategori,
+.category-btn,
+.btn-kategori {
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  border-radius: 8px !important;
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  padding: 7px 14px !important;
+  margin: 0 !important; /* Hapus margin aneh jika ada */
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
+/* 3. SETIAP STATE (HOVER / FOCUS / ACTIVE) KELUARANNYA TETAP ROUNDED */
+button.category-btn:hover,
+button.btn-kategori:hover,
+button.category-btn:focus,
+button.btn-kategori:focus,
+button.category-btn:active,
+button.btn-kategori:active,
+button.category-btn.active,
+button.btn-kategori.active {
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  border-radius: 8px !important;
+  background-color: #001258 !important;
+  color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* STATE SAAT HOVER, FOCUS, ATAU AKTIF */
 .category-btn:hover,
-.category-btn.active {
-  background: var(--navy-dark) !important;
-  color: white !important;
-  outline: 2px solid #d9deef;
+.btn-kategori:hover,
+.category-btn:focus,
+.btn-kategori:focus,
+.category-btn:active,
+.btn-kategori:active,
+.category-btn.active,
+.btn-kategori.active {
+  background-color: #001258 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important; /* Tetap melengkung rapi, gak bakal siku lagi */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
+/* MAP BANNER */
 .map-banner,
 #map {
   width: 100%;
@@ -258,21 +290,21 @@ input {
   margin-bottom: 20px;
 }
 
-/* PENGATURAN GRID UTAMA (DESKTOP DEFAULT: 4 KOLOM) */
+/* GRID UTAMA FOOD CARD */
 .food-grid,
 .card-grid {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 16px !important;
-  justify-content: center !important;
+  justify-content: flex-start !important; /* Mepet ke kiri */
+  align-items: flex-start !important;
   margin-top: 20px !important;
 }
 
-/* UKURAN CARD KHUSUS DESKTOP */
-/* Mengatur ukuran card agar proporsional */
 .food-card {
   width: 100% !important;
   max-width: 240px !important;
+  flex: 0 0 240px !important; /* Mengunci lebar kartu tetap 240px, tidak mekar */
   min-height: 270px !important;
   padding: 12px !important;
   background: #ffffff !important;
@@ -282,11 +314,10 @@ input {
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  margin: 0 auto !important;
+  margin: 0 !important; /* UBAH DARI '0 auto' MENJADI '0' AGAR TIDAK RENGGANG */
   border-bottom: 3px solid var(--primary);
 }
 
-/* Mengatur foto agar mengikuti lebar card dengan tinggi yang pas dan tidak gepeng */
 .food-photo {
   width: 100% !important;
   height: 135px !important;
@@ -338,11 +369,12 @@ input {
   color: #000000 !important;
 }
 
-/* TAMPILAN TABLET */
+/* RESPONSIVE TABLET */
 @media (max-width: 768px) {
   .page-container {
     max-width: 100%;
     padding: 16px;
+    padding-top: 96px !important;
   }
 
   .map-banner,
@@ -353,7 +385,8 @@ input {
   }
 
   .food-grid,
-  .card-grid {
+  .card-grid,
+  .kuliner-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 16px !important;
@@ -373,14 +406,9 @@ input {
   }
 }
 
-/* MOBILE / HP (PAS 2 KOLOM) */
+/* RESPONSIVE MOBILE / HP */
 @media (max-width: 480px) {
   .navbar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    z-index: 9999 !important;
     min-height: 72px;
     padding: 12px 16px;
     gap: 12px;
@@ -399,17 +427,8 @@ input {
   }
 
   .page-container {
-    width: 100%;
-    max-width: 100%;
     padding: 12px;
-  }
-
-  .page-caption {
-    font-size: 15px;
-  }
-
-  .search-section {
-    margin: 12px 0;
+    padding-top: 88px !important;
   }
 
   .search-box {
@@ -421,15 +440,6 @@ input {
     font-size: 14px;
   }
 
-  .category-section {
-    margin-bottom: 14px;
-  }
-
-  .category-btn {
-    padding: 7px 11px;
-    font-size: 12px;
-  }
-
   .map-banner,
   #map {
     height: 180px;
@@ -437,49 +447,43 @@ input {
     margin-bottom: 14px;
   }
 
-  @media (max-width: 480px) {
-    /* Pengaturan grid 2 kolom di mobile */
-    .food-grid,
-    .card-grid {
-      display: grid !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 12px !important;
-      padding: 0 12px !important;
-    }
+  .food-grid,
+  .card-grid,
+  .kuliner-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
 
-    /* Ukuran card mobile agar pas menampung foto 145px */
-    .food-card {
-      width: 100% !important;
-      max-width: none !important;
-      min-height: 220px !important;
-      padding: 8px !important;
-      margin: 0 !important;
-    }
+  .food-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 220px !important;
+    padding: 8px !important;
+    margin: 0 !important;
+  }
 
-    /* Ukuran foto persis sesuai permintaan Figma (145x107px) */
-    .food-photo {
-      width: 145px !important;
-      height: 120px !important;
-      max-width: 100% !important;
-      object-fit: cover !important;
-      border-radius: 4px !important;
-      margin: 0 auto 8px auto !important;
-      display: block !important;
-    }
+  .food-photo {
+    width: 100% !important;
+    height: 110px !important;
+    object-fit: cover !important;
+    border-radius: 4px !important;
+    margin: 0 auto 8px auto !important;
+  }
 
-    .food-name {
-      font-size: 11px !important;
-      line-height: 14px !important;
-    }
+  .food-name {
+    font-size: 11px !important;
+    line-height: 14px !important;
+  }
 
-    .food-location {
-      font-size: 8px !important;
-      min-height: 22px !important;
-    }
+  .food-location {
+    font-size: 8px !important;
+    min-height: 22px !important;
+  }
 
-    .food-meta {
-      font-size: 11px !important;
-    }
+  .food-meta {
+    font-size: 11px !important;
   }
 
   .nav-dropdown-horizontal {
@@ -487,42 +491,43 @@ input {
     gap: 8px;
     padding: 4px 8px;
   }
+/* PASTIIN SCROLLBAR GOOGLE MAPS MATI TOTAL DI SEMUA HIRARKI */
+.gm-style-iw,
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-a {
+  max-height: none !important;
+  max-width: none !important;
+  overflow: hidden !important;
 }
 
-/* HP KECIL */
-.page-container {
-  padding-top: 88px !important; /* Sesuaikan jarak atas untuk layar HP */
+.gm-style-iw-c {
+  padding: 8px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.navbar {
-  padding: 10px 12px;
+.gm-style-iw-d {
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
-.brand {
-  font-size: 22px;
+}
+/* PERKECIL UKURAN TOMBOL SILANG (X) GOOGLE MAPS */
+button.gm-ui-hover-effect {
+  top: 2px !important;
+  right: 2px !important;
+  width: 16px !important;    /* Perkecil lebar area tombol */
+  height: 16px !important;   /* Perkecil tinggi area tombol */
+  min-width: 16px !important;
+  min-height: 16px !important;
+  z-index: 10 !important;
 }
 
-.brand span:last-child {
-  font-size: 19px;
-}
-
-.nav-actions {
-  gap: 8px;
-}
-
-.food-grid,
-.card-grid {
-  gap: 8px !important;
-}
-
-.food-card {
-  padding: 6px !important;
-}
-
-.food-photo {
-  height: 95px !important;
-}
-
-.food-name {
-  font-size: 10px !important;
+/* PERKECIL IKON SILANG DI DALAM TOMBOL */
+button.gm-ui-hover-effect img,
+button.gm-ui-hover-effect span {
+  width: 10px !important;    /* Perkecil garis silang X */
+  height: 10px !important;
+  margin: 3px !important;    /* Atur posisi ikon agar presisi di tengah */
 }
