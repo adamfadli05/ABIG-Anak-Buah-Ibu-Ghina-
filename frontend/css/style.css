@@ -1,5 +1,6 @@
 :root {
   --primary: #001b7d;
+  --navy-dark: #001258;
   --border: #d9dce5;
   --text: #34343a;
   --muted: #6c6c73;
@@ -14,15 +15,16 @@ body {
   margin: 0;
   background: #fffffff0;
   color: var(--text);
-  font-family: "Inter";
+  font-family: "Inter", sans-serif;
   font-size: 14px;
 }
 
 button,
 input {
-  font: "inter";
+  font-family: "Inter", sans-serif;
 }
 
+/* NAVBAR */
 .navbar {
   position: fixed !important;
   top: 0 !important;
@@ -45,7 +47,7 @@ input {
   gap: 3px;
   color: white;
   text-decoration: none;
-  font-family: "Instrument Serif";
+  font-family: "Instrument Serif", serif;
   font-size: 26px;
   font-weight: 400;
   line-height: 1.05;
@@ -119,7 +121,6 @@ input {
     opacity: 0;
     transform: translate(10px, -50%);
   }
-
   to {
     opacity: 1;
     transform: translate(0, -50%);
@@ -233,38 +234,83 @@ input {
   scrollbar-width: none !important;
 }
 
+/* 1. KANTONG / PEMBUNGKUS TOMBOL (Biar gak memotong lekukan tombol) */
+.category-section,
+.kategori-container,
 .category-list {
   display: flex !important;
-  gap: 10px !important;
-  min-width: max-content !important;
+  gap: 8px !important;
+  padding: 4px 8px !important; /* Kasih sedikit ruang napas di pinggir */
+  margin-bottom: 20px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important; /* Mencegah lekukan kepotong */
 }
 
-.category-btn {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding: 0px 10px !important;
-  width: 200px !important;
-  height: 40px !important;
-  background: #001b7d !important;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25) !important;
-  border-radius: 5px !important;
+/* 2. PAKSA SEMUA SUDUT TOMBOL MEMBULAT 8PX KANAN-KIRI-ATAS-BAWAH */
+button.category-btn,
+button.btn-kategori,
+.category-btn,
+.btn-kategori {
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  border-radius: 8px !important;
+  background-color: #001b7d !important;
+  color: #ffffff !important;
   border: none !important;
-  color: white !important;
-  font-family: "Inter" !important;
-  font-size: 24px !important;
-  line-height: normal !important;
-  font-weight: 400 !important;
-  cursor: pointer !important;
-  flex-shrink: 0 !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-  text-overflow: ellipsis !important;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  outline: none !important;
+  padding: 7px 14px !important;
+  margin: 0 !important; /* Hapus margin aneh jika ada */
+  box-shadow: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
-/* GRID KARTU DESKTOP */
+/* 3. SETIAP STATE (HOVER / FOCUS / ACTIVE) KELUARANNYA TETAP ROUNDED */
+button.category-btn:hover,
+button.btn-kategori:hover,
+button.category-btn:focus,
+button.btn-kategori:focus,
+button.category-btn:active,
+button.btn-kategori:active,
+button.category-btn.active,
+button.btn-kategori.active {
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  border-radius: 8px !important;
+  background-color: #001258 !important;
+  color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* STATE SAAT HOVER, FOCUS, ATAU AKTIF */
+.category-btn:hover,
+.btn-kategori:hover,
+.category-btn:focus,
+.btn-kategori:focus,
+.category-btn:active,
+.btn-kategori:active,
+.category-btn.active,
+.btn-kategori.active {
+  background-color: #001258 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important; /* Tetap melengkung rapi, gak bakal siku lagi */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* MAP BANNER */
+.map-banner,
+#map {
+  width: 100%;
+  height: 320px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+/* GRID UTAMA FOOD CARD */
 .food-grid,
 .card-grid {
   display: flex !important;
@@ -289,8 +335,8 @@ input {
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  position: relative !important;
-  margin: 0 !important;
+  margin: 0 !important; /* UBAH DARI '0 auto' MENJADI '0' AGAR TIDAK RENGGANG */
+  border-bottom: 3px solid var(--primary);
 }
 
 .food-photo {
@@ -342,11 +388,12 @@ input {
   color: #000000 !important;
 }
 
-/* TAMPILAN TABLET */
+/* RESPONSIVE TABLET */
 @media (max-width: 768px) {
   .page-container {
     max-width: 100%;
     padding: 16px;
+    padding-top: 96px !important;
   }
 
   .map-banner,
@@ -357,7 +404,8 @@ input {
   }
 
   .food-grid,
-  .card-grid {
+  .card-grid,
+  .kuliner-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 16px !important;
@@ -380,11 +428,6 @@ input {
 /* MOBILE / HP (RESPONSIF & SEJAJAR) */
 @media (max-width: 480px) {
   .navbar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    z-index: 9999 !important;
     min-height: 72px;
     padding: 12px 16px;
     gap: 12px;
@@ -437,169 +480,92 @@ input {
 
   .map-banner,
   #map {
-    width: 100% !important;
-    max-width: 347px !important;
-    height: 144px !important;
-    margin-left: 10px !important;
-    margin-right: 10px !important;
-    border-radius: 10px !important;
-    margin-bottom: 14px !important;
-    box-sizing: border-box !important;
-  }
-
-  .category-section {
-    position: relative !important;
-    width: 100% !important;
-    max-width: 347px !important;
-    height: 30px !important;
-    margin-left: 10px !important;
-    margin-right: auto !important;
-    margin-top: 14px !important;
-    margin-bottom: 25px !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    scrollbar-width: none !important;
-  }
-
-  .category-section::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  .category-list {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: max-content !important;
-    height: 30px !important;
-    overflow-x: auto !important;
-  }
-
-  .category-btn {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 0px 10px !important;
-    gap: 10px !important;
-    width: 96px !important;
-    height: 30px !important;
-    min-width: 96px !important;
-    background: #001b7d !important;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25) !important;
-    border-radius: 5px !important;
-    border: none !important;
-    font-family: "Inter" !important;
-    font-style: normal !important;
-    font-weight: 400 !important;
-    font-size: 16px !important;
-    line-height: 10px !important;
-    text-align: center !important;
-    color: #ffffff !important;
-    white-space: nowrap !important;
-    flex: none !important;
-    order: 0 !important;
-    flex-grow: 0 !important;
-    cursor: pointer !important;
-  }
-
-  .category-btn[data-category="makanan berat"] {
-    width: 130px !important;
-    min-width: 130px !important;
+    height: 180px;
+    border-radius: 12px;
+    margin-bottom: 14px;
   }
 
   .food-grid,
-  .card-grid {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
+  .card-grid,
+  .kuliner-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 12px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding: 0 16px !important;
-    box-sizing: border-box !important;
+    padding: 0 !important;
   }
 
   .food-card {
-    width: calc(50% - 6px) !important;
-    max-width: 170px !important;
-    min-width: 140px !important;
-    height: 190px !important;
-    min-height: 190px !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 220px !important;
     padding: 8px !important;
     margin: 0 !important;
-    background: #ffffff !important;
-    border: 1px solid #d4d4d4 !important;
-    box-shadow: 0px 4px 4px #001b7d !important;
-    border-radius: 5px !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    position: relative !important;
   }
 
   .food-photo {
     width: 100% !important;
-    height: 107px !important;
-    max-width: none !important;
+    height: 110px !important;
     object-fit: cover !important;
     border-radius: 4px !important;
-    margin: 0 auto 6px auto !important;
-    display: block !important;
+    margin: 0 auto 8px auto !important;
   }
 
   .food-name {
-    font-family: "Inter" !important;
-    font-weight: 400 !important;
-    font-size: 10px !important;
-    line-height: 12px !important;
-    text-align: left !important;
-    color: #000000 !important;
-    width: 92px !important;
-    max-width: 92px !important;
-    margin: 0 0 4px 0 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-size: 11px !important;
+    line-height: 14px !important;
   }
 
   .food-location {
-    display: flex !important;
-    align-items: flex-start !important;
-    gap: 3px !important;
-    color: #000000 !important;
     font-size: 8px !important;
-    font-family: "Inter" !important;
-    font-weight: 400 !important;
-    line-height: 100% !important;
-    letter-spacing: 0% !important;
-    min-height: 14px !important;
-    margin-bottom: 6px !important;
-  }
-
-  .food-location iconify-icon {
-    font-size: 14px !important;
-    color: #938f99 !important;
-    flex-shrink: 0 !important;
-    margin-top: 1px !important;
+    min-height: 22px !important;
   }
 
   .food-meta {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-top: auto !important;
+    font-size: 11px !important;
   }
 
-  .food-meta span:first-child {
-    font-family: "Inter" !important;
-    font-weight: 400 !important;
-    font-size: 11px !important;
-    line-height: 100% !important;
-    letter-spacing: 0% !important;
-    color: #000000 !important;
+  .nav-dropdown-horizontal {
+    right: calc(100% + 6px);
+    gap: 8px;
+    padding: 4px 8px;
   }
+/* PASTIIN SCROLLBAR GOOGLE MAPS MATI TOTAL DI SEMUA HIRARKI */
+.gm-style-iw,
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-a {
+  max-height: none !important;
+  max-width: none !important;
+  overflow: hidden !important;
+}
+
+.gm-style-iw-c {
+  padding: 8px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.gm-style-iw-d {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+}
+/* PERKECIL UKURAN TOMBOL SILANG (X) GOOGLE MAPS */
+button.gm-ui-hover-effect {
+  top: 2px !important;
+  right: 2px !important;
+  width: 16px !important;    /* Perkecil lebar area tombol */
+  height: 16px !important;   /* Perkecil tinggi area tombol */
+  min-width: 16px !important;
+  min-height: 16px !important;
+  z-index: 10 !important;
+}
+
+/* PERKECIL IKON SILANG DI DALAM TOMBOL */
+button.gm-ui-hover-effect img,
+button.gm-ui-hover-effect span {
+  width: 10px !important;    /* Perkecil garis silang X */
+  height: 10px !important;
+  margin: 3px !important;    /* Atur posisi ikon agar presisi di tengah */
 }

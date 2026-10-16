@@ -6,6 +6,8 @@ $sql = "SELECT
     tk.id_tempat,
     tk.id_kuliner,
     k.nama_kuliner,
+    k.deskripsi,
+    k.foto AS foto_kuliner,
     tk.nama_tempat,
     tk.alamat,
     tk.latitude,
@@ -13,6 +15,7 @@ $sql = "SELECT
     tk.jam_buka,
     tk.jam_tutup,
     tk.foto_tempat,
+    tk.foto AS foto,
     tk.harga
 FROM tempat_kuliner tk
 JOIN kuliner k
