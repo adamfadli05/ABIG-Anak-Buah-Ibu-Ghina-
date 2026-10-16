@@ -17,7 +17,7 @@
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        background: rgba(0, 0, 0, 0.4) !important;
+        background: rgba(217, 217, 217, 0.7) !important;
         z-index: 2147483647 !important;
         justify-content: center !important;
         align-items: center !important;
@@ -175,19 +175,20 @@
       });
 
       function showError(message) {
-        errorBanner.textContent = message;
-        errorBanner.style.display = "block";
+        if (errorBanner) {
+          errorBanner.innerHTML = message;
+          errorBanner.style.display = "block";
+        }
       }
-
       function showPopupModal(isSuccess, isGoogle = false) {
         isRegisterSuccess = isSuccess;
 
         if (isSuccess) {
           modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 39px;"></iconify-icon>`;
-          modalMessage.textContent = isGoogle ? "Masuk dengan Google berhasil" : "Anda Berhasil mendaftar";
+          modalMessage.textContent = isGoogle ? "Daftar dengan Google berhasil" : "Pendaftaran Berhasil";
         } else {
           modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color: #ea3829; font-size: 39px;"></iconify-icon>`;
-          modalMessage.innerHTML = isGoogle ? "Masuk dengan Google gagal,<br>silahkan coba lagi" : "Anda Gagal mendaftar,<br>silahkan coba lagi";
+          modalMessage.innerHTML = isGoogle ? "Daftar dengan Google gagal,<br>silahkan coba lagi" : "Pendaftaran gagal,<br>silahkan coba lagi";
         }
 
         if (themeColorMeta) {
@@ -256,7 +257,7 @@
 
         if (password.length < 8) {
           passwordInput.closest(".input-wrapper").classList.add("error");
-          showError("Kata sandi harus minimal 8 karakter");
+          showError("Kata sandi <br>minimal 8 karakter");
           return;
         }
 
@@ -267,7 +268,7 @@
         }
 
         btnSubmit.disabled = true;
-        btnSubmit.textContent = "Memproses...";
+        btnSubmit.textContent = "Memproses";
 
         try {
           const res = await fetch(`${BASE_URL}/api/register.php`, {

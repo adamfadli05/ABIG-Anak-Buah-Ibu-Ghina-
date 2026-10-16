@@ -125,7 +125,7 @@
     </div>
 
     <main class="page-container">
-      <p class="page-caption" style="text-align: center; color: #666; margin-bottom: 12px">Kuliner Khas Cirebon</p>
+      <p class="page-caption" style="text-align: center; color: #000000; margin-bottom: 12px">Kuliner Khas Cirebon</p>
 
       <!-- Google Maps -->
       <section class="map-banner" aria-label="Peta kuliner">
@@ -136,17 +136,17 @@
       <section class="search-section" aria-label="Pencarian kuliner">
         <div class="search-box">
           <iconify-icon icon="lucide:search" class="search-icon"></iconify-icon>
-          <input type="search" id="searchInput" placeholder="Cari" aria-label="Cari kuliner atau tempat" autocomplete="off" />
+          <input type="search" id="searchInput" placeholder="Cari Kuliner" aria-label="Cari kuliner atau tempat" autocomplete="off" />
         </div>
       </section>
 
       <!-- Kategori Kuliner -->
       <section class="category-section" aria-label="Kategori makanan">
         <div class="category-list" id="categoryList">
-          <button type="button" class="category-btn active" data-category="semua">semua</button>
-          <button type="button" class="category-btn" data-category="camilan">camilan</button>
-          <button type="button" class="category-btn" data-category="makanan berat">makanan berat</button>
-          <button type="button" class="category-btn" data-category="minuman">minuman</button>
+          <button type="button" class="category-btn active" data-category="semua">Semua</button>
+          <button type="button" class="category-btn" data-category="camilan">Camilan</button>
+          <button type="button" class="category-btn" data-category="makanan berat">Makanan Berat</button>
+          <button type="button" class="category-btn" data-category="minuman">Minuman</button>
         </div>
       </section>
 
@@ -258,7 +258,7 @@
             return {
               ...item,
               deskripsi: detailKuliner.deskripsi || "",
-              foto: detailKuliner.foto || "", // Murni menggunakan foto dari kuliner.php
+              foto: detailKuliner.foto || "",
             };
           });
 
@@ -314,7 +314,6 @@
             const name = escapeHTML(item.nama_kuliner || "Nama kuliner");
             const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
             const address = escapeHTML(item.alamat || "Alamat belum tersedia");
-            const description = escapeHTML(item.deskripsi || "");
 
             // Mengambil harga spesifik per tempat
             const numericPrice = Number(item.harga);
@@ -324,23 +323,18 @@
             const photo = getSafePhoto(item.foto);
 
             return `
-            <article class="food-card">
+         <article class="food-card">
               <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
               <h3 class="food-name">${name}</h3>
-              ${
-                description
-                  ? `<p class="food-description" style="font-size: 8px; color: #666; margin: 0 0 4px 0; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${description}</p>`
-                  : ""
-              }
-              <div class="food-location">
-                <iconify-icon icon="lucide:map-pin" aria-hidden="true"></iconify-icon>
-                <span>${place} — ${address}</span>
+             <div class="food-location">
+             <iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>
+               <span>${place} — ${address}</span>
               </div>
-              <div class="food-meta">
-                <span>Rp ${price}</span>
+            <div class="food-meta">
+                <span>Rp. ${price}</span>
                 <div style="display: flex; align-items: center; gap: 2px;">
                   <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 14px;"></iconify-icon>
-                  <span style="font-weight: 900; font-size: 10px;">3.5</span>
+                  <span style="font-weight: 900; font-size: 10px;">0</span>
                 </div>
               </div>
             </article>
