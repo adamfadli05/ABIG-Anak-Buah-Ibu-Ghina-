@@ -265,7 +265,7 @@ button.btn-kategori,
   -webkit-appearance: none !important;
 }
 
-/* 3. SETIAP STATE (HOVER / FOCUS / ACTIVE) KELUARANNYA TETAP ROUNDED */
+/* 3. SETIAP STATE (HOVER / FOCUS / AKTIF) KELUARANNYA TETAP ROUNDED */
 button.category-btn:hover,
 button.btn-kategori:hover,
 button.category-btn:focus,
@@ -274,13 +274,14 @@ button.category-btn:active,
 button.btn-kategori:active,
 button.category-btn.active,
 button.btn-kategori.active {
-  -webkit-border-radius: 8px !important;
-  -moz-border-radius: 8px !important;
-  border-radius: 8px !important;
+  -webkit-border-radius: 5px !important;
+  -moz-border-radius: 5px !important;
+  border-radius: 5px !important;
   background-color: #001258 !important;
   color: #ffffff !important;
   border: none !important;
   outline: none !important;
+  box-shadow: 0 4px 8px rgba(0, 27, 125, 0.4) !important; /* Tambahkan baris ini */
 }
 
 /* STATE SAAT HOVER, FOCUS, ATAU AKTIF */
@@ -294,10 +295,10 @@ button.btn-kategori.active {
 .btn-kategori.active {
   background-color: #001258 !important;
   color: #ffffff !important;
-  border-radius: 8px !important; /* Tetap melengkung rapi, gak bakal siku lagi */
+  border-radius: 5px !important;
   border: none !important;
   outline: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 4px 8px rgba(0, 27, 125, 0.4) !important; /* Ubah 'none' menjadi kode shadow ini */
 }
 
 /* MAP BANNER */
