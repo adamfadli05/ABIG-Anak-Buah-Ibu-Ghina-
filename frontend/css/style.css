@@ -150,68 +150,88 @@ input {
   display: block;
 }
 
-/* CONTAINER HALAMAN DESKTOP DEFAULT */
+/* CONTAINER HALAMAN DESKTOP */
 .page-container {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px 24px 40px;
-  padding-top: 104px !important;
-  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 1340px !important;
+  min-height: 100vh !important;
+  margin: 0 auto !important;
+  padding: 24px 32px 50px !important;
+  padding-top: 100px !important;
+  box-sizing: border-box !important;
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  position: relative !important;
 }
 
 .page-caption {
   text-align: center;
-  font-size: 16px;
-  font-family: "Inter", sans-serif;
-  color: #000;
+  font-size: 20px;
+  font-family: "Inter";
+  color: #000000;
   font-weight: 400;
-  margin: 0 auto 9px;
+  margin: 0 auto 14px;
 }
 
+/* Map / Banner Peta */
+.map-banner,
+#map {
+  width: 100% !important;
+  max-width: 1340px !important;
+  height: 200px !important;
+  border-radius: 10px !important;
+  margin: 0 auto 16px auto !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+/* Kotak Pencarian */
 .search-section {
-  margin: 14px 0;
-  width: 100%;
+  width: 100% !important;
+  max-width: 1340px !important;
+  margin: 0 auto 16px auto !important;
 }
 
 .search-box {
-  width: 100%;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1.5px solid #d2d2d2;
-  border-radius: 24px;
-  background: white;
-  padding: 0 16px;
+  width: 100% !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  border: 1px solid #d4d4d4 !important;
+  border-radius: 30px !important;
+  background: white !important;
+  padding: 0 24px !important;
+  box-sizing: border-box !important;
 }
 
 .search-box iconify-icon.search-icon {
-  font-size: 20px;
-  color: #000;
-  stroke-width: 2.5px;
-  flex-shrink: 0;
+  font-size: 22px !important;
+  color: #000000 !important;
 }
 
 .search-box input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: #000;
-  font-family: "Inter", sans-serif;
-  font-size: 16px;
-}
-
-.search-box input:focus {
-  outline: none;
-  box-shadow: none;
+  width: 100% !important;
+  border: 0 !important;
+  outline: none !important;
+  background: transparent !important;
+  color: #000000 !important;
+  font-family: "Inter" !important;
+  font-size: 18px !important;
 }
 
 .search-box input::placeholder {
-  color: #000;
-  font-family: "Inter", sans-serif;
+  color: #000000 !important;
+}
+
+/* Kategori / Tombol Filter Desktop */
+.category-section {
+  width: 100% !important;
+  max-width: 1340px !important;
+  margin: 0 auto 24px auto !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
 }
 
 /* 1. KANTONG / PEMBUNGKUS TOMBOL (Biar gak memotong lekukan tombol) */
@@ -295,22 +315,23 @@ button.btn-kategori.active {
 .card-grid {
   display: flex !important;
   flex-wrap: wrap !important;
-  gap: 16px !important;
-  justify-content: flex-start !important; /* Mepet ke kiri */
-  align-items: flex-start !important;
-  margin-top: 20px !important;
+  gap: 20px !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  max-width: 1340px !important;
+  margin: 0 auto !important;
 }
 
 .food-card {
-  width: 100% !important;
-  max-width: 240px !important;
-  flex: 0 0 240px !important; /* Mengunci lebar kartu tetap 240px, tidak mekar */
-  min-height: 270px !important;
+  width: calc(25% - 15px) !important;
+  min-width: 250px !important;
+  max-width: 320px !important;
+  height: 360px !important;
   padding: 12px !important;
   background: #ffffff !important;
   border: 1px solid #d4d4d4 !important;
   box-shadow: 0px 4px 4px #001b7d !important;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -320,17 +341,17 @@ button.btn-kategori.active {
 
 .food-photo {
   width: 100% !important;
-  height: 135px !important;
+  height: 190px !important;
   object-fit: cover !important;
-  border-radius: 6px !important;
-  margin: 0 0 10px 0 !important;
+  border-radius: 5px !important;
+  margin: 0 auto 8px auto !important;
   display: block !important;
 }
 
 .food-name {
-  font-family: "Inter", sans-serif !important;
-  font-weight: 500 !important;
-  font-size: 14px !important;
+  font-family: "Inter" !important;
+  font-weight: 400 !important;
+  font-size: 15px !important;
   line-height: 18px !important;
   text-align: left !important;
   color: #000000 !important;
@@ -344,18 +365,16 @@ button.btn-kategori.active {
   display: flex !important;
   align-items: flex-start !important;
   gap: 4px !important;
-  color: #555555 !important;
-  font-size: 10px !important;
-  line-height: 14px !important;
-  min-height: 28px !important;
+  color: #000000 !important;
+  font-size: 12px !important;
+  line-height: 15px !important;
   margin-bottom: 8px !important;
 }
 
 .food-location iconify-icon {
-  font-size: 12px !important;
+  font-size: 15px !important;
   color: #938f99 !important;
   flex-shrink: 0 !important;
-  margin-top: 1px;
 }
 
 .food-meta {
@@ -363,9 +382,9 @@ button.btn-kategori.active {
   justify-content: space-between !important;
   align-items: center !important;
   margin-top: auto !important;
-  font-family: "Inter", sans-serif !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
+  font-family: "Inter" !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
   color: #000000 !important;
 }
 
@@ -406,7 +425,7 @@ button.btn-kategori.active {
   }
 }
 
-/* RESPONSIVE MOBILE / HP */
+/* MOBILE / HP (RESPONSIF & SEJAJAR) */
 @media (max-width: 480px) {
   .navbar {
     min-height: 72px;
@@ -427,13 +446,32 @@ button.btn-kategori.active {
   }
 
   .page-container {
-    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 8px;
     padding-top: 88px !important;
   }
 
+  .page-caption {
+    font-size: 15px;
+  }
+
+  .search-section {
+    width: 100% !important;
+    max-width: 347px !important;
+    margin-left: 10px !important;
+    margin-right: auto !important;
+    margin-bottom: 14px !important;
+    box-sizing: border-box !important;
+  }
+
   .search-box {
-    height: 42px;
-    padding: 0 13px;
+    width: 100% !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 30px !important;
+    border: 1px solid #d4d4d4 !important;
+    box-sizing: border-box !important;
   }
 
   .search-box input {
