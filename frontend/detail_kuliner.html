@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Kuliner | Mangan Yukkk</title>
+
+    <link rel="stylesheet" href="css/detail_kuliner.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  </head>
+  <body>
+    <!-- NAVBAR UTAMA -->
+    <header class="navbar">
+      <a href="index.html" class="btn-back-nav" aria-label="Kembali">
+        <iconify-icon icon="material-symbols:chevron-left"></iconify-icon>
+      </a>
+
+      <a href="index.html" class="brand">
+        <span>MANGAN</span>
+        <span>YUKKK</span>
+      </a>
+    </header>
+
+    <main class="page-container">
+      <!-- KONTEN UTAMA DETAIL KULINER -->
+      <div class="detail-grid" id="detailContent">
+        <!-- KOLOM KIRI: FOTO & HARGA -->
+        <div class="detail-left-col">
+          <div class="food-photo-container">
+            <img id="foodPhoto" class="food-detail-photo" src="" alt="Foto Kuliner" />
+
+            <!-- TOMBOL BOOKMARK DI KANAN BAWAH FOTO (LINGKARAN PUTIH, IKON BIRU) -->
+            <button class="btn-bookmark-floating" id="btnBookmark" aria-label="Simpan Kuliner">
+              <iconify-icon icon="material-symbols:bookmark-outline"></iconify-icon>
+            </button>
+          </div>
+
+          <!-- HARGA & RATING KECIL -->
+          <div class="meta-row">
+            <div class="price-badge" id="foodPrice">Rp 0</div>
+            <div class="rating-badge-small">
+              <iconify-icon icon="material-symbols:star"></iconify-icon>
+              <span id="foodRatingSmall">0.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KOLOM KANAN: DETAIL INFORMASI, TOMBOL AKSI, & ULASAN -->
+        <div class="detail-right-col">
+          <h1 class="food-detail-title" id="foodName">Memuat Kuliner...</h1>
+
+          <!-- RATING BINTANG & JUMLAH ULASAN DI BAWAH JUDUL -->
+          <div class="rating-header-row">
+            <span class="stars">
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+            </span>
+            <span id="ratingScoreText">0.0</span>
+            <span id="reviewCountText">(0 Ulasan)</span>
+          </div>
+
+          <p class="food-description" id="foodDescription">Sedang memuat deskripsi kuliner...</p>
+
+          <!-- INFORMASI TAMBAHAN -->
+          <h3 class="info-section-title">Informasi Tambahan</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <iconify-icon icon="akar-icons:clock"></iconify-icon>
+              <span>Jam Buka <strong id="foodHours">-</strong></span>
+            </div>
+            <div class="info-item" id="phoneContainer">
+              <iconify-icon icon="boxicons:phone"></iconify-icon>
+              <span>Telepon <strong id="foodPhone">-</strong></span>
+            </div>
+          </div>
+
+          <!-- LOKASI & TOMBOL MENUJU LOKASI -->
+          <div class="location-row">
+            <div class="food-location-wrapper">
+              <iconify-icon icon="material-symbols:location-on"></iconify-icon>
+              <span id="foodAddress">Alamat belum tersedia</span>
+            </div>
+            <a href="#" class="btn-location" id="btnMapLink" target="_blank">Menuju Lokasi</a>
+          </div>
+
+          <!-- TOMBOL AKSI -->
+          <div class="action-row">
+            <button class="btn-action-outline" id="btnRate" style="color: #001b7d; border-color: #001b7d"><iconify-icon icon="material-symbols:star" style="color: #001b7d"></iconify-icon> Beri Rating</button>
+            <button class="btn-action-outline" id="btnReview" style="color: #001b7d; border-color: #001b7d"><iconify-icon icon="ri:pencil-fill" style="color: #001b7d"></iconify-icon> Beri Ulasan</button>
+          </div>
+
+          <!-- BAGIAN ULASAN PENGGUNA -->
+          <section class="review-section">
+            <h2 class="review-section-title" style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 12px;">Ulasan Pengguna :</h2>
+            <div id="reviewsContainer">
+              <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif;">
+                <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px;">Belum ada ulasan</div>
+                <div style="font-weight: 400; font-size: 12px; color: #333;">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+              </div>
+            </div>
+          </section>
+
+      <!-- KONDISI VALIDASI KULINER GAGAL DIMUAT (TERSEMBUNYI SECARA DEFAULT) -->
+      <div id="errorState" class="error-state-container" style="display: none">
+        <div class="error-message-box">
+          <p class="error-title">Detail kuliner tidak ditemukan</p>
+          <a href="index.html" class="error-retry-link">Coba Lagi</a>
+        </div>
+      </div>
+    </main>
+
+    <!-- SCRIPT VALIDASI DATA & GAGAL MUAT -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const nama = urlParams.get("nama");
+        const deskripsi = urlParams.get("deskripsi");
+        const foto = urlParams.get("foto");
+        const harga = urlParams.get("harga");
+        const alamat = urlParams.get("alamat");
+        const jam = urlParams.get("jam");
+        const noTelepon = urlParams.get("no_telepon"); // Mengambil parameter no_telepon dari database
+        const lat = urlParams.get("lat");
+        const lng = urlParams.get("lng");
+
+        const detailContent = document.getElementById("detailContent");
+        const errorState = document.getElementById("errorState");
+
+        if (!nama) {
+          if (detailContent) detailContent.style.display = "none";
+          if (errorState) errorState.style.display = "flex";
+          return;
+        }
+
+        if (detailContent) detailContent.style.display = "grid";
+        if (errorState) errorState.style.display = "none";
+
+        document.getElementById("foodName").textContent = nama;
+        if (deskripsi) document.getElementById("foodDescription").textContent = deskripsi;
+        if (foto) document.getElementById("foodPhoto").src = foto;
+
+        if (harga) {
+          const numPrice = Number(harga);
+          document.getElementById("foodPrice").textContent = "Rp " + (Number.isFinite(numPrice) ? numPrice.toLocaleString("id-ID") : harga);
+        }
+
+        if (alamat) document.getElementById("foodAddress").textContent = alamat;
+        if (jam) document.getElementById("foodHours").textContent = jam;
+
+        // Menampilkan nomor telepon dari kolom database no_telepon
+        if (noTelepon && noTelepon !== "null" && noTelepon !== "") {
+          document.getElementById("foodPhone").textContent = noTelepon;
+        } else {
+          document.getElementById("foodPhone").textContent = "Tidak tersedia";
+        }
+
+        if (lat && lng) {
+          document.getElementById("btnMapLink").href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        }
+
+        // Interaksi Tombol Bookmark Floating
+        const btnBookmark = document.getElementById("btnBookmark");
+        if (btnBookmark) {
+          btnBookmark.addEventListener("click", () => {
+            btnBookmark.classList.toggle("saved");
+            const isSaved = btnBookmark.classList.contains("saved");
+            const iconEl = btnBookmark.querySelector("iconify-icon");
+            if (isSaved) {
+              iconEl.setAttribute("icon", "material-symbols:bookmark");
+            } else {
+              iconEl.setAttribute("icon", "material-symbols:bookmark-outline");
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
