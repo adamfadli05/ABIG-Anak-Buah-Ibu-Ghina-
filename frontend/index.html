@@ -462,6 +462,7 @@
               jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
               lat: item.latitude || "",
               lng: item.longitude || "",
+              no_telepon: item.no_telepon || "",
             }).toString();
 
             return `
