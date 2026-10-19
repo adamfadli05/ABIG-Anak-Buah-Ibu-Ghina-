@@ -522,14 +522,21 @@
       }
 
       // 5. PROCESS GOOGLE CALLBACK SAFELY
-      async function checkGoogleLoginSession() {
+        async function checkGoogleLoginSession() {
         const urlParams = new URLSearchParams(window.location.search);
         const googleStatus = urlParams.get("google");
         const googleType = urlParams.get("type");
         const userDataRaw = urlParams.get("user");
         const role = urlParams.get("role") || "user";
 
+        // Hasil login Google harus divalidasi di halaman login dulu
+        if (googleStatus === "success" || googleStatus === "failed") {
+          window.location.replace("login.html" + window.location.search);
+          return;
+        }
+
         if (googleStatus === "success") {
+      
           if (userDataRaw) {
             try {
               let decodedData = userDataRaw;
