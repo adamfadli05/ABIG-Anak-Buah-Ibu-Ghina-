@@ -213,15 +213,14 @@
       window.allKuliner = [];
       window.selectedCategory = "semua";
 
-      // FUNGSI TUNGGAL ERROR MAPS DENGAN WARNA FIGMA (#D9D9D9 & #D4D4D4)
       function renderMapErrorUI() {
         const mapElement = document.getElementById("map");
         if (!mapElement) return;
 
         mapElement.innerHTML = `
           <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background-color: #D9D9D9; border: 1.5px dashed #D4D4D4; border-radius: 12px; color: #001b7d; padding: 20px; box-sizing: border-box; text-align: center;">
-            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #001b7d;">Gagal Memuat Peta</h4>
-            <button onclick="window.location.reload()" style="background: transparent; border: none; color: #333; font-size: 14px; font-weight: 400; text-decoration: underline; cursor: pointer; padding: 0; outline: none;">coba lagi</button>
+            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #001b7d;">Peta Gagal Di Muat</h4>
+            <button onclick="window.location.reload()" style="background: transparent; border: none; color:rgba(138, 138, 138, 1); font-size: 14px; font-weight: 400; text-decoration: underline; cursor: pointer; padding: 0; outline: none;">coba lagi</button>
           </div>
         `;
       }
@@ -317,7 +316,6 @@
               content.innerHTML = `
                 <img src="${photoUrl}" alt="${namaKuliner}" class="map-popup-img" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
                 <h4 class="map-popup-title">${namaTempat}</h4>
-                <p class="map-popup-menu">Menu: ${namaKuliner}</p>
                 <p class="map-popup-address">${alamat}</p>
               `;
               infoWindow.setContent(content);
@@ -385,9 +383,29 @@
         const searchInput = document.getElementById("searchInput");
         if (!foodGrid) return;
 
-        const keyword = searchInput ? searchInput.value.trim().toLocaleLowerCase("id-ID") : "";
+        const rawKeyword = searchInput ? searchInput.value : "";
+        const keyword = rawKeyword.trim().toLocaleLowerCase("id-ID");
         const selectedCat = (window.selectedCategory || "semua").trim().toLowerCase();
 
+        // VALIDASI 1: Jika user memasukkan spasi saja (contoh: "   "), langsung tampilkan "Kuliner tidak ditemukan"
+        if (rawKeyword.length > 0 && keyword === "") {
+          foodGrid.innerHTML = "";
+          foodGrid.style.display = "none";
+          if (emptyMessage) {
+            emptyMessage.innerHTML = `
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 40px 0; gap: 8px; font-family: 'Inter';">
+                <span style="color: #001b7d; font-size: 15px; font-weight: 500;">Kuliner tidak ditemukan</span>
+                <button onclick="document.getElementById('searchInput').value=''; renderKuliner();" style="background: transparent; border: none; color: #001b7d; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 6px; cursor: pointer; outline: none; padding: 0;">
+                  <span style="text-decoration: underline;">Coba Lagi</span>
+                </button>
+              </div>
+            `;
+            emptyMessage.style.display = "block";
+          }
+          return;
+        }
+
+        // FILTER DATA
         const filteredKuliner = window.allKuliner.filter((item) => {
           const rawCategory = item.kategori || item.nama_kategori || item.kategori_kuliner || item.jenis || "";
           const category = String(rawCategory).trim().toLowerCase();
@@ -402,14 +420,15 @@
           return matchesCategory && matchesSearch;
         });
 
+        // VALIDASI 2: Jika hasil pencarian tidak ditemukan (contoh: "seblak")
         if (filteredKuliner.length === 0) {
           foodGrid.innerHTML = "";
           foodGrid.style.display = "none";
           if (emptyMessage) {
             emptyMessage.innerHTML = `
-              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 40px 0; gap: 8px; font-family: 'Inter', sans-serif;">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 40px 0; gap: 8px; font-family: 'Inter';">
                 <span style="color: #001b7d; font-size: 15px; font-weight: 500;">Kuliner tidak ditemukan</span>
-                <button onclick="window.location.reload()" style="background: transparent; border: none; color: #001b7d; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 6px; cursor: pointer; outline: none; padding: 0;">
+                <button onclick="document.getElementById('searchInput').value=''; renderKuliner();" style="background: transparent; border: none; color: #001b7d; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 6px; cursor: pointer; outline: none; padding: 0;">
                   <span style="text-decoration: underline;">Coba Lagi</span>
                 </button>
               </div>
@@ -431,8 +450,20 @@
             const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
             const photo = getSafePhoto(item.foto);
 
+            const dataQuery = new URLSearchParams({
+              id: item.id_tempat || item.id_kuliner || "",
+              nama: item.nama_kuliner || item.nama_tempat || "Kuliner",
+              deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
+              foto: photo,
+              harga: item.harga || "0",
+              alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
+              jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
+              lat: item.latitude || "",
+              lng: item.longitude || "",
+            }).toString();
+
             return `
-            <article class="food-card">
+            <a href="detail_kuliner.html?${dataQuery}" class="food-card" style="text-decoration: none; color: inherit; cursor: pointer;">
               <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
               <h3 class="food-name">${name}</h3>
               <div class="food-location">
@@ -441,12 +472,12 @@
               </div>
               <div class="food-meta">
                 <span>Rp. ${price}</span>
-                <div style="display: flex; align-items: center; gap: 2px;">
-                  <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 14px;"></iconify-icon>
-                  <span style="font-weight: 900; font-size: 10px;">0</span>
+                <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; color: #333333;">
+                  <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 20px;"></iconify-icon>
+                  <span>0.0</span>
                 </div>
               </div>
-            </article>
+            </a>
           `;
           })
           .join("");
