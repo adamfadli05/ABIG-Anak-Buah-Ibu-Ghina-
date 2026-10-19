@@ -261,29 +261,15 @@
         try {
           const cirebon = { lat: -6.732, lng: 108.552 };
           window.map = new google.maps.Map(mapElement, {
-            zoom: 13,
-            center: cirebon,
-            controlSize: 24, // kecilkan semua tombol supaya muat di peta yang pendek
-
-            // Tiap kontrol di sudut berbeda supaya tidak bertumpuk
-            mapTypeControl: true,
-            mapTypeControlOptions: {
-              style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-              position: google.maps.ControlPosition.TOP_LEFT,
-            },
-            fullscreenControl: true,
-            fullscreenControlOptions: {
-              position: google.maps.ControlPosition.TOP_RIGHT,
-            },
-            zoomControl: true,
-            zoomControlOptions: {
-              position: google.maps.ControlPosition.LEFT_BOTTOM,
-            },
-            streetViewControl: true,
-            streetViewControlOptions: {
-              position: google.maps.ControlPosition.RIGHT_BOTTOM,
-            },
-          });
+          zoom: 13,
+          center: cirebon,
+          disableDefaultUI: true,      // matikan semua kontrol bawaan
+          zoomControl: true,           // sisakan hanya tombol zoom
+          streetViewControl: false,
+          fullscreenControl: false,
+          mapTypeControl: false,
+          gestureHandling: "cooperative", // geser pakai 2 jari/Ctrl+scroll, supaya tidak mengganggu scroll halaman
+        });
           loadKulinerMarkers();
         } catch (error) {
           console.error("Gagal inisialisasi Peta:", error);
