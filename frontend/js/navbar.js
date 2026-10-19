@@ -1,15 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
   const navbarContainer = document.getElementById("navbar-container");
 
-  // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
+   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
   if (!document.getElementById("figma-sweetalert-style")) {
     const styleEl = document.createElement("style");
     styleEl.id = "figma-sweetalert-style";
     styleEl.innerHTML = `
-    .swal2-container.swal2-backdrop-show, .swal2-container.swal2-bg {
+      .swal2-container.swal2-backdrop-show, .swal2-container.swal2-bg {
         background: rgba(217, 217, 217, 0.7) !important;
       }
-     .figma-logout-popup {
+      .figma-logout-popup {
         width: 339px !important;
         height: 185px !important;
         border-radius: 20px !important;
@@ -21,6 +21,13 @@ document.addEventListener("DOMContentLoaded", function () {
         justify-content: space-between !important;
         overflow: hidden !important;
       }
+      .figma-logout-popup .swal2-actions {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin: 0 0 16px 0 !important;
+      }
       .figma-btn-cancel,
       .figma-btn-confirm {
         width: 100px !important;
@@ -31,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin: 0 6px !important;
+        margin: 0 20px !important;
         border: none !important;
         cursor: pointer !important;
       }

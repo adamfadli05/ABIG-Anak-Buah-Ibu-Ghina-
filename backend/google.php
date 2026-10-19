@@ -3,7 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 $client = new Google\Client();
-$client->setAuthConfig(json_decode(getenv('GOOGLE_CLIENT_SECRET'), true));
+$client->setAuthConfig(__DIR__ . '/client_secret.json');
 
 // Mengarahkan redirect URI ke callback.php di localhost
 $client->setRedirectUri(
