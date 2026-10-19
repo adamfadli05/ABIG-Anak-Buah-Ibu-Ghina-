@@ -234,28 +234,29 @@
         const googleStatus = urlParams.get("google");
         const role = urlParams.get("role") || "user";
         const userData = urlParams.get("user");
+        const googleType = urlParams.get("type");
+               if (googleStatus === "success") {
+          let userObj = { name: "Google User" }; // data cadangan kalau data user gagal dibaca
 
-        if (googleStatus === "success") {
           if (userData) {
             try {
               let str = userData;
               for (let i = 0; i < 3; i++) {
-                if (typeof str === "string" && (str.includes("%") || str.startsWith("%22") || str.startsWith("%7B"))) {
+                if (typeof str === "string" && str.includes("%")) {
                   str = decodeURIComponent(str);
                 }
               }
-              const userObj = typeof str === "string" ? JSON.parse(str) : str;
-              localStorage.setItem("user", JSON.stringify(userObj));
-              localStorage.setItem("role", role);
+              userObj = typeof str === "string" ? JSON.parse(str) : str;
             } catch (e) {
               console.error("Gagal simpan session user Google:", e);
             }
           }
 
+          localStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("role", role);
+
           redirectTarget = role === "admin" ? "admin.html" : "index.html";
-          showPopupModal(true, "Masuk dengan Google berhasil");
-        } else if (googleStatus === "failed") {
-          showPopupModal(false, "Masuk dengan google gagal,<br>silahkan coba lagi");
+          showPopupModal(true, googleType === "register" ? "Pendaftaran dengan Google berhasil" : "Masuk dengan Google berhasil");
         }
       });
 

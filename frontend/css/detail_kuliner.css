@@ -237,8 +237,8 @@ body {
   border: 1px solid var(--primary);
   color: var(--primary);
   border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -273,13 +273,13 @@ body {
   align-items: center !important;
   gap: 8px !important;
   margin-bottom: 14px !important;
-  font-size: 16px !important;
+  font-size: 20px !important;
 }
 
 .rating-header-row .stars {
   display: flex;
   color: #ffbf00;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 /* DESKRIPSI */
