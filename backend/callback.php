@@ -9,7 +9,7 @@ define('FRONTEND_URL', 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
 define('ERROR_URL', FRONTEND_URL . '/login.html?google=failed');
 
 $client = new Google\Client();
-$client->setAuthConfig(__DIR__ . '/client_secret.json');
+$client->setAuthConfig(json_decode(getenv('GOOGLE_CLIENT_SECRET'), true));
 $client->setRedirectUri(
     'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
 );
