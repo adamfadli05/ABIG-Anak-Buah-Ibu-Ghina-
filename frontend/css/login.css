@@ -14,7 +14,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #ffffff;
+  background-color: #f4f6f9;
   font-family: var(--font-body);
   display: flex;
   justify-content: center;
@@ -22,27 +22,41 @@ body {
   min-height: 100vh;
 }
 
+/* CONTAINER KARTU UTAMA (DENGAN GARIS TEPI SAMA SEPERTI REGISTER) */
 .auth-container {
   width: 100%;
   max-width: 450px;
-  min-height: 100vh;
+  min-height: 874px; 
   background: var(--bg-color);
+  border: 1px solid #001b7d; /* GARIS TEPI SAMA SEPERTI REGISTER */
+  border-radius: 40px; /* RADIUS SAMA SEPERTI REGISTER */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
+/* HEADER SESUAI FIGMA (Height: 215px, Radius: 40px 40px 0 0) */
 .auth-header {
   width: 100%;
-  background: var(--primary);
-  color: white;
+  height: 215px; /* Tinggi Header Figma */
+  background: #001b7d; /* Warna Figma */
+  color: #ffffff;
   text-align: center;
-  padding: 35px 20px 25px;
+  padding: 30px 20px 20px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-top-left-radius: 39px;
+  border-top-right-radius: 39px;
 }
 
+/* TOMBOL KEMBALI */
 .back-btn {
   position: absolute;
-  top: calc(50px + env(safe-area-inset-top));
+  top: 35px;
   left: 20px;
   width: 38px;
   height: 38px;
@@ -52,37 +66,45 @@ body {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  transform: translateY(-50%);
 }
 
 .back-btn svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   fill: var(--primary);
 }
 
+/* LOGO MANGAN YUKKK (Ukuran Font Sesuai Figma) */
 .auth-brand {
   margin: 0;
-  font-family: var(--font-title);
+  font-family: var(--font-title), serif;
   font-weight: 400;
-  font-size: 40px;
+  font-size: 48px; /* Font 'MANGAN' Figma */
+  line-height: 1.1;
   display: flex;
   flex-direction: column;
-  line-height: 1;
+  align-items: center;
+  color: #ffffff;
 }
 
 .auth-brand span:last-child {
-  font-size: 36px;
+  font-size: 40px; /* Font 'YUKKK' Figma */
+  line-height: 1;
   margin-top: 2px;
 }
 
+/* SUBTITLE KULINER KHAS CIREBON */
 .auth-subtitle {
-  margin-top: 14px;
+  margin-top: 10px;
   margin-bottom: 0;
-  font-size: 16px;
-  opacity: 0.9;
+  font-family: var(--font-body), sans-serif;
+  font-size: 16px; /* Font Subtitle Figma */
+  line-height: 19px;
+  color: #ffffff;
+  opacity: 1;
 }
 
+/* FORM ISI */
 .auth-form {
   width: 100%;
   padding: 28px 24px 20px;
@@ -139,14 +161,14 @@ body {
   min-width: 0;
   font-family: var(--font-body);
   font-size: 16px;
-  color: #333;
+  color: var(--primary);
   background: transparent !important;
   padding-right: 30px;
 }
 
 .input-wrapper input::placeholder {
   color: var(--primary);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .input-wrapper input:-webkit-autofill,
@@ -197,7 +219,7 @@ input::-ms-clear {
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 10px 28px;
   font-family: var(--font-body);
   font-size: 20px;
@@ -245,9 +267,9 @@ input::-ms-clear {
 .auth-footer {
   text-align: center;
   color: var(--primary);
-  margin-top: auto;
-  padding-top: 20px;
-  padding-bottom: 15px;
+  margin-top: 16px !important; 
+  padding-top: 0 !important;
+  padding-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -267,71 +289,60 @@ input::-ms-clear {
   text-decoration: underline;
 }
 
-/* Modal Popup Overlay */
+/* Modal Popup Overlay (BACKGROUND TERANG & TEKS DIGEDEIN) */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  background: rgba(217, 217, 217, 0.7) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(217, 217, 217, 0.7) !important; /* Latar belakang abu-abu transparan */
   display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
 }
 
 .modal-card {
   background: #ffffff;
-  width: 80%;
-  max-width: 280px;
-  padding: 24px 20px;
+  width: 85%;
+  max-width: 320px;
+  padding: 28px 24px;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.modal-icon {
-  margin-bottom: 12px;
+/* TEKS DI DALAM POPUP CARD DIPERBESAR KE 20PX */
+.modal-message,
+.modal-text {
+  font-family: var(--font-body), sans-serif !important;
+  font-size: 20px !important; /* Ukuran font diperbesar jadi 20px */
+  font-weight: 500 !important;
+  color: #001b7d !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  margin: 14px 0 !important;
 }
 
-.modal-message {
-  color: var(--primary);
-  font-weight: 400;
-  font-size: 24px;
-  line-height: 1.4;
-  margin: 0;
-}
-
-.modal-btn-retry {
-  display: inline-block;
-  margin-top: 12px;
-  color: var(--primary);
-  font-size: 13px;
-  text-decoration: underline;
-  font-weight: 400;
-}
-/* Pembungkus tombol diatur ke rata kanan */
 .modal-action-wrapper {
   width: 100%;
   display: flex;
-  justify-content: flex-end; /* Menggeser tombol ke kanan */
-  margin-top: 15px;
+  justify-content: flex-end;
+  margin-top: 18px;
 }
 
-/* Styling tombol teks Oke / Coba lagi */
 .modal-link-action {
   color: #001b7d;
-  font-weight: 400;
+  font-weight: 500;
   text-decoration: underline;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
 }
 
+/* RESPONSIVE DESKTOP (AKSES DARI LAPTOP/DESKTOP) */
 @media (min-width: 768px) {
   body {
     background-color: #f4f6f9;
@@ -339,30 +350,28 @@ input::-ms-clear {
   }
 
   .auth-container {
-    max-width: 420px;
-    min-height: auto;
-    border-radius: 20px;
+    width: 450px;
+    max-width: 450px;
+    min-height: 874px;
+    border: 1px solid #001b7d; /* BORDER DITAMBAHKAN */
+    border-radius: 40px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 }
 
 @media (max-width: 480px) {
+  .auth-container {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+  }
+  
+  .auth-header {
+    border-radius: 0;
+  }
+
   .auth-form {
     padding: 24px 20px 20px;
-  }
-
-  .form-group label {
-    font-size: 16px;
-  }
-
-  .input-wrapper input {
-    font-size: 16px;
-  }
-
-  #errorBanner {
-    max-width: 100%;
-    font-size: 14px;
-    padding: 8px 14px;
   }
 }

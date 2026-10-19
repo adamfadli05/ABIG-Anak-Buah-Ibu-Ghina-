@@ -25,7 +25,7 @@
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        background: rgba(0, 0, 0, 0.4) !important;
+        background: rgba(217, 217, 217, 0.7) !important; /* DIPERBAIKI: Latar Abu-Abu Transparan */
         z-index: 2147483647 !important;
         justify-content: center !important;
         align-items: center !important;
@@ -44,17 +44,17 @@
         align-items: center !important;
         padding: 24px 24px 16px 24px !important;
         min-width: 280px !important;
-        max-width: 320px !important;
+        max-width: 340px !important;
         box-sizing: border-box !important;
       }
 
       #responseModal .modal-text {
         font-family: "Inter" !important;
-        font-size: 16px !important;
+        font-size: 20px !important; /* DIPERBAIKI: Ukuran Teks Digedein ke 20px */
         font-weight: 400 !important;
         text-align: center !important;
         color: #001b7d !important;
-        margin: 12px 0 16px 0 !important;
+        margin: 14px 0 16px 0 !important;
         line-height: 1.4 !important;
       }
 
@@ -70,7 +70,7 @@
         border: none !important;
         color: #001b7d !important;
         font-family: "Inter" !important;
-        font-size: 14px !important;
+        font-size: 15px !important;
         font-weight: 400 !important;
         text-decoration: underline !important;
         cursor: pointer !important;
@@ -133,7 +133,7 @@
         <!-- Banner Error Merah Capsule -->
         <div id="errorBanner" class="error-banner-capsule"></div>
 
-        <button type="submit" class="btn-submit">MASUK</button>
+        <button type="submit" class="btn-submit">Masuk</button>
 
         <div class="divider">Atau :</div>
 
@@ -201,7 +201,7 @@
 
         if (isSuccess) {
           modalIcon.innerHTML = `<iconify-icon icon="mdi:check-circle" style="color: #28a745; font-size: 39px;"></iconify-icon>`;
-          modalMessage.innerHTML = customMessage ? customMessage : "Anda Berhasil masuk";
+          modalMessage.innerHTML = customMessage ? customMessage : "Anda berhasil masuk";
         } else {
           modalIcon.innerHTML = `<iconify-icon icon="entypo:circle-with-cross" style="color: #ea3829; font-size: 39px;"></iconify-icon>`;
           modalMessage.innerHTML = customMessage ? customMessage : "Anda Gagal masuk,<br>silahkan coba lagi";
@@ -319,7 +319,7 @@
         }
 
         btnSubmit.disabled = true;
-        btnSubmit.textContent = "Memproses...";
+        btnSubmit.textContent = "Memproses";
 
         try {
           const res = await fetch(`${BASE_URL}/api/login.php`, {
@@ -340,7 +340,7 @@
           localStorage.setItem("role", data.role);
           redirectTarget = data.role === "admin" ? "admin.html" : "index.html";
 
-          showPopupModal(true, "Anda Berhasil masuk");
+          showPopupModal(true, "Anda berhasil masuk");
         } catch (err) {
           showError("Terjadi kesalahan koneksi,<br>silahkan coba lagi");
         } finally {

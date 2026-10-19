@@ -22,28 +22,40 @@ body {
   min-height: 100vh;
 }
 
+/* KARTU UTAMA KONTEN (SESUAI SPESIFIKASI FIGMA RECTANGLE 46) */
 .auth-container {
   width: 100%;
-  max-width: 100%;
-  min-height: 100vh;
+  max-width: 450px; /* Width Figma: 450px */
+  min-height: 874px; /* Height Figma: 874px */
   background: var(--bg-color);
+  border: 1px solid #001b7d; /* Border Figma: 1px solid #001B7D */
+  border-radius: 40px; /* Radius Figma: 40px */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
+/* HEADER BIRU */
 .auth-header {
   width: 100%;
+  height: 215px; /* Disamakan dengan header login */
   background: var(--primary);
   color: white;
   text-align: center;
-  padding: max(35px, env(safe-area-inset-top)) 20px 25px;
-  border-radius: 0;
+  padding: 30px 20px 20px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-top-left-radius: 39px;
+  border-top-right-radius: 39px;
 }
 
 .back-btn {
   position: absolute;
-  top: calc(50px + env(safe-area-inset-top));
+  top: 35px;
   left: 20px;
   width: 38px;
   height: 38px;
@@ -54,40 +66,46 @@ body {
   justify-content: center;
   color: var(--primary);
   text-decoration: none;
-  transform: translateY(-50%);
 }
 
 .back-btn svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   fill: var(--primary);
 }
 
 .auth-brand {
   margin: 0;
-  font-family: var(--font-title);
+  font-family: var(--font-title), serif;
   font-weight: 400;
-  font-size: 40px;
+  font-size: 48px;
+  line-height: 1.1;
   display: flex;
   flex-direction: column;
-  line-height: 1;
+  align-items: center;
+  color: #ffffff;
 }
 
 .auth-brand span:last-child {
-  font-size: 36px;
+  font-size: 40px;
+  line-height: 1;
   margin-top: 2px;
 }
 
 .auth-subtitle {
-  margin-top: 14px;
+  margin-top: 10px;
   margin-bottom: 0;
+  font-family: var(--font-body), sans-serif;
   font-size: 16px;
-  opacity: 0.9;
+  line-height: 19px;
+  color: #ffffff;
+  opacity: 1;
 }
 
+/* FORM ISI */
 .auth-form {
   width: 100%;
-  padding: 24px 20px;
+  padding: 24px 24px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -147,7 +165,7 @@ body {
   width: 100%;
   font-family: var(--font-body);
   font-size: 16px;
-  color: #333;
+  color: var(--primary);
 }
 
 .input-wrapper input:-webkit-autofill,
@@ -161,7 +179,7 @@ body {
 
 .input-wrapper input::placeholder {
   color: var(--primary);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .error-banner {
@@ -230,12 +248,10 @@ body {
   font-size: 16px;
   font-weight: 400;
   text-align: center;
-
   width: fit-content;
   max-width: 80%;
   margin: 12px auto;
   padding: 8px 20px;
-
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
@@ -257,20 +273,6 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   right: 0;
 }
 
-@media (min-width: 768px) {
-  body {
-    background-color: #f4f6f9;
-    padding: 40px 20px;
-  }
-
-  .auth-container {
-    max-width: 420px;
-    min-height: auto;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  }
-}
 .error-msg {
   color: var(--error-color);
   font-size: 11px;
@@ -280,16 +282,13 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   min-height: 14px;
 }
 
-.input-wrapper.error {
-  border: 1px solid var(--error-color);
-}
-/* Sembunyikan ikon mata bawaan browser Edge / Chrome */
+/* SEMBUNYIKAN IKON MATA EDGE / CHROME */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
 }
 
-/* Modal Overlay */
+/* MODAL OVERLAY */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -359,4 +358,39 @@ input[type="password"]::-ms-clear {
 
 .modal-link-action:hover {
   opacity: 0.8;
+}
+
+/* MEDIA QUERY UNTUK DESKTOP (AKSES DARI LAPTOP) */
+@media (min-width: 768px) {
+  body {
+    background-color: #f4f6f9;
+    padding: 40px 20px;
+  }
+
+  .auth-container {
+    width: 450px;
+    max-width: 450px; /* Width Figma: 450px */
+    height: 874px; /* Height Figma: 874px */
+    min-height: 874px;
+    border: 1px solid #001b7d; /* Border Figma: 1px solid #001B7D */
+    border-radius: 40px; /* Radius Figma: 40px */
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+  }
+  
+  .auth-header {
+    border-radius: 0;
+  }
+
+  .auth-form {
+    padding: 24px 20px 20px;
+  }
 }

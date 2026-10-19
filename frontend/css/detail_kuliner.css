@@ -142,6 +142,14 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 5;
   transition: transform 0.2s ease;
+
+  /* KUNCI TOMBOL AGAR TIDAK BISA DIPENCET */
+  pointer-events: none !important;
+  cursor: default !important;
+  
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  transition: transform 0.2s ease;
 }
 
 .btn-bookmark-floating:hover {
@@ -161,40 +169,58 @@ body {
   color: #ffffff;
 }
 
-/* BARIS HARGA & RATING KECIL DI BAWAH FOTO */
+/* BARIS HARGA & RATING SESUAI FIGMA DESKTOP */
+/* BARIS HARGA & RATING DESKTOP (PROPORSI RAPI & SEIMBANG) */
 .meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  gap: 12px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  gap: 12px !important;
+  margin-top: 14px !important;
 }
 
+/* TOMBOL HARGA BIRU */
 .price-badge {
-  padding: 10px 20px;
-  background: var(--primary);
-  color: #ffffff;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.rating-badge-small {
+  flex: 1 !important;
+  height: 40px !important;            /* Diturunkan dari 50px ke 40px agar ramping */
+  padding: 0 16px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
-  padding: 10px 20px;
-  background: var(--primary);
-  color: #ffffff;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
+  background: #001B7D !important;     /* Biru khas Mangan Yukkk */
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 16px !important;         /* Ukuran teks dirampingkan dari 25px ke 16px */
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
 }
 
+/* TOMBOL RATING BIRU */
+.rating-badge-small {
+  flex: 1 !important;
+  height: 40px !important;            /* Diturunkan dari 50px ke 40px agar ramping */
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;               /* Jarak bintang & angka */
+  background: #001B7D !important;
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 16px !important;         /* Ukuran angka rating dirampingkan */
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+}
+
+/* BINTANG KUNING DI TOMBOL RATING */
 .rating-badge-small iconify-icon {
-  font-size: 20px;
-  color: #ffbf00;
+  font-size: 18px !important;         /* Ukuran icon bintang disesuaikan */
+  color: #FFBF00 !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 /* TOMBOL AKSI */
@@ -498,6 +524,14 @@ body {
     height: 38px !important;
     right: 12px !important;
     bottom: 12px !important;
+
+    /* KUNCI TOMBOL AGAR TIDAK BISA DIPENCET */
+  pointer-events: none !important;
+  cursor: default !important;
+  
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  transition: transform 0.2s ease;
   }
 
   .btn-bookmark-floating iconify-icon {
@@ -606,18 +640,20 @@ body {
   .info-grid {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important; /* Diratakan ke kiri agar rapat */
     align-items: center !important;
-    gap: 16px !important;
+    gap: 12px !important;                    /* Jarak antar item disesuaikan */
     margin-bottom: 14px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;              /* Ukuran font sedikit dirampingkan */
     width: 100% !important;
+    flex-wrap: nowrap !important;            /* Mencegah nomor telepon turun ke bawah */
   }
 
   .info-item {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 4px !important;
+    white-space: nowrap !important;          /* Agar teks dalam 1 baris tidak patah */
   }
 
   .info-item span {
