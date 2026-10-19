@@ -14,6 +14,7 @@ $sql = "SELECT
     tk.longitude,
     tk.jam_buka,
     tk.jam_tutup,
+    tk.no_telepon,
     tk.foto_tempat,
     tk.foto AS foto,
     tk.harga
