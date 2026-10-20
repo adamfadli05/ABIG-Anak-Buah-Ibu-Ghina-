@@ -34,9 +34,9 @@
         <!-- KOLOM KIRI: FOTO & HARGA -->
         <div class="detail-left-col">
           <div class="food-photo-container">
-            <img id="foodPhoto" class="food-detail-photo" src="" alt="Foto Kuliner" />
+            <img id="foodPhoto" class="food-detail-photo" src="" alt="Foto Kuliner" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
 
-            <!-- TOMBOL BOOKMARK DI KANAN BAWAH FOTO (LINGKARAN PUTIH, IKON BIRU) -->
+            <!-- TOMBOL BOOKMARK DI KANAN BAWAH FOTO -->
             <button class="btn-bookmark-floating" id="btnBookmark" aria-label="Simpan Kuliner">
               <iconify-icon icon="material-symbols:bookmark-outline"></iconify-icon>
             </button>
@@ -58,7 +58,7 @@
 
           <!-- RATING BINTANG & JUMLAH ULASAN DI BAWAH JUDUL -->
           <div class="rating-header-row">
-            <span class="stars">
+            <span class="stars" id="starsContainer">
               <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
               <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
               <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
@@ -94,25 +94,23 @@
           </div>
 
           <!-- TOMBOL AKSI -->
-         <div class="action-row">
-          <button class="btn-action-outline" id="btnRate" style="color: #001b7d; border-color: #001b7d; font-weight: 700;">
-            <iconify-icon icon="material-symbols:star" style="color: #001b7d"></iconify-icon> Beri Rating
-          </button>
-          <button class="btn-action-outline" id="btnReview" style="color: #001b7d; border-color: #001b7d; font-weight: 700;">
-            <iconify-icon icon="ri:pencil-fill" style="color: #001b7d"></iconify-icon> Beri Ulasan
-          </button>
-        </div>
+          <div class="action-row">
+            <button class="btn-action-outline" id="btnRate" style="color: #001b7d; border-color: #001b7d; font-weight: 700"><iconify-icon icon="material-symbols:star" style="color: #001b7d"></iconify-icon> Beri Rating</button>
+            <button class="btn-action-outline" id="btnReview" style="color: #001b7d; border-color: #001b7d; font-weight: 700"><iconify-icon icon="ri:pencil-fill" style="color: #001b7d"></iconify-icon> Beri Ulasan</button>
+          </div>
 
           <!-- BAGIAN ULASAN PENGGUNA -->
           <section class="review-section">
-            <h2 class="review-section-title" style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 12px;">Ulasan Pengguna :</h2>
+            <h2 class="review-section-title" style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 12px">Ulasan Pengguna :</h2>
             <div id="reviewsContainer">
-              <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif;">
-                <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px;">Belum ada ulasan</div>
-                <div style="font-weight: 400; font-size: 12px; color: #333;">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+              <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif">
+                <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px">Belum ada ulasan</div>
+                <div style="font-weight: 400; font-size: 12px; color: #333">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
               </div>
             </div>
           </section>
+        </div>
+      </div>
 
       <!-- KONDISI VALIDASI KULINER GAGAL DIMUAT (TERSEMBUNYI SECARA DEFAULT) -->
       <div id="errorState" class="error-state-container" style="display: none">
@@ -123,54 +121,112 @@
       </div>
     </main>
 
-    <!-- SCRIPT VALIDASI DATA & GAGAL MUAT -->
+    <!-- SCRIPT INTEGRASI API detail_kuliner.php -->
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/";
 
-        const nama = urlParams.get("nama");
-        const deskripsi = urlParams.get("deskripsi");
-        const foto = urlParams.get("foto");
-        const harga = urlParams.get("harga");
-        const alamat = urlParams.get("alamat");
-        const jam = urlParams.get("jam");
-        const noTelepon = urlParams.get("no_telepon"); // Mengambil parameter no_telepon dari database
-        const lat = urlParams.get("lat");
-        const lng = urlParams.get("lng");
+      document.addEventListener("DOMContentLoaded", async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const idTempat = urlParams.get("id"); // Mengambil parameter id dari URL
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
 
-        if (!nama) {
+        if (!idTempat) {
           if (detailContent) detailContent.style.display = "none";
           if (errorState) errorState.style.display = "flex";
           return;
         }
 
-        if (detailContent) detailContent.style.display = "grid";
-        if (errorState) errorState.style.display = "none";
+        try {
+          // Melakukan fetch ke API detail_kuliner.php berdasarkan id tempat[cite: 2]
+          const response = await fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`);
+          if (!response.ok) throw new Error("Gagal mengambil data dari server");
 
-        document.getElementById("foodName").textContent = nama;
-        if (deskripsi) document.getElementById("foodDescription").textContent = deskripsi;
-        if (foto) document.getElementById("foodPhoto").src = foto;
+          const result = await response.json();
 
-        if (harga) {
-          const numPrice = Number(harga);
-          document.getElementById("foodPrice").textContent = "Rp " + (Number.isFinite(numPrice) ? numPrice.toLocaleString("id-ID") : harga);
-        }
+          if (!result.status || !result.data) {
+            if (detailContent) detailContent.style.display = "none";
+            if (errorState) errorState.style.display = "flex";
+            return;
+          }
 
-        if (alamat) document.getElementById("foodAddress").textContent = alamat;
-        if (jam) document.getElementById("foodHours").textContent = jam;
+          const data = result.data;
+          const ulasanList = result.ulasan || [];
 
-        // Menampilkan nomor telepon dari kolom database no_telepon
-        if (noTelepon && noTelepon !== "null" && noTelepon !== "") {
-          document.getElementById("foodPhone").textContent = noTelepon;
-        } else {
-          document.getElementById("foodPhone").textContent = "Tidak tersedia";
-        }
+          if (detailContent) detailContent.style.display = "grid";
+          if (errorState) errorState.style.display = "none";
 
-        if (lat && lng) {
-          document.getElementById("btnMapLink").href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+          // 1. Isi Informasi Utama Kuliner & Tempat
+          document.getElementById("foodName").textContent = data.nama_kuliner || data.nama_tempat || "Kuliner";
+          document.getElementById("foodDescription").textContent = data.deskripsi || "Deskripsi belum tersedia.";
+
+          // Tangani Foto (Prioritas foto tempat, lalu foto kuliner)
+          const fotoPath = data.foto_tempat || data.foto || data.foto_kuliner || "";
+          let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
+          if (fotoPath) {
+            if (/^(https?:\/\/)/i.test(fotoPath)) {
+              safePhoto = fotoPath;
+            } else {
+              safePhoto = `${BASE_URL}/uploads/${fotoPath.replace(/^uploads\//, "")}`;
+            }
+          }
+          document.getElementById("foodPhoto").src = safePhoto;
+
+          // Harga
+          const numericPrice = Number(data.harga);
+          document.getElementById("foodPrice").textContent = "Rp " + (Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0");
+
+          // Alamat & Jam Buka
+          document.getElementById("foodAddress").textContent = data.alamat || "Alamat tidak tersedia";
+          if (data.jam_buka && data.jam_tutup) {
+            document.getElementById("foodHours").textContent = `${data.jam_buka.substring(0, 5)} - ${data.jam_tutup.substring(0, 5)}`;
+          } else {
+            document.getElementById("foodHours").textContent = "09:00 - 21:00";
+          }
+
+          // Nomor Telepon
+          if (data.no_telepon && data.no_telepon !== "null" && data.no_telepon !== "") {
+            document.getElementById("foodPhone").textContent = data.no_telepon;
+          } else {
+            document.getElementById("foodPhone").textContent = "Tidak tersedia";
+          }
+
+          // Koordinat Maps
+          if (data.latitude && data.longitude) {
+            document.getElementById("btnMapLink").href = `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`;
+          }
+
+          // 2. Rating & Ulasan
+          const avgRating = Number(data.rata_rata_rating || 0).toFixed(1);
+          const totalReview = data.jumlah_ulasan || ulasanList.length;
+
+          document.getElementById("foodRatingSmall").textContent = avgRating;
+          document.getElementById("ratingScoreText").textContent = avgRating;
+          document.getElementById("reviewCountText").textContent = `(${totalReview} Ulasan)`;
+
+          // Render Daftar Ulasan Pengguna
+          const reviewsContainer = document.getElementById("reviewsContainer");
+          if (ulasanList.length > 0) {
+            reviewsContainer.innerHTML = ulasanList
+              .map(
+                (u) => `
+              <div style="background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="font-size: 13px; color: #001b7d;">${escapeHTML(u.nama_user || "Pengguna")}</strong>
+                  <span style="font-size: 11px; color: #666;">${u.tanggal || ""}</span>
+                </div>
+                <div style="color: #FFBF00; font-size: 12px; margin-bottom: 4px;">⭐ ${u.rating} / 5</div>
+                <p style="font-size: 12px; color: #333; margin: 0;">${escapeHTML(u.komentar || "")}</p>
+              </div>
+            `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Gagal memuat detail kuliner dari backend:", error);
+          if (detailContent) detailContent.style.display = "none";
+          if (errorState) errorState.style.display = "flex";
         }
 
         // Interaksi Tombol Bookmark Floating
@@ -188,6 +244,13 @@
           });
         }
       });
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, (character) => {
+          const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+          return entities[character];
+        });
+      }
     </script>
   </body>
 </html>
