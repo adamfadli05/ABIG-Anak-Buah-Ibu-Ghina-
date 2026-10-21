@@ -16,10 +16,8 @@ $q = trim($_GET['q'] ?? '');
 
 // Validasi kata kunci kosong
 if ($q === '') {
-    echo json_encode([
-        "status" => false,
-        "message" => "Kata kunci pencarian tidak boleh kosong"
-    ]);
+    http_response_code(400);
+    echo json_encode(["status" => false, "message" => "Kata kunci pencarian tidak boleh kosong"]);
     exit;
 }
 
@@ -51,10 +49,8 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gagal melakukan pencarian"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal melakukan pencarian"]);
     exit;
 }
 
@@ -63,17 +59,11 @@ while ($row = pg_fetch_assoc($result)) {
     $data[] = $row;
 }
 
-// Validasi jika data tidak ditemukan
 if (empty($data)) {
-    echo json_encode([
-        "status" => true,
-        "message" => "Tidak ada kuliner yang cocok dengan pencarian",
-        "data" => []
-    ]);
+    http_response_code(200);
+    echo json_encode(["status" => true, "message" => "Tidak ada kuliner yang cocok dengan pencarian", "data" => []]);
     exit;
 }
 
-echo json_encode([
-    "status" => true,
-    "data" => $data
-]);
+http_response_code(200);
+echo json_encode(["status" => true, "data" => $data]);
