@@ -349,6 +349,40 @@
           btnSubmit.textContent = "MASUK";
         }
       });
+      // Saat form login di-submit
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const payload = { email: emailInput.value, password: passwordInput.value };
+
+  // 1. Log request API ke Console
+  console.log("[API Request] Menembak endpoint POST /api/login.php dengan payload:", payload);
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/login.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    // 2. Log response API dari PHP ke Console
+    console.log("[API Response] Balasan dari backend:", result);
+
+    if (result.status === "success") {
+      localStorage.setItem("user", JSON.stringify(result.data));
+      
+      // Kasih jeda sedikit atau alert biar log di Console sempat dibaca sebelum pindah halaman
+      alert("Login Berhasil!");
+      window.location.href = "index.html";
+    } else {
+      alert(result.message || "Login gagal!");
+    }
+  } catch (error) {
+    console.error("[API Error] Gagal terhubung ke backend:", error);
+  }
+}
 
       document.getElementById("googleLoginBtn").addEventListener("click", () => {
         window.location.href = `${BASE_URL}/google.php`;

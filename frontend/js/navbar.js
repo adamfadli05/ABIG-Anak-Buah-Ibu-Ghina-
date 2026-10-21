@@ -238,4 +238,39 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.replace("index.html");
       });
   }
+  // Otomatis jalan saat halaman selesai dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  const userData = localStorage.getItem("user");
+
+  if (userData) {
+    const user = JSON.parse(userData);
+    
+    // Log ini bakal langsung keliatan di F12 -> Tab Console di halaman mana pun!
+    console.info("[Auth System] Status: User Terautentikasi");
+    console.log("Data User Aktif:", user);
+
+    // Contoh: Kalau mau nampilin nama user di navbar
+    const namaUserEl = document.getElementById("namaUser");
+    if (namaUserEl) namaUserEl.textContent = user.nama || user.email;
+
+  } else {
+    console.log("[Auth System] Status: Belum ada sesi login (Guest).");
+  }
+});
+
+// Handling Tombol Logout
+const btnLogout = document.getElementById("btnLogout");
+if (btnLogout) {
+  btnLogout.addEventListener("click", (e) => {
+    e.preventDefault();
+    
+    // Hapus data dari localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    
+    console.info("[Auth System] User berhasil logout.");
+    alert("Kamu telah keluar.");
+    window.location.href = "login.html";
+  });
+}
 });
