@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(["status" => false, "message" => "Method harus POST"]);
     exit;
 }
@@ -25,26 +26,31 @@ $password         = $data['password'] ?? '';
 $konfirmasi       = $data['konfirmasi_password'] ?? '';
 
 if ($nama === '' || $email === '' || $password === '') {
+    http_response_code(400);
     echo json_encode(["status" => false, "message" => "Semua kolom wajib diisi"]);
     exit;
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
     echo json_encode(["status" => false, "message" => "Format email tidak valid"]);
     exit;
 }
 
 if (!preg_match('/@gmail\.com$/i', $email)) {
+    http_response_code(400);
     echo json_encode(["status" => false, "message" => "Gunakan email yang berakhiran @gmail.com"]);
     exit;
 }
 
 if (strlen($password) < 8) {
+    http_response_code(400);
     echo json_encode(["status" => false, "message" => "Kata sandi minimal 8 karakter"]);
     exit;
 }
 
 if ($password !== $konfirmasi) {
+    http_response_code(400);
     echo json_encode(["status" => false, "message" => "Konfirmasi kata sandi tidak cocok"]);
     exit;
 }
@@ -52,11 +58,13 @@ if ($password !== $konfirmasi) {
 $cek = pg_query_params($conn, 'SELECT id_user FROM users WHERE email = $1', [$email]);
 
 if (!$cek) {
+    http_response_code(500);
     echo json_encode(["status" => false, "message" => "Terjadi kesalahan saat memeriksa akun"]);
     exit;
 }
 
 if (pg_num_rows($cek) > 0) {
+    http_response_code(409);
     echo json_encode(["status" => false, "message" => "Email anda sudah terdaftar. Gunakan email lain."]);
     exit;
 }
@@ -69,7 +77,9 @@ $result = pg_query_params(
 );
 
 if ($result && pg_num_rows($result) > 0) {
+    http_response_code(201);
     echo json_encode(["status" => true, "message" => "Pendaftaran berhasil."]);
 } else {
+    http_response_code(500);
     echo json_encode(["status" => false, "message" => "Pendaftaran gagal. Silakan coba lagi"]);
 }
