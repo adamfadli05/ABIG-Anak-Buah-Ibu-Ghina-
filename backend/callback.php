@@ -1,17 +1,32 @@
-
 <?php
 session_start();
-
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/config/database.php';
 
-define('FRONTEND_URL', 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
+define('FRONTEND_URL', getenv('FRONTEND_URL') ?: 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
 define('ERROR_URL', FRONTEND_URL . '/login.html?google=failed');
 
 $client = new Google\Client();
-$client->setAuthConfig(__DIR__ . '/client_secret.json');
+
+$googleClientSecret = getenv('GOOGLE_CLIENT_SECRET');
+if (!$googleClientSecret) {
+    $configFile = __DIR__ . '/client_secret.json';
+    if (file_exists($configFile)) {
+        $googleClientSecret = file_get_contents($configFile);
+    } else {
+        header('Location: ' . ERROR_URL);
+        exit;
+    }
+}
+$configData = json_decode($googleClientSecret, true);
+if (!$configData) {
+    header('Location: ' . ERROR_URL);
+    exit;
+}
+$client->setAuthConfig($configData);
 $client->setRedirectUri(
-    'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
+    getenv('BACKEND_URL') ? getenv('BACKEND_URL') . '/callback.php' : 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
 );
 $client->addScope(['openid', 'email', 'profile']);
 
@@ -133,7 +148,6 @@ if (!$admin_result) {
 $admin = pg_fetch_assoc($admin_result);
 
 if ($admin) {
-    // Login sebagai admin
     $_SESSION['role'] = 'admin';
     $_SESSION['id_admin'] = $admin['id_admin'];
     $_SESSION['nama'] = $admin['nama'];

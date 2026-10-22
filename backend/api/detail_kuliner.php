@@ -16,10 +16,8 @@ $id = trim($_GET['id'] ?? '');
 
 // Validasi parameter kosong atau bukan angka
 if ($id === '' || !is_numeric($id)) {
-    echo json_encode([
-        "status" => false,
-        "message" => "ID kuliner tidak valid"
-    ]);
+    http_response_code(400);
+    echo json_encode(["status" => false, "message" => "ID kuliner tidak valid"]);
     exit;
 }
 
@@ -72,10 +70,8 @@ $result = pg_query_params(
 
 // Scenario: Pengambilan detail kuliner gagal
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Detail kuliner gagal dimuat"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Detail kuliner gagal dimuat"]);
     exit;
 }
 
@@ -83,10 +79,8 @@ $data = pg_fetch_assoc($result);
 
 // Scenario: Detail kuliner tidak ditemukan
 if (!$data) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Detail kuliner tidak ditemukan"
-    ]);
+    http_response_code(404);
+    echo json_encode(["status" => false, "message" => "Detail kuliner tidak ditemukan"]);
     exit;
 }
 
@@ -115,8 +109,5 @@ if ($ulasan_result) {
 }
 
 // Scenario: Data detail kuliner berhasil diambil
-echo json_encode([
-    "status" => true,
-    "data" => $data,
-    "ulasan" => $ulasan
-]);
+http_response_code(200);
+echo json_encode(["status" => true, "data" => $data, "ulasan" => $ulasan]);
