@@ -161,8 +161,8 @@
           document.getElementById("foodName").textContent = data.nama_kuliner || data.nama_tempat || "Kuliner";
           document.getElementById("foodDescription").textContent = data.deskripsi || "Deskripsi belum tersedia.";
 
-          // Tangani Foto (Prioritas foto tempat, lalu foto kuliner)
-          const fotoPath = data.foto_tempat || data.foto || data.foto_kuliner || "";
+          // Tangani Foto (Prioritas utama mengambil dari kolom 'foto' kuliner)
+          const fotoPath = data.foto || data.foto_kuliner || data.foto_tempat || "";
           let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
           if (fotoPath) {
             if (/^(https?:\/\/)/i.test(fotoPath)) {

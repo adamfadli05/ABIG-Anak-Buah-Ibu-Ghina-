@@ -192,7 +192,9 @@
       </section>
 
       <!-- Daftar Kuliner -->
-      <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner"></section>
+      <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner">
+        <div id="loadingIndicator" style="display: none; text-align: center; padding: 20px">Loading...</div>
+      </section>
 
       <!-- Pesan Jika Data Kosong -->
       <p id="emptyMessage" class="empty-message" style="display: none; text-align: center; padding: 20px; color: #666">Kuliner untuk pencarian atau kategori ini belum tersedia.</p>
@@ -325,8 +327,12 @@
       // 2. LOAD KULINER CARD
       async function loadKuliner() {
         const foodGrid = document.getElementById("foodGrid");
+        const loadingIndicator = document.getElementById("loadingIndicator");
         const emptyMessage = document.getElementById("emptyMessage");
+
         if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
+        if (loadingIndicator) loadingIndicator.style.display = "block";
+
         try {
           const [resTempat, resKuliner] = await Promise.all([fetch(`${BASE_URL}/api/tempat_kuliner.php`), fetch(`${BASE_URL}/api/kuliner.php`)]);
 
@@ -349,8 +355,10 @@
               ...item,
               nama_kuliner: item.nama_kuliner || detailKuliner.nama_kuliner || detailKuliner.nama || "",
               kategori: detailKuliner.kategori || detailKuliner.nama_kategori || item.kategori || "",
-              deskripsi: detailKuliner.deskripsi || "",
+              deskripsi: detailKuliner.deskripsi || detailKuliner.deskripsi_kuliner || "",
               foto: item.foto || detailKuliner.foto || "",
+              // Pastikan mengambil harga dari detailKuliner terlebih dahulu, lalu item, dan fallback ke 0
+              harga: detailKuliner.harga !== undefined ? detailKuliner.harga : item.harga !== undefined ? item.harga : 0,
             };
           });
 
@@ -367,9 +375,9 @@
           }
         } finally {
           if (foodGrid) foodGrid.setAttribute("aria-busy", "false");
+          if (loadingIndicator) loadingIndicator.style.display = "none";
         }
       }
-
       // 3. FUNGSI RENDER KULINER
       function renderKuliner() {
         const foodGrid = document.getElementById("foodGrid");
@@ -467,6 +475,7 @@
       }
 
       // 5. EVENT LISTENER TOMBOL KATEGORI MENGGUNAKAN API filter_kuliner.php
+      // 5. EVENT LISTENER TOMBOL KATEGORI (Sinkron dengan data lengkap)
       function setupCategoryEventListeners() {
         const categoryBtns = document.querySelectorAll(".category-btn");
 
@@ -478,21 +487,39 @@
             categoryBtns.forEach((btn) => btn.classList.remove("active"));
             button.classList.add("active");
 
-            if (selectedCat === "semua") {
-              loadKuliner();
-              return;
-            }
-
             const foodGrid = document.getElementById("foodGrid");
+            const loadingIndicator = document.getElementById("loadingIndicator");
             const emptyMessage = document.getElementById("emptyMessage");
+
             if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
+            if (loadingIndicator) loadingIndicator.style.display = "block";
 
             try {
+              if (selectedCat === "semua") {
+                // Jika pilih 'semua', panggil kembali loadKuliner agar data lengkap terisi
+                await loadKuliner();
+                return;
+              }
+
+              // Ambil data dari filter_kuliner.php
               const response = await fetch(`${BASE_URL}/api/filter_kuliner.php?kategori=${encodeURIComponent(selectedCat)}`);
               if (!response.ok) throw new Error("Gagal mengambil data berdasarkan kategori.");
 
               const jsonResult = await response.json();
-              window.allKuliner = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
+              const rawData = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
+
+              // Pastikan data hasil filter dilengkapi harga & tempat jika backend belum melakukan JOIN
+              window.allKuliner = rawData.map((item) => {
+                return {
+                  ...item,
+                  nama_kuliner: item.nama_kuliner || item.nama || "",
+                  nama_tempat: item.nama_tempat || "Tempat belum tersedia",
+                  alamat: item.alamat || "Alamat belum tersedia",
+                  deskripsi: item.deskripsi || "",
+                  foto: item.foto || "",
+                  harga: item.harga !== undefined && item.harga !== null ? item.harga : 0,
+                };
+              });
 
               renderKuliner();
             } catch (error) {
@@ -507,6 +534,7 @@
               }
             } finally {
               if (foodGrid) foodGrid.setAttribute("aria-busy", "false");
+              if (loadingIndicator) loadingIndicator.style.display = "none";
             }
           });
         });
