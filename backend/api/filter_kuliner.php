@@ -25,16 +25,27 @@ if ($kategori === '') {
 $result = pg_query_params(
     $conn,
     "SELECT
-        k.id_kuliner,
+        tk.id_tempat,
+        tk.id_kuliner,
         k.nama_kuliner,
         k.deskripsi,
-        k.foto,
-        k.id_kategori,
+        k.foto AS foto_kuliner,
+        tk.nama_tempat,
+        tk.alamat,
+        tk.latitude,
+        tk.longitude,
+        tk.jam_buka,
+        tk.jam_tutup,
+        tk.no_telepon,
+        tk.foto_tempat,
+        tk.foto,
+        tk.harga,
         ka.nama_kategori
-    FROM kuliner k
+    FROM tempat_kuliner tk
+    JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
     JOIN kategori ka ON k.id_kategori = ka.id_kategori
     WHERE LOWER(ka.nama_kategori) = LOWER($1)
-    ORDER BY k.id_kuliner ASC",
+    ORDER BY tk.id_tempat ASC",
     [$kategori]
 );
 
