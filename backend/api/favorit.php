@@ -43,11 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             tk.harga,
             tk.jam_buka,
             tk.jam_tutup,
-            tk.foto AS foto_tempat
+            tk.foto AS foto_tempat,
+            COALESCE(AVG(u.rating), 0) AS rata_rata_rating,
+            COUNT(u.id_ulasan) AS jumlah_ulasan
         FROM favorit f
         JOIN tempat_kuliner tk ON f.id_tempat = tk.id_tempat
         JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
+        LEFT JOIN ulasan u ON tk.id_tempat = u.id_tempat
         WHERE f.id_user = $1
+        GROUP BY
+            f.id_favorit,
+            f.id_tempat,
+            f.status_kunjungan,
+            f.tanggal,
+            k.nama_kuliner,
+            k.foto,
+            tk.nama_tempat,
+            tk.alamat,
+            tk.harga,
+            tk.jam_buka,
+            tk.jam_tutup,
+            tk.foto
         ORDER BY f.tanggal DESC",
         [$id_user]
     );
@@ -64,6 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $data = [];
     while ($row = pg_fetch_assoc($result)) {
         $data[] = $row;
+    }
+
+    if (empty($data)) {
+        http_response_code(200);
+        echo json_encode([
+            "status"  => true,
+            "message" => "Belum ada kuliner yang disimpan",
+            "data"    => []
+        ]);
+        exit;
     }
 
     http_response_code(200);

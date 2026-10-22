@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/env.php';
 
 $client = new Google\Client();
 $client->setAuthConfig(json_decode(getenv('GOOGLE_CLIENT_SECRET'), true));

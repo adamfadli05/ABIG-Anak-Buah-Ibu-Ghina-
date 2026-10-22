@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/env.php';
 
 if (!isset($_SESSION['role'])) {
     header('Location: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend/index.html');
