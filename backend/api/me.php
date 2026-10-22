@@ -13,14 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if (!isset($_SESSION['role'])) {
-    echo json_encode([
-        "status"  => false,
-        "message" => "Belum masuk"
-    ]);
+    http_response_code(401);
+    echo json_encode(["status" => false, "message" => "Belum masuk"]);
     exit;
 }
 
 if ($_SESSION['role'] === 'admin') {
+    http_response_code(200);
     echo json_encode([
         "status" => true,
         "role"   => "admin",
@@ -32,6 +31,7 @@ if ($_SESSION['role'] === 'admin') {
         ]
     ]);
 } else {
+    http_response_code(200);
     echo json_encode([
         "status" => true,
         "role"   => "user",

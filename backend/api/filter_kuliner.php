@@ -16,10 +16,8 @@ $kategori = trim($_GET['kategori'] ?? '');
 
 // Validasi parameter kosong
 if ($kategori === '') {
-    echo json_encode([
-        "status" => false,
-        "message" => "Pilih kategori terlebih dahulu"
-    ]);
+    http_response_code(400);
+    echo json_encode(["status" => false, "message" => "Pilih kategori terlebih dahulu"]);
     exit;
 }
 
@@ -41,10 +39,8 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gagal mengambil data kuliner"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner"]);
     exit;
 }
 
@@ -53,8 +49,5 @@ while ($row = pg_fetch_assoc($result)) {
     $data[] = $row;
 }
 
-// Kembalikan daftar kosong jika tidak ada hasil
-echo json_encode([
-    "status" => true,
-    "data" => $data
-]);
+http_response_code(200);
+echo json_encode(["status" => true, "data" => $data]);

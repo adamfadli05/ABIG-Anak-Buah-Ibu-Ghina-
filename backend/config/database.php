@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../env.php';
+
 $host     = getenv('DB_HOST')     ?: 'aws-0-ap-southeast-2.pooler.supabase.com';
 $port     = getenv('DB_PORT')     ?: '5432';
 $dbname   = getenv('DB_NAME')     ?: 'postgres';

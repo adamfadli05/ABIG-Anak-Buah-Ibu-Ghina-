@@ -26,23 +26,18 @@ ORDER BY tk.id_tempat ASC";
 $result = pg_query($conn, $sql);
 
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gagal mengambil data kuliner"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner"]);
     exit;
 }
 
 $data = [];
 while ($row = pg_fetch_assoc($result)) {
-    // Skip data yang tidak memiliki koordinat
     if (empty($row['latitude']) || empty($row['longitude'])) {
         continue;
     }
     $data[] = $row;
 }
 
-echo json_encode([
-    "status" => true,
-    "data" => $data
-]);
+http_response_code(200);
+echo json_encode(["status" => true, "data" => $data]);

@@ -15,10 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode([
-        "status" => false,
-        "message" => "Method harus POST"
-    ]);
+    http_response_code(405);
+    echo json_encode(["status" => false, "message" => "Method harus POST"]);
     exit;
 }
 
@@ -28,10 +26,8 @@ $email = strtolower(trim($data['email'] ?? ''));
 $password = $data['password'] ?? '';
 
 if (empty($email) || empty($password)) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Email dan kata sandi wajib diisi"
-    ]);
+    http_response_code(400);
+    echo json_encode(["status" => false, "message" => "Email dan kata sandi wajib diisi"]);
     exit;
 }
 
@@ -44,23 +40,21 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gagal memeriksa akun admin"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal memeriksa akun admin"]);
     exit;
 }
 
 $admin = pg_fetch_assoc($result);
 
 if ($admin && password_verify($password, $admin['password'])) {
-
     session_regenerate_id(true);
     $_SESSION['role']     = 'admin';
     $_SESSION['id_admin'] = $admin['id_admin'];
     $_SESSION['nama']     = $admin['nama'];
     $_SESSION['email']    = $admin['email'];
 
+    http_response_code(200);
     echo json_encode([
         "status" => true,
         "message" => "Admin berhasil masuk.",
@@ -71,7 +65,6 @@ if ($admin && password_verify($password, $admin['password'])) {
             "email" => $admin['email']
         ]
     ]);
-
     exit;
 }
 
@@ -84,32 +77,24 @@ $result = pg_query_params(
 );
 
 if (!$result) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Gagal memeriksa akun user"
-    ]);
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal memeriksa akun user"]);
     exit;
 }
 
 $user = pg_fetch_assoc($result);
 
 if (!$user) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Email atau kata sandi salah"
-    ]);
+    http_response_code(401);
+    echo json_encode(["status" => false, "message" => "Email atau kata sandi salah"]);
     exit;
 }
 
 if (empty($user['password']) || !password_verify($password, $user['password'])) {
-    echo json_encode([
-        "status" => false,
-        "message" => "Email atau kata sandi salah"
-    ]);
+    http_response_code(401);
+    echo json_encode(["status" => false, "message" => "Email atau kata sandi salah"]);
     exit;
 }
-
-// Login Berhasil
 
 session_regenerate_id(true);
 $_SESSION['role']       = 'user';
@@ -118,6 +103,7 @@ $_SESSION['nama']       = $user['nama'];
 $_SESSION['email']      = $user['email'];
 $_SESSION['foto_profil'] = $user['foto_profil'] ?? null;
 
+http_response_code(200);
 echo json_encode([
     "status" => true,
     "message" => "Berhasil masuk.",
