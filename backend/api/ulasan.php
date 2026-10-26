@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -317,6 +317,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         "status"    => true,
         "message"   => "Ulasan berhasil disimpan",
         "id_ulasan" => $row['id_ulasan']
+    ]);
+    exit;
+}
+
+// ============================================================
+// DELETE — Hapus ulasan milik sendiri
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+
+    // Validasi autentikasi
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Anda harus login untuk menghapus ulasan"
+        ]);
+        exit;
+    }
+
+    $id_user = $_SESSION['id_user'];
+    $body    = json_decode(file_get_contents("php://input"), true);
+    $id_ulasan = intval($body['id_ulasan'] ?? 0);
+
+    if ($id_ulasan <= 0) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "ID ulasan tidak valid"
+        ]);
+        exit;
+    }
+
+    // Cek apakah ulasan ada dan milik user ini
+    $cek = pg_query_params(
+        $conn,
+        'SELECT id_ulasan FROM ulasan WHERE id_ulasan = $1 AND id_user = $2',
+        [$id_ulasan, $id_user]
+    );
+
+    if (!$cek) {
+        http_response_code(500);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Gagal memeriksa data ulasan"
+        ]);
+        exit;
+    }
+
+    if (pg_num_rows($cek) === 0) {
+        http_response_code(404);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Ulasan tidak ditemukan atau bukan milik Anda"
+        ]);
+        exit;
+    }
+
+    // Hapus ulasan
+    $result = pg_query_params(
+        $conn,
+        'DELETE FROM ulasan WHERE id_ulasan = $1 AND id_user = $2',
+        [$id_ulasan, $id_user]
+    );
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Gagal menghapus ulasan"
+        ]);
+        exit;
+    }
+
+    http_response_code(200);
+    echo json_encode([
+        "status"  => true,
+        "message" => "Ulasan berhasil dihapus"
     ]);
     exit;
 }
