@@ -125,14 +125,16 @@ body {
   display: block;
 }
 
-/* TOMBOL SIMPAN / BOOKMARK */
+/* ==========================================================================
+   TOMBOL SIMPAN / BOOKMARK (Kondisi Awal: Latar Putih, Ikon Garis Biru)
+   ========================================================================== */
 .btn-bookmark-floating {
   position: absolute;
   right: 16px;
   bottom: 16px;
   width: 48px;
   height: 48px;
-  background: #ffffff;
+  background-color: #ffffff !important;
   border: none;
   border-radius: 50%;
   display: flex;
@@ -141,15 +143,7 @@ body {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 5;
-  transition: transform 0.2s ease;
-
-  /* KUNCI TOMBOL AGAR TIDAK BISA DIPENCET */
-  pointer-events: none !important;
-  cursor: default !important;
-  
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .btn-bookmark-floating:hover {
@@ -158,19 +152,86 @@ body {
 
 .btn-bookmark-floating iconify-icon {
   font-size: 24px;
-  color: var(--primary);
+  color: #001b7d !important;
 }
 
+/* ==========================================================================
+   Kondisi Setelah Diklik / Tersimpan (.saved): Latar Putih, Ikon Biru Penuh
+   ========================================================================== */
 .btn-bookmark-floating.saved {
-  background: var(--primary);
+  background-color: #ffffff !important;
 }
 
 .btn-bookmark-floating.saved iconify-icon {
-  color: #ffffff;
+  color: #001b7d !important;
 }
 
-/* BARIS HARGA & RATING SESUAI FIGMA DESKTOP */
-/* BARIS HARGA & RATING DESKTOP (PROPORSI RAPI & SEIMBANG) */
+/* ==========================================================================
+   STYLING TOAST / KOTAK PESAN VALIDASI (Desktop: 400px x 50px)
+   ========================================================================== */
+.bookmark-toast {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 350px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-family: "Inter";
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.bookmark-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.toast-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #001b7d;
+}
+
+.toast-content-wrapper iconify-icon {
+  font-size: 22px;
+  color: #001b7d;
+}
+
+/* Tombol Kelola di dalam Toast */
+.btn-toast-kelola {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 5px 12px !important;
+  font-family: "Inter" !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: opacity 0.2s !important;
+  margin-left: 12px !important;
+  white-space: nowrap !important;
+}
+
+.btn-toast-kelola:hover {
+  opacity: 0.9 !important;
+}
+
+/* BARIS HARGA & RATING */
 .meta-row {
   display: flex !important;
   justify-content: space-between !important;
@@ -183,16 +244,16 @@ body {
 /* TOMBOL HARGA BIRU */
 .price-badge {
   flex: 1 !important;
-  height: 40px !important;            /* Diturunkan dari 50px ke 40px agar ramping */
+  height: 40px !important;
   padding: 0 16px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: #001B7D !important;     /* Biru khas Mangan Yukkk */
-  color: #FFFFFF !important;
+  background: #001b7d !important;
+  color: #ffffff !important;
   border-radius: 10px !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 16px !important;         /* Ukuran teks dirampingkan dari 25px ke 16px */
+  font-family: "Inter", sans-serif !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   box-sizing: border-box !important;
 }
@@ -200,25 +261,24 @@ body {
 /* TOMBOL RATING BIRU */
 .rating-badge-small {
   flex: 1 !important;
-  height: 40px !important;            /* Diturunkan dari 50px ke 40px agar ramping */
+  height: 40px !important;
   padding: 0 16px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;               /* Jarak bintang & angka */
-  background: #001B7D !important;
-  color: #FFFFFF !important;
+  gap: 6px !important;
+  background: #001b7d !important;
+  color: #ffffff !important;
   border-radius: 10px !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 16px !important;         /* Ukuran angka rating dirampingkan */
+  font-family: "Inter", sans-serif !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   box-sizing: border-box !important;
 }
 
-/* BINTANG KUNING DI TOMBOL RATING */
 .rating-badge-small iconify-icon {
-  font-size: 18px !important;         /* Ukuran icon bintang disesuaikan */
-  color: #FFBF00 !important;
+  font-size: 18px !important;
+  color: #ffbf00 !important;
   display: inline-flex !important;
   align-items: center !important;
 }
@@ -389,7 +449,7 @@ body {
 .food-detail-title {
   font-size: clamp(28px, 3.5vw, 38px);
   font-weight: 700;
-  color: var(--primary); /* Diubah jadi biru */
+  color: var(--primary);
   line-height: 1.2;
   margin: 0;
 }
@@ -408,7 +468,6 @@ body {
   font-size: 24px;
 }
 
-/* DESKRIPSI */
 .food-description {
   font-size: 15px;
   line-height: 1.6;
@@ -468,7 +527,6 @@ body {
   margin-top: 2px;
 }
 
-/* TOMBOL MENUJU LOKASI */
 .btn-location {
   display: flex;
   justify-content: center;
@@ -528,61 +586,6 @@ body {
   color: #000000;
 }
 
-.review-card {
-  width: 100%;
-  max-width: 650px;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.review-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.reviewer-avatar {
-  width: 44px;
-  height: 44px;
-  background: #d9d9d9;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.reviewer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.reviewer-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #000000;
-}
-
-.reviewer-stars {
-  display: flex;
-  gap: 2px;
-}
-
-.reviewer-stars iconify-icon {
-  font-size: 14px;
-  color: #ffbf00;
-}
-
-.review-comment {
-  font-size: 15px;
-  color: #444;
-  font-weight: 400;
-}
-
 /* TAMPILAN ERROR / VALIDASI GAGAL DIMUAT */
 .error-state-container {
   display: flex;
@@ -619,15 +622,10 @@ body {
   padding: 0;
 }
 
-.error-retry-link:hover {
-  opacity: 0.7;
-}
-
 /* ==========================================================================
    2. KODE KHUSUS UKURAN MOBILE (@media max-width: 768px)
    ========================================================================== */
 @media (max-width: 768px) {
-  /* Frame Utama / Container */
   .page-container {
     max-width: 402px !important;
     padding: 20px 26px 40px !important;
@@ -635,7 +633,6 @@ body {
     background: #ffffff !important;
   }
 
-  /* Navbar */
   .navbar {
     height: 93px !important;
     min-height: 93px !important;
@@ -658,7 +655,6 @@ body {
     line-height: 26px !important;
   }
 
-  /* Layout & Foto Kuliner */
   .detail-grid {
     display: flex !important;
     flex-direction: column !important;
@@ -677,21 +673,48 @@ body {
     height: 38px !important;
     right: 12px !important;
     bottom: 12px !important;
-
-    /* KUNCI TOMBOL AGAR TIDAK BISA DIPENCET */
-  pointer-events: none !important;
-  cursor: default !important;
-  
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  transition: transform 0.2s ease;
+    background-color: #ffffff !important;
   }
 
   .btn-bookmark-floating iconify-icon {
     font-size: 20px !important;
+    color: #001b7d !important;
   }
 
-  /* Badge Harga & Rating di Bawah Foto */
+  .btn-bookmark-floating.saved {
+    background-color: #ffffff !important;
+  }
+
+  .btn-bookmark-floating.saved iconify-icon {
+    color: #001b7d !important;
+  }
+
+  /* Toast menyesuaikan mobile agar tidak terlalu lebar */
+  .bookmark-toast {
+    left: 12px !important;
+    right: 60px !important;
+    bottom: 12px !important;
+    width: auto !important;
+    height: 42px !important;
+    padding: 0 10px !important;
+    border-radius: 15px !important;
+  }
+
+  .toast-content-wrapper {
+    font-size: 12px !important;
+    gap: 6px !important;
+  }
+
+  .toast-content-wrapper iconify-icon {
+    font-size: 18px !important;
+  }
+
+  .btn-toast-kelola {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+    border-radius: 10px !important;
+  }
+
   .meta-row {
     display: flex !important;
     gap: 9px !important;
@@ -723,7 +746,6 @@ body {
     color: #ffbf00 !important;
   }
 
-  /* Judul & Rating Bintang di Bawah Judul */
   .food-detail-title {
     font-size: 20px !important;
     font-weight: 700 !important;
@@ -773,7 +795,6 @@ body {
     margin: 0 !important;
   }
 
-  /* Deskripsi */
   .food-description {
     font-size: 14px !important;
     line-height: 17px !important;
@@ -782,7 +803,6 @@ body {
     margin-bottom: 25px !important;
   }
 
-  /* Informasi Tambahan (Jam Buka & Telepon Sejajar Samping-Menyamping) */
   .info-section-title {
     font-size: 15px !important;
     font-weight: 700 !important;
@@ -793,20 +813,20 @@ body {
   .info-grid {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: flex-start !important; /* Diratakan ke kiri agar rapat */
+    justify-content: flex-start !important;
     align-items: center !important;
-    gap: 12px !important;                    /* Jarak antar item disesuaikan */
+    gap: 12px !important;
     margin-bottom: 14px !important;
-    font-size: 12px !important;              /* Ukuran font sedikit dirampingkan */
+    font-size: 12px !important;
     width: 100% !important;
-    flex-wrap: nowrap !important;            /* Mencegah nomor telepon turun ke bawah */
+    flex-wrap: nowrap !important;
   }
 
   .info-item {
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
-    white-space: nowrap !important;          /* Agar teks dalam 1 baris tidak patah */
+    white-space: nowrap !important;
   }
 
   .info-item span {
@@ -822,7 +842,6 @@ body {
     color: #8a8a8a !important;
   }
 
-  /* Alamat & Tombol Menuju Lokasi */
   .location-row {
     display: flex !important;
     justify-content: space-between !important;
@@ -858,7 +877,6 @@ body {
     justify-content: center !important;
   }
 
-  /* Tombol Aksi (Beri Rating & Beri Ulasan) */
   .action-row {
     display: flex !important;
     gap: 9px !important;
@@ -885,7 +903,6 @@ body {
     color: #001b7d !important;
   }
 
-  /* Bagian Ulasan Pengguna */
   .review-section {
     margin-top: 0 !important;
   }
@@ -908,21 +925,5 @@ body {
     flex-direction: column !important;
     justify-content: center !important;
     gap: 4px !important;
-  }
-
-  .review-card-empty div:nth-child(1),
-  .review-card-empty span:first-child,
-  .review-card-empty .review-name {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: #000000 !important;
-  }
-
-  .review-card-empty div:nth-child(2),
-  .review-card-empty span:last-child,
-  .review-card-empty .review-comment {
-    font-size: 12px !important;
-    font-weight: 400 !important;
-    color: #000000 !important;
   }
 }
