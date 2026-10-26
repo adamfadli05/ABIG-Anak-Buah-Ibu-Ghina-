@@ -178,6 +178,18 @@
       let isLoginSuccess = false;
       let redirectTarget = "index.html";
 
+      function getLoginRedirect(role) {
+        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+        if (role === "user" && returnTo) {
+          const target = new URL(returnTo, window.location.href);
+          const detailPage = new URL("detail_kuliner.html", window.location.href);
+          if (target.origin === window.location.origin && target.pathname === detailPage.pathname) {
+            return target.href;
+          }
+        }
+        return role === "admin" ? "admin.html" : "index.html";
+      }
+
       function showError(message) {
         const errorBanner = document.getElementById("errorBanner");
         if (!errorBanner) return;
@@ -255,7 +267,7 @@
           localStorage.setItem("user", JSON.stringify(userObj));
           localStorage.setItem("role", role);
 
-          redirectTarget = role === "admin" ? "admin.html" : "index.html";
+          redirectTarget = getLoginRedirect(role);
           showPopupModal(true, googleType === "register" ? "Pendaftaran dengan Google berhasil" : "Masuk dengan Google berhasil");
         }
       });
@@ -339,7 +351,7 @@
 
           localStorage.setItem("user", JSON.stringify(data.data));
           localStorage.setItem("role", data.role);
-          redirectTarget = data.role === "admin" ? "admin.html" : "index.html";
+          redirectTarget = getLoginRedirect(data.role);
 
           showPopupModal(true, "Anda berhasil masuk");
         } catch (err) {
