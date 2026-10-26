@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const navbarContainer = document.getElementById("navbar-container");
 
-   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
+  // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
   if (!document.getElementById("figma-sweetalert-style")) {
     const styleEl = document.createElement("style");
     styleEl.id = "figma-sweetalert-style";
@@ -83,21 +83,22 @@ document.addEventListener("DOMContentLoaded", function () {
       profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
     }
 
-    // ==========================================
-    // KONDISI IF-ELSE UTAMA UNTUK TOMBOL LOGOUT
-    // ==========================================
     if (btnLogout) {
       if (isLoggedIn) {
-        // SUDAH LOGIN: Tampilkan tombol logout
         btnLogout.style.setProperty("display", "inline-flex", "important");
       } else {
-        // BELUM LOGIN: Sembunyikan tombol logout secara mutlak
         btnLogout.style.setProperty("display", "none", "important");
       }
     }
+
+    // Log status sistem auth ke console untuk debugging
+    if (userData) {
+      console.info("[Auth System] Status: User Terautentikasi");
+    } else {
+      console.log("[Auth System] Status: Belum ada sesi login (Guest).");
+    }
   };
 
-  // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
   // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
   document.addEventListener("click", function (event) {
     const navMenuToggle = event.target.closest("#navMenuToggle");
@@ -107,12 +108,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const savedButton = event.target.closest("#savedButton");
     const reviewButton = event.target.closest("#reviewButton");
 
-    // Definisikan ulang status login secara konsisten di sini
     const userData = localStorage.getItem("user");
     const userRole = localStorage.getItem("role");
     const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
 
-    // Toggle Dropdown Menu (Ikon Filter di Kanan)
+    // Toggle Dropdown Menu
     if (navMenuToggle) {
       event.preventDefault();
       event.stopPropagation();
@@ -122,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Tutup dropdown jika klik di luar area menu
     if (navDropdownMenu && navDropdownMenu.classList.contains("show") && !navDropdownMenu.contains(event.target) && !navMenuToggle) {
       navDropdownMenu.classList.remove("show");
     }
@@ -130,37 +129,32 @@ document.addEventListener("DOMContentLoaded", function () {
     // Proteksi Navigasi Halaman Profil
     if (profileButton) {
       event.preventDefault();
-      if (isLoggedIn) {
-        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa karena halaman belum ada
-        return;
-      } else {
-        // BELUM LOGIN: Arahkan ke halaman login
+      if (!isLoggedIn) {
         window.location.href = "login.html";
       }
       return;
     }
 
-    // Proteksi Navigasi Halaman Saved
-    if (savedButton) {
+   // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
+   if (savedButton) {
+    const checkUser = localStorage.getItem("user");
+    const checkRole = localStorage.getItem("role");
+    const isLoggedIn = (checkUser && checkUser !== "null" && checkUser !== "undefined") || (checkRole && checkRole !== "null");
+
+    if (!isLoggedIn) {
+      // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
       event.preventDefault();
-      if (isLoggedIn) {
-        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa
-        return;
-      } else {
-        // BELUM LOGIN: Arahkan ke halaman login
-        window.location.href = "login.html";
-      }
-      return;
+      window.location.href = "login.html";
     }
+    // Jika SUDAH LOGIN, biarkan kosong! 
+    // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
+    return;
+  }
 
     // Proteksi Navigasi Halaman Reviews
     if (reviewButton) {
       event.preventDefault();
-      if (isLoggedIn) {
-        // SUDAH LOGIN: Biarkan saja / jangan lakukan apa-apa
-        return;
-      } else {
-        // BELUM LOGIN: Arahkan ke halaman login
+      if (!isLoggedIn) {
         window.location.href = "login.html";
       }
       return;
@@ -196,7 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (result.isConfirmed) {
           Swal.fire({
             html: `
-           <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; height: 100%; box-sizing: border-box;">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; height: 100%; box-sizing: border-box;">
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-top: 5px;">
                   <iconify-icon icon="mdi:check-circle" style="color: #319F43; font-size: 38px; margin-bottom: 2px;"></iconify-icon>
                   <p style="color: #001b7d; font-family: 'Inter'; font-weight: 400; font-size: 24px; margin: 0; text-align: center;">Anda berhasil keluar</p>
@@ -223,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   });
+
   // Fungsi Eksekusi Hapus Sesi Logout
   function executeLogout() {
     localStorage.removeItem("user");
@@ -238,39 +233,4 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.replace("index.html");
       });
   }
-  // Otomatis jalan saat halaman selesai dimuat
-document.addEventListener("DOMContentLoaded", () => {
-  const userData = localStorage.getItem("user");
-
-  if (userData) {
-    const user = JSON.parse(userData);
-    
-    // Log ini bakal langsung keliatan di F12 -> Tab Console di halaman mana pun!
-    console.info("[Auth System] Status: User Terautentikasi");
-    console.log("Data User Aktif:", user);
-
-    // Contoh: Kalau mau nampilin nama user di navbar
-    const namaUserEl = document.getElementById("namaUser");
-    if (namaUserEl) namaUserEl.textContent = user.nama || user.email;
-
-  } else {
-    console.log("[Auth System] Status: Belum ada sesi login (Guest).");
-  }
-});
-
-// Handling Tombol Logout
-const btnLogout = document.getElementById("btnLogout");
-if (btnLogout) {
-  btnLogout.addEventListener("click", (e) => {
-    e.preventDefault();
-    
-    // Hapus data dari localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    
-    console.info("[Auth System] User berhasil logout.");
-    alert("Kamu telah keluar.");
-    window.location.href = "login.html";
-  });
-}
 });

@@ -235,7 +235,7 @@
         const role = urlParams.get("role") || "user";
         const userData = urlParams.get("user");
         const googleType = urlParams.get("type");
-               if (googleStatus === "success") {
+        if (googleStatus === "success") {
           let userObj = { name: "Google User" }; // data cadangan kalau data user gagal dibaca
 
           if (userData) {
@@ -275,6 +275,7 @@
       });
 
       // LOGIKA FORM SUBMIT LOGIN
+      // LOGIKA FORM SUBMIT LOGIN
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -290,29 +291,27 @@
         const emailWrapper = emailInput.closest(".input-wrapper");
         const passwordWrapper = passwordInput.closest(".input-wrapper");
 
-        // 1. KASUS 1: EMAIL & SANDI KOSONG ATAU SALAH SATU KOSONG
+        // VALIDASI JIKA KEDUANYA KOSONG ATAU SALAH SATU KOSONG (KEDUANYA JADI MERAH)
         if (!email && !password) {
           emailWrapper.classList.add("error");
-          passwordWrapper.classList.remove("error");
+          passwordWrapper.classList.add("error");
           showError("Email dan kata sandi<br>wajib di isi");
           return;
         }
 
         if (!email) {
           emailWrapper.classList.add("error");
-          passwordWrapper.classList.remove("error");
+          passwordWrapper.classList.add("error");
           showError("Email dan kata sandi<br>wajib di isi");
           return;
         }
 
         if (!password) {
+          emailWrapper.classList.add("error");
           passwordWrapper.classList.add("error");
-          emailWrapper.classList.remove("error");
           showError("Email dan kata sandi<br>wajib di isi");
           return;
         }
-
-        // 2. KASUS 2: FORMAT EMAIL TIDAK BERAKHIRAN @gmail.com
         if (!email.toLowerCase().endsWith("@gmail.com")) {
           emailWrapper.classList.add("error");
           showError("Gunakan email yang<br>berakhiran @gmail.com");
@@ -352,7 +351,7 @@
       // Saat form login di-submit
       async function handleLogin(event) {
         event.preventDefault();
-        
+
         const payload = { email: emailInput.value, password: passwordInput.value };
 
         // 1. Log request API ke Console
@@ -362,7 +361,7 @@
           const response = await fetch(`${BASE_URL}/api/login.php`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
           });
 
           const result = await response.json();
@@ -372,7 +371,7 @@
 
           if (result.status === "success") {
             localStorage.setItem("user", JSON.stringify(result.data));
-            
+
             // Kasih jeda sedikit atau alert biar log di Console sempat dibaca sebelum pindah halaman
             alert("Login Berhasil!");
             window.location.href = "index.html";

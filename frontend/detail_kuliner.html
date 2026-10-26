@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Detail Kuliner | Mangan Yukkk</title>
 
+    <!-- CSS Eksternal -->
     <link rel="stylesheet" href="css/detail_kuliner.css" />
 
     <!-- Google Fonts -->
@@ -33,8 +34,17 @@
       <div class="detail-grid" id="detailContent">
         <!-- KOLOM KIRI: FOTO & HARGA -->
         <div class="detail-left-col">
-          <div class="food-photo-container">
+          <div class="food-photo-container" style="position: relative;">
             <img id="foodPhoto" class="food-detail-photo" src="" alt="Foto Kuliner" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+
+            <!-- Kotak Pesan Validasi / Toast Sesuai Figma -->
+            <div id="bookmarkToast" class="bookmark-toast">
+              <div class="toast-content-wrapper">
+                <iconify-icon icon="material-symbols:check-circle"></iconify-icon>
+                <span id="toastText">Kuliner Tersimpan</span>
+              </div>
+              <a href="#" id="toastKelolaBtn" class="btn-toast-kelola">Kelola</a>
+            </div>
 
             <!-- TOMBOL BOOKMARK DI KANAN BAWAH FOTO -->
             <button class="btn-bookmark-floating" id="btnBookmark" aria-label="Simpan Kuliner">
@@ -101,7 +111,7 @@
 
           <!-- BAGIAN ULASAN PENGGUNA -->
           <section class="review-section">
-            <h2 class="review-section-title" style="font-size: 16px; font-weight: 700; color: #000; margin-bottom: 12px">Ulasan Pengguna :</h2>
+            <h2 class="review-section-title">Ulasan Pengguna :</h2>
             <div id="reviewsContainer">
               <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif">
                 <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px">Belum ada ulasan</div>
@@ -112,7 +122,7 @@
         </div>
       </div>
 
-      <!-- KONDISI VALIDASI KULINER GAGAL DIMUAT (TERSEMBUNYI SECARA DEFAULT) -->
+      <!-- KONDISI VALIDASI KULINER GAGAL DIMUAT -->
       <div id="errorState" class="error-state-container" style="display: none">
         <div class="error-message-box">
           <p class="error-title">Detail kuliner tidak ditemukan</p>
@@ -127,7 +137,7 @@
 
       document.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const idTempat = urlParams.get("id"); // Mengambil parameter id dari URL
+        const idTempat = urlParams.get("id");
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
@@ -139,7 +149,6 @@
         }
 
         try {
-          // Melakukan fetch ke API detail_kuliner.php berdasarkan id tempat[cite: 2]
           const response = await fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`);
           if (!response.ok) throw new Error("Gagal mengambil data dari server");
 
@@ -161,7 +170,7 @@
           document.getElementById("foodName").textContent = data.nama_kuliner || data.nama_tempat || "Kuliner";
           document.getElementById("foodDescription").textContent = data.deskripsi || "Deskripsi belum tersedia.";
 
-          // Tangani Foto (Prioritas utama mengambil dari kolom 'foto' kuliner)
+          // Tangani Foto (Prioritas utama mengambil dari kolom 'foto' kuliner)[cite: 8]
           const fotoPath = data.foto || data.foto_kuliner || data.foto_tempat || "";
           let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
           if (fotoPath) {
@@ -211,7 +220,7 @@
             reviewsContainer.innerHTML = ulasanList
               .map(
                 (u) => `
-              <div style="background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+              <div style="background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-family: 'Inter';">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                   <strong style="font-size: 13px; color: #001b7d;">${escapeHTML(u.nama_user || "Pengguna")}</strong>
                   <span style="font-size: 11px; color: #666;">${u.tanggal || ""}</span>
@@ -229,19 +238,133 @@
           if (errorState) errorState.style.display = "flex";
         }
 
-        // Interaksi Tombol Bookmark Floating
-        const btnBookmark = document.getElementById("btnBookmark");
+      // Interaksi Tombol Bookmark & Integrasi API Favorit
+      const btnBookmark = document.getElementById("btnBookmark");
+        const bookmarkToast = document.getElementById("bookmarkToast");
+        const toastText = document.getElementById("toastText");
+        const toastKelolaBtn = document.getElementById("toastKelolaBtn");
+
+        let isSavedState = false;
+
+        // Tautkan tombol "Kelola" di Toast ke halaman saved.html
+        if (toastKelolaBtn) {
+          toastKelolaBtn.href = "saved.html";
+        }
+
         if (btnBookmark) {
-          btnBookmark.addEventListener("click", () => {
-            btnBookmark.classList.toggle("saved");
-            const isSaved = btnBookmark.classList.contains("saved");
-            const iconEl = btnBookmark.querySelector("iconify-icon");
-            if (isSaved) {
-              iconEl.setAttribute("icon", "material-symbols:bookmark");
-            } else {
-              iconEl.setAttribute("icon", "material-symbols:bookmark-outline");
+          // 1. Cek dulu status awal saat halaman dimuat (Apakah tempat ini sudah difavoritkan?)
+          checkBookmarkStatus();
+
+          btnBookmark.addEventListener("click", async () => {
+            const userSession = localStorage.getItem("user");
+
+            if (!userSession) {
+              window.location.href = "login.html";
+              return;
+            }
+
+            btnBookmark.disabled = true; // Mencegah double click
+
+            try {
+              if (!isSavedState) {
+                // HTTP POST — Tambah ke Favorit
+                const res = await fetch(`${BASE_URL}/api/favorit.php`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ id_tempat: parseInt(idTempat) }),
+                });
+
+                const resData = await res.json();
+
+                if (res.status === 401) {
+                  window.location.href = "login.html";
+                  return;
+                }
+
+                if (resData.status || res.status === 409) {
+                  isSavedState = true;
+                  updateBookmarkUI(true);
+                  toastText.textContent = "Kuliner Tersimpan";
+                  showToastMessage();
+                } else {
+                  toastText.textContent = resData.message || "Gagal menyimpan";
+                  showToastMessage();
+                }
+              } else {
+                // HTTP DELETE — Hapus dari Favorit
+                const res = await fetch(`${BASE_URL}/api/favorit.php`, {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ id_tempat: parseInt(idTempat) }),
+                });
+
+                const resData = await res.json();
+
+                if (res.status === 401) {
+                  window.location.href = "login.html";
+                  return;
+                }
+
+                if (resData.status) {
+                  isSavedState = false;
+                  updateBookmarkUI(false);
+                  toastText.textContent = "Kuliner Dihapus";
+                  showToastMessage();
+                } else {
+                  toastText.textContent = resData.message || "Gagal menghapus";
+                  showToastMessage();
+                }
+              }
+            } catch (err) {
+              console.error("Error bookmarking:", err);
+              toastText.textContent = "Terjadi kesalahan koneksi";
+              showToastMessage();
+            } finally {
+              btnBookmark.disabled = false;
             }
           });
+        }
+
+        // Fungsi Cek Status Favorit Awal
+        async function checkBookmarkStatus() {
+          try {
+            const res = await fetch(`${BASE_URL}/api/favorit.php`, {
+              method: "GET",
+              credentials: "include",
+            });
+            if (!res.ok) return;
+
+            const resData = await res.json();
+            if (resData.status && Array.isArray(resData.data)) {
+              const isFav = resData.data.some((item) => parseInt(item.id_tempat) === parseInt(idTempat));
+              isSavedState = isFav;
+              updateBookmarkUI(isFav);
+            }
+          } catch (e) {
+            console.error("Gagal memeriksa status favorit:", e);
+          }
+        }
+
+        // Update Tampilan Tombol Bookmark (Latar Putih, Ikon Biru Penuh Saat Saved)
+        function updateBookmarkUI(saved) {
+          const iconEl = btnBookmark.querySelector("iconify-icon");
+          if (saved) {
+            btnBookmark.classList.add("saved");
+            iconEl.setAttribute("icon", "material-symbols:bookmark");
+          } else {
+            btnBookmark.classList.remove("saved");
+            iconEl.setAttribute("icon", "material-symbols:bookmark-outline");
+          }
+        }
+
+        function showToastMessage() {
+          if (!bookmarkToast) return;
+          bookmarkToast.classList.add("show");
+          setTimeout(() => {
+            bookmarkToast.classList.remove("show");
+          }, 3000);
         }
       });
 

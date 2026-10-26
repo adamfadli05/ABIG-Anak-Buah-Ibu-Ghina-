@@ -3,10 +3,491 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tersimpan | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/saved.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Kuliner Tersimpan | Mangan Yukkk</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,500&display=swap" rel="stylesheet" />
+
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <style>
+      :root {
+        --primary: #001b7d;
+        --border: #d9dce5;
+        --text: #34343a;
+        --muted: #6c6c73;
+        --placeholder: #dedede;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+      }
+
+      /* ==========================================================================
+         NAVBAR UTAMA
+         ========================================================================== */
+      .navbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        z-index: 9999 !important;
+        min-height: 84px;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px clamp(18px, 5vw, 54px);
+        gap: 18px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        color: white;
+        text-decoration: none;
+        font-family: "Instrument Serif", serif;
+        font-size: 26px;
+        font-weight: 400;
+        line-height: 1.05;
+        margin-left: auto;
+      }
+
+      .brand span:last-child {
+        padding-left: 9px;
+        font-size: 23px;
+      }
+
+      /* TOMBOL KEMBALI DI NAVBAR KIRI */
+      .btn-back-nav {
+        border: none;
+        background: #ffffff;
+        color: var(--primary);
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        text-decoration: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease;
+      }
+
+      .btn-back-nav:hover {
+        transform: scale(1.05);
+      }
+
+      .btn-back-nav iconify-icon {
+        font-size: 26px !important;
+        color: var(--primary) !important;
+      }
+
+      /* CONTAINER HALAMAN DESKTOP */
+      .page-container {
+        width: 100% !important;
+        max-width: 1340px !important;
+        min-height: 100vh !important;
+        margin: 0 auto !important;
+        padding: 24px 32px 50px !important;
+        padding-top: 130px !important;
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+        position: relative !important;
+      }
+
+      /* TAMPILAN PESAN KOSONG / ERROR */
+      .state-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        margin-top: 40px;
+        text-align: center;
+        font-family: "Inter", sans-serif;
+      }
+
+      .state-heading {
+        font-style: italic;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 19px;
+        color: #000000;
+        margin-bottom: 12px;
+      }
+
+      .state-text {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 17px;
+        color: #000000;
+      }
+
+      .state-retry-btn {
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 17px;
+        color: #001b7d;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: underline;
+        display: inline;
+      }
+
+      .state-retry-btn:hover {
+        opacity: 0.8;
+      }
+
+      /* ==========================================================================
+         GRID KARTU KULINER
+         ========================================================================== */
+      .food-grid,
+      .card-grid,
+      .saved-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 20px !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        max-width: 1340px !important;
+        margin: 0 auto !important;
+      }
+
+      .food-card {
+        width: calc(25% - 15px) !important;
+        min-width: 250px !important;
+        max-width: 320px !important;
+        height: 360px !important;
+        padding: 12px !important;
+        background: #ffffff !important;
+        border: 1px solid #d4d4d4 !important;
+        box-shadow: 0px 4px 4px #001b7d !important;
+        border-radius: 5px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin: 0 !important;
+        border-bottom: 3px solid var(--primary);
+        cursor: pointer;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .food-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 6px 10px rgba(0, 27, 125, 0.35) !important;
+      }
+
+      .food-photo-wrapper {
+        position: relative;
+        width: 100% !important;
+        height: 190px !important;
+        margin: 0 auto 8px auto !important;
+      }
+
+      .food-photo {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 5px !important;
+        display: block !important;
+      }
+
+      .food-name {
+        font-family: "Inter" !important;
+        font-weight: 400 !important;
+        font-size: 15px !important;
+        line-height: 18px !important;
+        text-align: left !important;
+        color: #000000 !important;
+        margin: 0 0 6px 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .food-location {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+        color: #000000 !important;
+        font-size: 12px !important;
+        line-height: 15px !important;
+        margin-bottom: 8px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .food-location iconify-icon {
+        font-size: 20px !important;
+        color: #938f99 !important;
+        flex-shrink: 0 !important;
+      }
+
+      .food-meta {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: auto !important;
+        font-family: "Inter" !important;
+        font-size: 16px !important;
+        font-weight: 400 !important;
+        color: #000000 !important;
+      }
+
+      .food-rating-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .food-rating-wrapper iconify-icon {
+        font-size: 20px;
+        color: #ffbf00;
+      }
+
+      /* ==========================================================================
+         RESPONSIVE MOBILE
+         ========================================================================== */
+      @media (max-width: 480px) {
+        .navbar {
+          min-height: 80px !important;
+          padding: 12px 16px !important;
+        }
+
+        .brand {
+          font-size: 24px !important;
+        }
+
+        .brand span:last-child {
+          font-size: 20px !important;
+          padding-left: 0 !important;
+        }
+
+        .page-container {
+          width: 100% !important;
+          max-width: 402px !important;
+          margin: 0 auto !important;
+          padding: 12px 16px !important;
+          padding-top: 95px !important;
+        }
+
+        .food-grid,
+        .card-grid,
+        .saved-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, 165px) !important;
+          justify-content: center !important;
+          gap: 16px !important;
+          padding: 0 !important;
+          width: 100% !important;
+          margin: 0 auto !important;
+        }
+
+        .food-card {
+          width: 165px !important;
+          min-width: 165px !important;
+          max-width: 165px !important;
+          height: 190px !important;
+          padding: 8px !important;
+          background: #ffffff !important;
+          border: 1px solid #d4d4d4 !important;
+          box-shadow: 0px 4px 4px #001b7d !important;
+          border-radius: 5px !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+
+        .food-photo-wrapper {
+          width: 145px !important;
+          min-width: 145px !important;
+          height: 95px !important;
+          margin: 0 auto 6px auto !important;
+        }
+
+        .food-name {
+          font-size: 13px !important;
+          line-height: 16px !important;
+          margin: 0 0 2px 0 !important;
+        }
+
+        .food-location {
+          font-size: 7px !important;
+          line-height: 9px !important;
+          margin-bottom: 4px !important;
+        }
+
+        .food-location iconify-icon {
+          font-size: 12px !important;
+        }
+
+        .food-meta {
+          font-size: 10px !important;
+        }
+
+        .food-rating-wrapper iconify-icon {
+          font-size: 14px !important;
+        }
+      }
+    </style>
   </head>
-  <body></body>
+  <body>
+    <!-- NAVBAR UTAMA -->
+    <header class="navbar">
+      <a href="index.html" class="btn-back-nav" aria-label="Kembali">
+        <iconify-icon icon="material-symbols:chevron-left"></iconify-icon>
+      </a>
+
+      <a href="index.html" class="brand">
+        <span>MANGAN</span>
+        <span>YUKKK</span>
+      </a>
+    </header>
+    <main class="page-container" style="padding-top: 130px">
+      <!-- Judul Halaman -->
+      <h1 class="page-title" style="text-align: center; font-style: italic; font-weight: 500; font-size: 20px; color: #000000; margin-bottom: 24px">Kuliner Tersimpan</h1>
+
+      <!-- 1. Kondisi Kosong -->
+      <div id="emptyState" class="state-container" style="display: none">
+        <div class="state-heading">Kuliner Tersimpan</div>
+        <div class="state-text">Belum ada kuliner yang tersimpan</div>
+      </div>
+
+      <!-- 2. Kondisi Gagal Dimuat -->
+      <div id="errorState" class="state-container" style="display: none">
+        <div class="state-heading">Kuliner Tersimpan</div>
+        <div class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
+      </div>
+
+      <!-- 3. Daftar Kartu Kuliner Tersimpan -->
+      <div id="savedGrid" class="saved-grid" style="display: none"></div>
+    </main>
+    <!-- Script Integrasi Backend API favorit.php -->
+    <script>
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadSavedFoods();
+
+        document.getElementById("retryBtn").addEventListener("click", () => {
+          loadSavedFoods();
+        });
+      });
+
+      async function loadSavedFoods() {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const savedGrid = document.getElementById("savedGrid");
+
+        emptyState.style.display = "none";
+        errorState.style.display = "none";
+        savedGrid.style.display = "none";
+
+        try {
+          const response = await fetch(`${BASE_URL}/api/favorit.php`, {
+            method: "GET",
+            credentials: "include",
+          });
+
+          if (response.status === 401) {
+            window.location.href = "login.html";
+            return;
+          }
+
+          if (!response.ok) throw new Error("Gagal mengambil data dari server");
+
+          const result = await response.json();
+
+          if (!result.status) {
+            errorState.style.display = "flex";
+            return;
+          }
+
+          const data = result.data || [];
+
+          if (data.length === 0) {
+            emptyState.style.display = "flex";
+            return;
+          }
+
+          renderSavedCards(data);
+          savedGrid.style.display = "flex";
+        } catch (err) {
+          console.error("Gagal memuat kuliner tersimpan:", err);
+          errorState.style.display = "flex";
+        }
+      }
+
+      function renderSavedCards(items) {
+        const savedGrid = document.getElementById("savedGrid");
+
+        savedGrid.innerHTML = items
+          .map((item) => {
+            const fotoPath = item.foto_kuliner || item.foto_tempat || "";
+            let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
+            if (fotoPath) {
+              if (/^(https?:\/\/)/i.test(fotoPath)) {
+                safePhoto = fotoPath;
+              } else {
+                safePhoto = `${BASE_URL}/uploads/${fotoPath.replace(/^uploads\//, "")}`;
+              }
+            }
+
+            const hargaNum = Number(item.harga);
+            const formattedPrice = Number.isFinite(hargaNum) ? `RP. ${hargaNum.toLocaleString("id-ID")}` : "RP. 0";
+            const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
+
+            return `
+              <div class="food-card" onclick="location.href='detail_kuliner.html?id=${item.id_tempat}'">
+                <div class="food-photo-wrapper">
+                  <img src="${safePhoto}" class="food-photo" alt="${escapeHTML(item.nama_kuliner || item.nama_tempat)}" onerror="this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+                </div>
+                <div class="food-name">${escapeHTML(item.nama_kuliner || item.nama_tempat)}</div>
+                <div class="food-location">
+                  <iconify-icon icon="material-symbols:location-on"></iconify-icon>
+                  <span>${escapeHTML(item.alamat || "Alamat tidak tersedia")}</span>
+                </div>
+                <div class="food-meta">
+                  <span>${formattedPrice}</span>
+                  <div class="food-rating-wrapper">
+                    <iconify-icon icon="material-symbols:star"></iconify-icon>
+                    <span>${ratingNum}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function escapeHTML(value) {
+        return String(value || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+    </script>
+  </body>
 </html>
