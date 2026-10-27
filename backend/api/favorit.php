@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -183,6 +183,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         "status"     => true,
         "message"    => "Kuliner berhasil disimpan ke favorit",
         "id_favorit" => $row['id_favorit']
+    ]);
+    exit;
+}
+
+// ============================================================
+// DELETE — Hapus kuliner dari daftar tersimpan (favorit)
+// Task 7.3: Menghapus relasi favorit berdasarkan id_user + id_tempat.
+// Data kuliner asli tidak ikut terhapus. Pengguna lain tidak terpengaruh.
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $body      = json_decode(file_get_contents("php://input"), true);
+    $id_tempat = intval($body['id_tempat'] ?? 0);
+
+    if ($id_tempat <= 0) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "ID tempat kuliner tidak valid"
+        ]);
+        exit;
+    }
+
+    // Cek apakah favorit ada dan milik user ini
+    $cek = pg_query_params(
+        $conn,
+        'SELECT id_favorit FROM favorit WHERE id_user = $1 AND id_tempat = $2',
+        [$id_user, $id_tempat]
+    );
+
+    if (!$cek || pg_num_rows($cek) === 0) {
+        http_response_code(404);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Kuliner tidak ada di daftar favorit"
+        ]);
+        exit;
+    }
+
+    $result = pg_query_params(
+        $conn,
+        'DELETE FROM favorit WHERE id_user = $1 AND id_tempat = $2',
+        [$id_user, $id_tempat]
+    );
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Gagal menghapus favorit"
+        ]);
+        exit;
+    }
+
+    http_response_code(200);
+    echo json_encode([
+        "status"  => true,
+        "message" => "Kuliner berhasil dihapus dari favorit"
     ]);
     exit;
 }
