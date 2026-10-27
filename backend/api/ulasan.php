@@ -168,6 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // ============================================================
 // POST — Tambah ulasan baru
+// Task 10.3: Validasi autentikasi, identitas kuliner, panjang komentar
+// (min 5, max 100 karakter), format foto (1 URL), dan simpan ke database.
+// Rating dan komentar tidak bergantungan — bisa kirim salah satu atau keduanya.
 // ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
