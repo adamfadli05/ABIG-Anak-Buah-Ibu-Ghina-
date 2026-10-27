@@ -333,6 +333,61 @@ body {
   font-weight: 700;
 }
 
+.review-rating-fieldset {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.review-rating-fieldset legend {
+  padding: 0;
+}
+
+.review-rating-inputs {
+  display: flex;
+  gap: 5px;
+}
+
+.review-rating-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #a7a7a7;
+  cursor: pointer;
+  font-size: 30px;
+}
+
+.review-rating-option.selected {
+  color: #ffbf00;
+}
+
+.review-rating-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.review-rating-option:focus-within {
+  outline: 2px solid rgba(0, 27, 125, 0.55);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .review-form textarea {
   display: block;
   width: 100%;
@@ -404,6 +459,18 @@ body {
   max-height: 180px;
   object-fit: cover;
   border-radius: 8px;
+}
+
+.review-owner-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--primary);
+}
+
+.review-owner-actions iconify-icon {
+  font-size: 20px;
 }
 
 .review-photo-preview button {
