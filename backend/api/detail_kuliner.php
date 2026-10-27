@@ -90,6 +90,8 @@ $ulasan_result = pg_query_params(
     "SELECT
         u.id_ulasan,
         u.rating,
+        u.id_user,
+        u.foto_url,
         u.komentar,
         u.tanggal,
         us.nama AS nama_user,
