@@ -112,18 +112,48 @@
           </div>
 
           <form class="review-form" id="reviewForm" hidden>
+            <fieldset class="review-rating-fieldset">
+              <legend class="review-form-label">Beri rating <span aria-hidden="true">*</span></legend>
+              <div class="review-rating-inputs" role="radiogroup" aria-label="Pilih rating dari 1 sampai 5">
+                <label class="review-rating-option" title="1 bintang">
+                  <input type="radio" name="rating" value="1" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">1 bintang</span>
+                </label>
+                <label class="review-rating-option" title="2 bintang">
+                  <input type="radio" name="rating" value="2" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">2 bintang</span>
+                </label>
+                <label class="review-rating-option" title="3 bintang">
+                  <input type="radio" name="rating" value="3" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">3 bintang</span>
+                </label>
+                <label class="review-rating-option" title="4 bintang">
+                  <input type="radio" name="rating" value="4" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">4 bintang</span>
+                </label>
+                <label class="review-rating-option" title="5 bintang">
+                  <input type="radio" name="rating" value="5" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">5 bintang</span>
+                </label>
+              </div>
+            </fieldset>
             <label class="review-form-label" for="reviewComment">Tulis ulasan Anda</label>
             <textarea id="reviewComment" name="komentar" rows="4" placeholder="Bagaimana pengalaman kuliner Anda?" required></textarea>
             <div class="review-form-meta">
               <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
               <span id="reviewCharacterCount">0/100</span>
             </div>
-            <input id="reviewPhotoInput" name="foto" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+            <input id="reviewPhotoInput" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
             <div class="review-photo-controls">
               <button class="review-photo-add" id="addReviewPhoto" type="button" aria-label="Tambah foto ulasan">
                 <iconify-icon icon="material-symbols:add"></iconify-icon>
               </button>
-              <span>Tambah foto (opsional, maks. 1)</span>
+              <span>Tambah foto (opsional, maks. 1). Format: JPG, JPEG, PNG, WEBP; maks. 5 MB.</span>
             </div>
             <div id="reviewPhotoPreview" class="review-photo-preview" hidden>
               <img id="reviewPhotoImage" alt="Pratinjau foto ulasan" />
@@ -168,6 +198,7 @@
         const errorState = document.getElementById("errorState");
         const reviewForm = document.getElementById("reviewForm");
         const reviewComment = document.getElementById("reviewComment");
+        const reviewRatingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
         const reviewPhotoInput = document.getElementById("reviewPhotoInput");
         const reviewPhotoPreview = document.getElementById("reviewPhotoPreview");
         const reviewPhotoImage = document.getElementById("reviewPhotoImage");
@@ -197,6 +228,28 @@
             URL.revokeObjectURL(reviewPhotoPreviewUrl);
             reviewPhotoPreviewUrl = null;
           }
+        };
+
+        const openReviewForm = (focusTarget) => {
+          if (!isLoggedIn()) {
+            window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}`);
+            return;
+          }
+          reviewForm.hidden = false;
+          reviewFormMessage.textContent = "";
+          focusTarget.focus();
+          reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        };
+
+        const updateSelectedRating = () => {
+          const selectedRating = Number(reviewForm.querySelector('input[name="rating"]:checked')?.value || 0);
+          reviewForm.querySelectorAll(".review-rating-option").forEach((option) => {
+            const rating = Number(option.querySelector('input[name="rating"]').value);
+            const icon = option.querySelector("iconify-icon");
+            const selected = rating <= selectedRating;
+            option.classList.toggle("selected", selected);
+            icon.setAttribute("icon", selected ? "material-symbols:star" : "material-symbols:star-outline");
+          });
         };
 
         if (!idTempat) {
@@ -270,21 +323,30 @@
           document.getElementById("foodRatingSmall").textContent = avgRating;
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `(${totalReview} Ulasan)`;
+          updateAggregateStars(Number(avgRating));
 
           // Render Daftar Ulasan Pengguna menggunakan fungsi renderReviews yang benar
           const reviewsContainer = document.getElementById("reviewsContainer");
           renderReviews(ulasanList, reviewsContainer);
 
           document.getElementById("btnReview").addEventListener("click", () => {
-            if (!isLoggedIn()) {
-              window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}`);
-              return;
+            if (reviewForm.hidden) openReviewForm(reviewComment);
+            else reviewForm.hidden = true;
+          });
+
+          document.getElementById("btnRate").addEventListener("click", () => {
+            if (reviewForm.hidden) openReviewForm(reviewRatingInputs[0]);
+            else {
+              reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              reviewRatingInputs[0].focus();
             }
-            reviewForm.hidden = !reviewForm.hidden;
-            if (!reviewForm.hidden) {
+          });
+
+          reviewRatingInputs.forEach((input) => {
+            input.addEventListener("change", () => {
+              updateSelectedRating();
               reviewFormMessage.textContent = "";
-              reviewComment.focus();
-            }
+            });
           });
 
           reviewComment.addEventListener("input", () => {
@@ -299,7 +361,7 @@
             const file = reviewPhotoInput.files[0];
             if (!file) return;
             if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-              reviewFormMessage.textContent = "Pilih foto berformat JPG, PNG, atau WEBP.";
+              reviewFormMessage.textContent = "Pilih 1 foto berformat JPG, JPEG, PNG, atau WEBP.";
               reviewPhotoInput.value = "";
               return;
             }
@@ -322,8 +384,14 @@
             event.preventDefault();
             const komentar = reviewComment.value.trim();
             const characterCount = Array.from(komentar).length;
+            const rating = Number(reviewForm.querySelector('input[name="rating"]:checked')?.value || 0);
             if (characterCount < 5 || characterCount > 100) {
               reviewFormMessage.textContent = "Ulasan harus berisi 5 hingga 100 karakter.";
+              return;
+            }
+            if (rating < 1 || rating > 5) {
+              reviewFormMessage.textContent = "Pilih rating bintang 1 sampai 5.";
+              reviewRatingInputs[0].focus();
               return;
             }
 
@@ -354,7 +422,7 @@
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_tempat: idTempat, komentar, foto_url }),
+                body: JSON.stringify({ id_tempat: idTempat, rating, komentar, foto_url }),
               });
               const result = await response.json();
               if (response.status === 401) {
@@ -364,6 +432,7 @@
               if (!response.ok || !result.status) throw new Error(result.message || "Ulasan gagal dikirim.");
 
               reviewForm.reset();
+              updateSelectedRating();
               clearReviewPhoto();
               document.getElementById("reviewCharacterCount").textContent = "0/100";
               reviewForm.hidden = true;
@@ -379,6 +448,7 @@
                   document.getElementById("foodRatingSmall").textContent = latestRating;
                   document.getElementById("ratingScoreText").textContent = latestRating;
                   document.getElementById("reviewCountText").textContent = `(${refreshedDetail.data.jumlah_ulasan || (refreshedReviews.data || []).length} Ulasan)`;
+                  updateAggregateStars(Number(latestRating));
                 }
                 if (reviewsResponse.ok && refreshedReviews.status) {
                   renderReviews(refreshedReviews.data || [], reviewsContainer);
@@ -535,9 +605,19 @@
           `;
           return;
         }
+        let currentUserId = null;
+        try {
+          const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+          currentUserId = currentUser && currentUser.id_user != null ? String(currentUser.id_user) : null;
+        } catch (error) {
+          console.error("Data sesi pengguna tidak valid:", error);
+        }
+
         reviewsContainer.innerHTML = ulasanList
           .map(
-            (u) => `
+            (u) => {
+              const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
+              return `
               <div style="background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                   <strong style="font-size: 13px; color: #001b7d;">${escapeHTML(u.nama_user || "Pengguna")}</strong>
@@ -546,10 +626,19 @@
                 ${Number(u.rating) >= 1 && Number(u.rating) <= 5 ? `<div style="color: #FFBF00; font-size: 12px; margin-bottom: 4px;">⭐ ${escapeHTML(u.rating)} / 5</div>` : ""}
                 <p style="font-size: 12px; color: #333; margin: 0;">${escapeHTML(u.komentar || u.review_text || "")}</p>
                 ${u.foto_url ? `<img class="review-photo" src="${escapeHTML(/^(https?:\/\/)/i.test(u.foto_url) ? u.foto_url : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
+                ${isOwner ? `<div class="review-owner-actions" aria-label="Aksi ulasan milik Anda"><iconify-icon icon="material-symbols:edit-outline" title="Ubah ulasan"></iconify-icon><iconify-icon icon="material-symbols:delete-outline" title="Hapus ulasan"></iconify-icon></div>` : ""}
               </div>
-            `
+              `;
+            }
           )
           .join("");
+      }
+
+      function updateAggregateStars(rating) {
+        const roundedRating = Math.round(rating);
+        document.querySelectorAll("#starsContainer iconify-icon").forEach((star, index) => {
+          star.setAttribute("icon", index < roundedRating ? "material-symbols:star" : "material-symbols:star-outline");
+        });
       }
 
       function escapeHTML(value) {

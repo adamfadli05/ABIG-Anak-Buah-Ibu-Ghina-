@@ -74,6 +74,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const userRole = localStorage.getItem("role");
 
     const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
+    console.info("[Auth System] Navbar status", {
+      loggedIn: isLoggedIn,
+      role: userRole || "guest",
+    });
 
     const profileButton = document.getElementById("profileButton");
     const btnLogout = document.getElementById("btnLogout");
@@ -155,8 +159,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (reviewButton) {
       event.preventDefault();
       if (!isLoggedIn) {
-        window.location.href = "login.html";
+        window.location.href = "login.html?returnTo=reviews.html";
+        return;
       }
+      window.location.href = reviewButton.href;
       return;
     }
 
