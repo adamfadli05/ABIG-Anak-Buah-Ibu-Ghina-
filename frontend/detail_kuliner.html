@@ -161,7 +161,8 @@
 
       document.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const idTempat = urlParams.get("id");
+        // Mendukung parameter 'id' maupun 'id_tempat' dari URL manapun
+        const idTempat = urlParams.get("id") || urlParams.get("id_tempat");
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
@@ -270,25 +271,9 @@
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `(${totalReview} Ulasan)`;
 
-          // Render Daftar Ulasan Pengguna
+          // Render Daftar Ulasan Pengguna menggunakan fungsi renderReviews yang benar
           const reviewsContainer = document.getElementById("reviewsContainer");
-          if (ulasanList.length > 0) {
-            reviewsContainer.innerHTML = ulasanList
-              .map(
-                (u) => `
-              <div style="background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-family: 'Inter';">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                  <strong style="font-size: 13px; color: #001b7d;">${escapeHTML(u.nama_user || "Pengguna")}</strong>
-                  <span style="font-size: 11px; color: #666;">${u.tanggal || ""}</span>
-                </div>
-                <div style="color: #FFBF00; font-size: 12px; margin-bottom: 4px;">⭐ ${u.rating} / 5</div>
-                <p style="font-size: 12px; color: #333; margin: 0;">${escapeHTML(u.komentar || "")}</p>
-              </div>
-            `
-              )
-              .join("");
-          }
-          renderReviews(reviewsWithPhotos, reviewsContainer);
+          renderReviews(ulasanList, reviewsContainer);
 
           document.getElementById("btnReview").addEventListener("click", () => {
             if (!isLoggedIn()) {
@@ -298,7 +283,6 @@
             reviewForm.hidden = !reviewForm.hidden;
             if (!reviewForm.hidden) {
               reviewFormMessage.textContent = "";
-              document.getElementById("reviewStatusMessage").textContent = "";
               reviewComment.focus();
             }
           });
@@ -351,7 +335,7 @@
               if (selectedReviewPhoto && !foto_url) {
                 const supabaseConfig = window.SUPABASE_CONFIG;
                 if (!window.supabase || !supabaseConfig || !supabaseConfig.anonKey) {
-                  throw new Error("Konfigurasi upload foto belum tersedia. Isi anon/publishable key Supabase di frontend/js/supabase-config.js.");
+                  throw new Error("Konfigurasi upload foto belum tersedia.");
                 }
 
                 const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
@@ -368,7 +352,7 @@
 
               const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
                 method: "POST",
-                credentials: "same-origin",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id_tempat: idTempat, komentar, foto_url }),
               });
@@ -383,30 +367,29 @@
               clearReviewPhoto();
               document.getElementById("reviewCharacterCount").textContent = "0/100";
               reviewForm.hidden = true;
-              const reviewStatusMessage = document.getElementById("reviewStatusMessage");
-              reviewStatusMessage.textContent = "Ulasan berhasil dikirim.";
+              
               try {
                 const [detailResponse, reviewsResponse] = await Promise.all([
                   fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
                   fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
                 ]);
                 const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
-                if (!detailResponse.ok || !refreshedDetail.status) throw new Error(refreshedDetail.message || "Rating gagal diperbarui.");
-                if (!reviewsResponse.ok || !refreshedReviews.status) throw new Error(refreshedReviews.message || "Daftar ulasan gagal diperbarui.");
-                const latestReviews = refreshedReviews.data || [];
-                renderReviews(latestReviews, reviewsContainer);
-                const latestRating = Number(refreshedDetail.data.rata_rata_rating || 0).toFixed(1);
-                document.getElementById("foodRatingSmall").textContent = latestRating;
-                document.getElementById("ratingScoreText").textContent = latestRating;
-                document.getElementById("reviewCountText").textContent = `(${refreshedDetail.data.jumlah_ulasan || latestReviews.length} Ulasan)`;
+                if (detailResponse.ok && refreshedDetail.status) {
+                  const latestRating = Number(refreshedDetail.data.rata_rata_rating || 0).toFixed(1);
+                  document.getElementById("foodRatingSmall").textContent = latestRating;
+                  document.getElementById("ratingScoreText").textContent = latestRating;
+                  document.getElementById("reviewCountText").textContent = `(${refreshedDetail.data.jumlah_ulasan || (refreshedReviews.data || []).length} Ulasan)`;
+                }
+                if (reviewsResponse.ok && refreshedReviews.status) {
+                  renderReviews(refreshedReviews.data || [], reviewsContainer);
+                }
               } catch (error) {
-                console.error("Ulasan terkirim tetapi daftar ulasan gagal diperbarui:", error);
-                reviewStatusMessage.textContent = "Ulasan berhasil dikirim. Muat ulang halaman untuk melihat ulasan terbaru.";
+                console.error("Gagal memperbarui ulasan setelah kirim:", error);
               }
             } catch (error) {
               console.error("Gagal mengirim ulasan:", error);
               reviewForm.hidden = false;
-              reviewFormMessage.textContent = error instanceof TypeError ? "Koneksi bermasalah. Periksa jaringan lalu coba lagi." : error.message || "Ulasan gagal dikirim. Silakan coba lagi.";
+              reviewFormMessage.textContent = error.message || "Ulasan gagal dikirim. Silakan coba lagi.";
             } finally {
               submitReview.disabled = false;
               submitReview.textContent = "Kirim Ulasan";
@@ -418,21 +401,19 @@
           if (errorState) errorState.style.display = "flex";
         }
 
-      // Interaksi Tombol Bookmark & Integrasi API Favorit
-      const btnBookmark = document.getElementById("btnBookmark");
+        // Interaksi Tombol Bookmark & Integrasi API Favorit
+        const btnBookmark = document.getElementById("btnBookmark");
         const bookmarkToast = document.getElementById("bookmarkToast");
         const toastText = document.getElementById("toastText");
         const toastKelolaBtn = document.getElementById("toastKelolaBtn");
 
         let isSavedState = false;
 
-        // Tautkan tombol "Kelola" di Toast ke halaman saved.html
         if (toastKelolaBtn) {
           toastKelolaBtn.href = "saved.html";
         }
 
         if (btnBookmark) {
-          // 1. Cek dulu status awal saat halaman dimuat (Apakah tempat ini sudah difavoritkan?)
           checkBookmarkStatus();
 
           btnBookmark.addEventListener("click", async () => {
@@ -443,11 +424,10 @@
               return;
             }
 
-            btnBookmark.disabled = true; // Mencegah double click
+            btnBookmark.disabled = true;
 
             try {
               if (!isSavedState) {
-                // HTTP POST — Tambah ke Favorit
                 const res = await fetch(`${BASE_URL}/api/favorit.php`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -472,7 +452,6 @@
                   showToastMessage();
                 }
               } else {
-                // HTTP DELETE — Hapus dari Favorit
                 const res = await fetch(`${BASE_URL}/api/favorit.php`, {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },
@@ -507,7 +486,6 @@
           });
         }
 
-        // Fungsi Cek Status Favorit Awal
         async function checkBookmarkStatus() {
           try {
             const res = await fetch(`${BASE_URL}/api/favorit.php`, {
@@ -527,7 +505,6 @@
           }
         }
 
-        // Update Tampilan Tombol Bookmark (Latar Putih, Ikon Biru Penuh Saat Saved)
         function updateBookmarkUI(saved) {
           const iconEl = btnBookmark.querySelector("iconify-icon");
           if (saved) {
@@ -549,11 +526,11 @@
       });
 
       function renderReviews(ulasanList, reviewsContainer) {
-        if (!ulasanList.length) {
+        if (!ulasanList || !ulasanList.length) {
           reviewsContainer.innerHTML = `
-            <div class="review-card-empty">
-              <div>Belum ada ulasan</div>
-              <div>Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+            <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif">
+              <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px">Belum ada ulasan</div>
+              <div style="font-weight: 400; font-size: 12px; color: #333">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
             </div>
           `;
           return;
@@ -568,7 +545,7 @@
                 </div>
                 ${Number(u.rating) >= 1 && Number(u.rating) <= 5 ? `<div style="color: #FFBF00; font-size: 12px; margin-bottom: 4px;">⭐ ${escapeHTML(u.rating)} / 5</div>` : ""}
                 <p style="font-size: 12px; color: #333; margin: 0;">${escapeHTML(u.komentar || u.review_text || "")}</p>
-                ${u.foto_url ? `<img class="review-photo" src="${escapeHTML(/^(https?:\/\/)/i.test(u.foto_url) ? u.foto_url : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`)}" alt="Foto dari ulasan ${escapeHTML(u.nama_user || "Pengguna")}" loading="lazy" />` : ""}
+                ${u.foto_url ? `<img class="review-photo" src="${escapeHTML(/^(https?:\/\/)/i.test(u.foto_url) ? u.foto_url : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
               </div>
             `
           )
@@ -576,7 +553,7 @@
       }
 
       function escapeHTML(value) {
-        return String(value).replace(/[&<>"']/g, (character) => {
+        return String(value || "").replace(/[&<>"']/g, (character) => {
           const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
           return entities[character];
         });
