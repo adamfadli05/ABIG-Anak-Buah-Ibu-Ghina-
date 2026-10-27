@@ -136,20 +136,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
    // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
-   if (savedButton) {
-    const checkUser = localStorage.getItem("user");
-    const checkRole = localStorage.getItem("role");
-    const isLoggedIn = (checkUser && checkUser !== "null" && checkUser !== "undefined") || (checkRole && checkRole !== "null");
+    if (savedButton) {
+      const checkUser = localStorage.getItem("user");
+      const checkRole = localStorage.getItem("role");
+      const isLoggedIn = (checkUser && checkUser !== "null" && checkUser !== "undefined") || (checkRole && checkRole !== "null");
 
-    if (!isLoggedIn) {
-      // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
-      event.preventDefault();
-      window.location.href = "login.html";
+      if (!isLoggedIn) {
+        // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
+        event.preventDefault();
+        window.location.href = "login.html";
+      }
+      // Jika SUDAH LOGIN, biarkan kosong! 
+      // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
+      return;
     }
-    // Jika SUDAH LOGIN, biarkan kosong! 
-    // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
-    return;
-  }
 
     // Proteksi Navigasi Halaman Reviews
     if (reviewButton) {
