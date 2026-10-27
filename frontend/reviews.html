@@ -1,12 +1,303 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ulasan Anda | Mangan Yukkk</title>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/saved.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <style>
+      .reviews-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 116px 24px 48px;
+      }
+
+      .reviews-title {
+        margin: 0 0 24px;
+        color: #001b7d;
+        font-size: 24px;
+      }
+
+      .reviews-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .reviews-list[hidden],
+      .reviews-state[hidden] {
+        display: none;
+      }
+
+      .review-card {
+        display: grid;
+        grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+        gap: 18px;
+        padding: 16px;
+        border: 1px solid #d9dce5;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 3px 12px rgb(0 27 125 / 8%);
+      }
+
+      .review-food-photo {
+        width: 100%;
+        height: 150px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #eee;
+      }
+
+      .review-card-content {
+        min-width: 0;
+      }
+
+      .review-card-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .review-card-heading h2 {
+        margin: 0;
+        color: #001b7d;
+        font-size: 18px;
+      }
+
+      .review-date {
+        flex: 0 0 auto;
+        color: #6c6c73;
+        font-size: 12px;
+      }
+
+      .review-place {
+        margin: 5px 0 12px;
+        color: #6c6c73;
+      }
+
+      .review-rating {
+        margin: 0 0 8px;
+        color: #a06a00;
+      }
+
+      .review-comment {
+        margin: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      .review-photo {
+        display: block;
+        max-width: min(100%, 300px);
+        max-height: 240px;
+        margin-top: 12px;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .review-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .review-detail-link {
+        color: #001b7d;
+        font-weight: 600;
+        text-decoration: underline;
+      }
+
+      .review-owner-actions {
+        display: inline-flex;
+        gap: 10px;
+        color: #001b7d;
+      }
+
+      .review-owner-actions iconify-icon {
+        font-size: 21px;
+      }
+
+      .reviews-state {
+        padding: 28px 16px;
+        border: 1px solid #d9dce5;
+        border-radius: 12px;
+        text-align: center;
+        background: #fff;
+      }
+
+      .reviews-state p {
+        margin: 0 0 12px;
+      }
+
+      .reviews-retry {
+        border: 0;
+        padding: 0;
+        background: none;
+        color: #001b7d;
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      @media (max-width: 600px) {
+        .reviews-page {
+          padding: 104px 16px 32px;
+        }
+
+        .review-card {
+          grid-template-columns: 1fr;
+          gap: 12px;
+          padding: 12px;
+        }
+
+        .review-food-photo {
+          height: 180px;
+        }
+
+        .review-card-heading {
+          flex-direction: column;
+          gap: 4px;
+        }
+      }
+    </style>
   </head>
-  <body></body>
+  <body>
+    <div id="navbar-container"></div>
+    <main class="reviews-page">
+      <h1 class="reviews-title">Ulasan Saya</h1>
+      <div id="reviewsLoading" class="reviews-state" role="status">Memuat ulasan...</div>
+      <div id="reviewsEmpty" class="reviews-state" hidden>
+        <p>Anda belum memiliki ulasan.</p>
+        <a class="review-detail-link" href="index.html">Jelajahi kuliner</a>
+      </div>
+      <div id="reviewsError" class="reviews-state" role="alert" hidden>
+        <p>Gagal memuat daftar ulasan.</p>
+        <button id="retryReviews" class="reviews-retry" type="button">Coba lagi</button>
+      </div>
+      <div id="reviewsList" class="reviews-list" hidden></div>
+    </main>
+    <script src="js/navbar.js"></script>
+    <script>
+      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("retryReviews").addEventListener("click", loadReviews);
+        loadReviews();
+      });
+
+      async function loadReviews() {
+        const loading = document.getElementById("reviewsLoading");
+        const empty = document.getElementById("reviewsEmpty");
+        const error = document.getElementById("reviewsError");
+        const list = document.getElementById("reviewsList");
+
+        loading.hidden = false;
+        empty.hidden = true;
+        error.hidden = true;
+        list.hidden = true;
+        list.replaceChildren();
+
+        try {
+          const response = await fetch(`${BASE_URL}/api/ulasan.php?milik_saya=1`, {
+            method: "GET",
+            credentials: "include",
+          });
+
+          if (response.status === 401) {
+            const returnTo = encodeURIComponent("reviews.html");
+            window.location.href = `login.html?returnTo=${returnTo}`;
+            return;
+          }
+
+          const result = await response.json();
+          if (!response.ok || !result.status) {
+            throw new Error(result.message || "Gagal memuat daftar ulasan.");
+          }
+
+          const reviews = Array.isArray(result.data) ? result.data : [];
+          loading.hidden = true;
+          if (reviews.length === 0) {
+            empty.hidden = false;
+            return;
+          }
+
+          renderReviews(reviews);
+          list.hidden = false;
+        } catch (requestError) {
+          console.error("Gagal memuat daftar ulasan:", requestError);
+          loading.hidden = true;
+          error.hidden = false;
+        }
+      }
+
+      function renderReviews(reviews) {
+        const list = document.getElementById("reviewsList");
+        list.innerHTML = reviews.map((review) => {
+          const foodName = review.nama_kuliner || review.nama_tempat || "Kuliner";
+          const foodPhoto = resolveFoodPhoto(review.photo_url);
+          const reviewPhoto = resolveReviewPhoto(review.foto_url);
+          const rating = Number(review.rating);
+          const reviewDate = formatReviewDate(review.created_at);
+
+          return `
+            <article class="review-card">
+              <img class="review-food-photo" src="${escapeHTML(foodPhoto)}" alt="${escapeHTML(foodName)}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+              <div class="review-card-content">
+                <div class="review-card-heading">
+                  <h2>${escapeHTML(foodName)}</h2>
+                  <time class="review-date">${escapeHTML(reviewDate)}</time>
+                </div>
+                <p class="review-place">${escapeHTML(review.nama_tempat || review.alamat || "")}</p>
+                ${rating >= 1 && rating <= 5 ? `<p class="review-rating">⭐ ${rating} / 5</p>` : ""}
+                <p class="review-comment">${escapeHTML(review.review_text || "")}</p>
+                ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" loading="lazy" />` : ""}
+                <div class="review-card-footer">
+                  <a class="review-detail-link" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}">Lihat kuliner</a>
+                  <span class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
+                    <iconify-icon icon="material-symbols:edit-outline" title="Ubah ulasan"></iconify-icon>
+                    <iconify-icon icon="material-symbols:delete-outline" title="Hapus ulasan"></iconify-icon>
+                  </span>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function resolveFoodPhoto(path) {
+        if (!path) return "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
+        if (/^https?:\/\//i.test(path)) return path;
+        return `${BASE_URL}/uploads/${String(path).replace(/^\/+|^uploads\//g, "")}`;
+      }
+
+      function resolveReviewPhoto(path) {
+        if (!path) return "";
+        if (/^https?:\/\//i.test(path)) return path;
+        return `${BASE_URL}/${String(path).replace(/^\/+/, "")}`;
+      }
+
+      function formatReviewDate(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("id-ID");
+      }
+
+      function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[character]);
+      }
+    </script>
+  </body>
 </html>

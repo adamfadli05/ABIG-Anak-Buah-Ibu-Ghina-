@@ -183,7 +183,8 @@
         if (role === "user" && returnTo) {
           const target = new URL(returnTo, window.location.href);
           const detailPage = new URL("detail_kuliner.html", window.location.href);
-          if (target.origin === window.location.origin && target.pathname === detailPage.pathname) {
+          const reviewsPage = new URL("reviews.html", window.location.href);
+          if (target.origin === window.location.origin && (target.pathname === detailPage.pathname || target.pathname === reviewsPage.pathname)) {
             return target.href;
           }
         }
@@ -334,6 +335,7 @@
         btnSubmit.textContent = "Memproses";
 
         try {
+          console.info("[API Request] POST /api/login.php");
           const res = await fetch(`${BASE_URL}/api/login.php`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -341,6 +343,13 @@
           });
 
           const data = await res.json();
+          console.info("[API Response] /api/login.php", {
+            httpStatus: res.status,
+            ok: res.ok,
+            status: data.status,
+            message: data.message,
+            role: data.role,
+          });
 
           if (!data.status) {
             // 3. KASUS 3: EMAIL ATAU KATA SANDI SALAH DARI BACKEND
@@ -354,6 +363,7 @@
 
           showPopupModal(true, "Anda berhasil masuk");
         } catch (err) {
+          console.error("[API Error] /api/login.php", err);
           showError("Terjadi kesalahan koneksi,<br>silahkan coba lagi");
         } finally {
           btnSubmit.disabled = false;
