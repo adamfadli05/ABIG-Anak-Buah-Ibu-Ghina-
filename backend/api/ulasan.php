@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -324,9 +324,162 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// ============================================================
+// PUT — Ubah ulasan milik sendiri
+// Task 11.3: Validasi kepemilikan, teks min 5 max 100 karakter, foto max 1.
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
+        http_response_code(401);
+        echo json_encode(["status" => false, "message" => "Anda harus login untuk mengubah ulasan"]);
+        exit;
+    }
+
+    $id_user   = $_SESSION['id_user'];
+    $body      = json_decode(file_get_contents("php://input"), true);
+    $id_ulasan = intval($body['id_ulasan'] ?? 0);
+    $komentar  = isset($body['komentar']) ? trim($body['komentar']) : null;
+    $rating    = isset($body['rating'])   ? intval($body['rating']) : null;
+    $foto_url  = isset($body['foto_url']) ? trim($body['foto_url']) : null;
+
+    if ($id_ulasan <= 0) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "ID ulasan tidak valid"]);
+        exit;
+    }
+
+    if ($rating === null && ($komentar === null || $komentar === '') && $foto_url === null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Tidak ada data yang diubah"]);
+        exit;
+    }
+
+    if ($rating !== null && ($rating < 1 || $rating > 5)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Rating harus antara 1 sampai 5"]);
+        exit;
+    }
+
+    if ($komentar !== null && $komentar !== '') {
+        $panjang = mb_strlen($komentar);
+        if ($panjang < 5) {
+            http_response_code(400);
+            echo json_encode(["status" => false, "message" => "Komentar minimal 5 karakter"]);
+            exit;
+        }
+        if ($panjang > 100) {
+            http_response_code(400);
+            echo json_encode(["status" => false, "message" => "Komentar maksimal 100 karakter"]);
+            exit;
+        }
+    }
+
+    if ($foto_url !== null && $foto_url !== '') {
+        if (!filter_var($foto_url, FILTER_VALIDATE_URL)) {
+            http_response_code(400);
+            echo json_encode(["status" => false, "message" => "Format URL foto tidak valid"]);
+            exit;
+        }
+    }
+
+    $cek = pg_query_params(
+        $conn,
+        'SELECT id_ulasan, rating, komentar, foto_url FROM ulasan WHERE id_ulasan = $1 AND id_user = $2',
+        [$id_ulasan, $id_user]
+    );
+
+    if (!$cek) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal memeriksa data ulasan"]);
+        exit;
+    }
+
+    if (pg_num_rows($cek) === 0) {
+        http_response_code(404);
+        echo json_encode(["status" => false, "message" => "Ulasan tidak ditemukan atau bukan milik Anda"]);
+        exit;
+    }
+
+    $ulasan_lama   = pg_fetch_assoc($cek);
+    $rating_baru   = $rating ?? $ulasan_lama['rating'];
+    $komentar_baru = ($komentar !== null && $komentar !== '') ? $komentar : $ulasan_lama['komentar'];
+    $foto_baru     = ($foto_url !== null) ? ($foto_url !== '' ? $foto_url : null) : $ulasan_lama['foto_url'];
+
+    $result = pg_query_params(
+        $conn,
+        'UPDATE ulasan SET rating = $1, komentar = $2, foto_url = $3 WHERE id_ulasan = $4 AND id_user = $5 RETURNING id_ulasan',
+        [$rating_baru, $komentar_baru, $foto_baru, $id_ulasan, $id_user]
+    );
+
+    if (!$result || pg_num_rows($result) === 0) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal mengubah ulasan"]);
+        exit;
+    }
+
+    http_response_code(200);
+    echo json_encode(["status" => true, "message" => "Ulasan berhasil diubah", "id_ulasan" => $id_ulasan]);
+    exit;
+}
+
+// ============================================================
+// DELETE — Hapus ulasan milik sendiri
+// Task 12.3: Validasi kepemilikan berdasarkan id_ulasan dan id_user dari session.
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
+        http_response_code(401);
+        echo json_encode(["status" => false, "message" => "Anda harus login untuk menghapus ulasan"]);
+        exit;
+    }
+
+    $id_user   = $_SESSION['id_user'];
+    $body      = json_decode(file_get_contents("php://input"), true);
+    $id_ulasan = intval($body['id_ulasan'] ?? 0);
+
+    if ($id_ulasan <= 0) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "ID ulasan tidak valid"]);
+        exit;
+    }
+
+    $cek = pg_query_params(
+        $conn,
+        'SELECT id_ulasan FROM ulasan WHERE id_ulasan = $1 AND id_user = $2',
+        [$id_ulasan, $id_user]
+    );
+
+    if (!$cek) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal memeriksa data ulasan"]);
+        exit;
+    }
+
+    if (pg_num_rows($cek) === 0) {
+        http_response_code(404);
+        echo json_encode(["status" => false, "message" => "Ulasan tidak ditemukan atau bukan milik Anda"]);
+        exit;
+    }
+
+    $result = pg_query_params(
+        $conn,
+        'DELETE FROM ulasan WHERE id_ulasan = $1 AND id_user = $2',
+        [$id_ulasan, $id_user]
+    );
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal menghapus ulasan"]);
+        exit;
+    }
+
+    http_response_code(200);
+    echo json_encode(["status" => true, "message" => "Ulasan berhasil dihapus"]);
+    exit;
+}
+
 // Method tidak diizinkan
 http_response_code(405);
-echo json_encode([
-    "status"  => false,
-    "message" => "Method tidak diizinkan"
-]);
+echo json_encode(["status" => false, "message" => "Method tidak diizinkan"]);
