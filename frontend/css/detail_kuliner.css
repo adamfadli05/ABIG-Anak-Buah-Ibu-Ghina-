@@ -469,8 +469,24 @@ body {
   color: var(--primary);
 }
 
-.review-owner-actions iconify-icon {
+.review-action {
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  padding: 2px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.review-action iconify-icon {
   font-size: 20px;
+}
+
+.review-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .review-photo-preview button {
@@ -503,6 +519,23 @@ body {
 .review-submit:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.review-cancel {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-cancel[hidden] {
+  display: none;
 }
 
 /* KOLOM KANAN: DETAIL INFORMASI */

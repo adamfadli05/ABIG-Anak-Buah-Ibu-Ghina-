@@ -120,8 +120,24 @@
         color: #001b7d;
       }
 
-      .review-owner-actions iconify-icon {
+      .review-action {
+        display: inline-grid;
+        place-items: center;
+        border: 0;
+        padding: 4px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .review-action iconify-icon {
         font-size: 21px;
+      }
+
+      .review-action:disabled {
+        cursor: wait;
+        opacity: 0.6;
       }
 
       .reviews-state {
@@ -189,6 +205,7 @@
 
       document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("retryReviews").addEventListener("click", loadReviews);
+        document.getElementById("reviewsList").addEventListener("click", handleReviewAction);
         loadReviews();
       });
 
@@ -260,15 +277,52 @@
                 ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" loading="lazy" />` : ""}
                 <div class="review-card-footer">
                   <a class="review-detail-link" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}">Lihat kuliner</a>
-                  <span class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
-                    <iconify-icon icon="material-symbols:edit-outline" title="Ubah ulasan"></iconify-icon>
-                    <iconify-icon icon="material-symbols:delete-outline" title="Hapus ulasan"></iconify-icon>
-                  </span>
+                  <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
+                    <a class="review-action" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}&edit_ulasan=${encodeURIComponent(review.id_ulasan)}" aria-label="Ubah ulasan">
+                      <iconify-icon icon="material-symbols:edit-outline" aria-hidden="true"></iconify-icon>
+                    </a>
+                    <button class="review-action" type="button" data-delete-review="${escapeHTML(review.id_ulasan)}" aria-label="Hapus ulasan">
+                      <iconify-icon icon="material-symbols:delete-outline" aria-hidden="true"></iconify-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>
           `;
         }).join("");
+      }
+
+      async function handleReviewAction(event) {
+        const button = event.target.closest("[data-delete-review]");
+        if (!button) return;
+
+        if (!window.confirm("Yakin ingin menghapus ulasan ini?")) return;
+        button.disabled = true;
+
+        try {
+          const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_ulasan: button.dataset.deleteReview }),
+          });
+          const result = await response.json();
+
+          if (response.status === 401) {
+            window.location.href = `login.html?returnTo=${encodeURIComponent("reviews.html")}`;
+            return;
+          }
+          if (!response.ok || !result.status) {
+            throw new Error(result.message || "Ulasan gagal dihapus.");
+          }
+
+          await loadReviews();
+          window.alert("Ulasan berhasil dihapus.");
+        } catch (error) {
+          console.error("Gagal menghapus ulasan:", error);
+          window.alert(error.message || "Ulasan gagal dihapus. Silakan coba lagi.");
+          button.disabled = false;
+        }
       }
 
       function resolveFoodPhoto(path) {
