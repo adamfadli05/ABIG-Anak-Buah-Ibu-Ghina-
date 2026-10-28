@@ -160,6 +160,7 @@
               <button id="removeReviewPhoto" type="button" aria-label="Hapus foto ulasan">&times;</button>
             </div>
             <button class="review-submit" id="submitReview" type="submit">Kirim Ulasan</button>
+            <button class="review-cancel" id="cancelReviewEdit" type="button" hidden>Batal</button>
           </form>
 
           <!-- BAGIAN ULASAN PENGGUNA -->
@@ -204,9 +205,12 @@
         const reviewPhotoImage = document.getElementById("reviewPhotoImage");
         const reviewFormMessage = document.getElementById("reviewFormMessage");
         const submitReview = document.getElementById("submitReview");
+        const cancelReviewEdit = document.getElementById("cancelReviewEdit");
         let selectedReviewPhoto = null;
         let reviewPhotoPreviewUrl = null;
         let uploadedReviewPhotoUrl = null;
+        let photoWasRemoved = false;
+        let editingReviewId = null;
 
         const isLoggedIn = () => {
           try {
@@ -221,6 +225,7 @@
         const clearReviewPhoto = () => {
           selectedReviewPhoto = null;
           uploadedReviewPhotoUrl = null;
+          photoWasRemoved = Boolean(editingReviewId);
           reviewPhotoInput.value = "";
           reviewPhotoPreview.hidden = true;
           reviewPhotoImage.removeAttribute("src");
@@ -271,7 +276,7 @@
           }
 
           const data = result.data;
-          const ulasanList = result.ulasan || [];
+          let ulasanList = result.ulasan || [];
 
           if (detailContent) detailContent.style.display = "grid";
           if (errorState) errorState.style.display = "none";
@@ -329,12 +334,150 @@
           const reviewsContainer = document.getElementById("reviewsContainer");
           renderReviews(ulasanList, reviewsContainer);
 
+          const refreshReviewData = async () => {
+            const [detailResponse, reviewsResponse] = await Promise.all([
+              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
+              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
+            ]);
+            const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
+            if (!detailResponse.ok || !refreshedDetail.status || !reviewsResponse.ok || !refreshedReviews.status) {
+              throw new Error("Gagal memperbarui daftar ulasan.");
+            }
+
+            ulasanList = refreshedReviews.data || [];
+            const latestRating = Number(refreshedDetail.data.rata_rata_rating || 0).toFixed(1);
+            document.getElementById("foodRatingSmall").textContent = latestRating;
+            document.getElementById("ratingScoreText").textContent = latestRating;
+            document.getElementById("reviewCountText").textContent = `(${ulasanList.length} Ulasan)`;
+            updateAggregateStars(Number(latestRating));
+            renderReviews(ulasanList, reviewsContainer);
+          };
+
+          const updateReviewSummary = () => {
+            const ratings = ulasanList.map((review) => Number(review.rating)).filter((rating) => rating >= 1 && rating <= 5);
+            const average = ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : "0.0";
+            document.getElementById("foodRatingSmall").textContent = average;
+            document.getElementById("ratingScoreText").textContent = average;
+            document.getElementById("reviewCountText").textContent = `(${ulasanList.length} Ulasan)`;
+            updateAggregateStars(Number(average));
+          };
+
+          const beginReviewEdit = (reviewId) => {
+            if (!isLoggedIn()) {
+              window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}&edit_ulasan=${encodeURIComponent(reviewId)}`);
+              return;
+            }
+
+            const review = ulasanList.find((item) => String(item.id_ulasan) === String(reviewId));
+            let currentUserId = null;
+            try {
+              currentUserId = String(JSON.parse(localStorage.getItem("user") || "null")?.id_user ?? "");
+            } catch (error) {
+              console.error("Data sesi pengguna tidak valid:", error);
+            }
+            if (!review || String(review.id_user) !== currentUserId) {
+              window.alert("Ulasan tidak ditemukan atau bukan milik Anda.");
+              return;
+            }
+
+            editingReviewId = String(review.id_ulasan);
+            reviewForm.hidden = false;
+            reviewRatingInputs.forEach((input) => {
+              input.checked = Number(input.value) === Number(review.rating);
+            });
+            updateSelectedRating();
+            reviewComment.value = review.komentar || review.review_text || "";
+            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/100`;
+            reviewFormMessage.textContent = "";
+            selectedReviewPhoto = null;
+            uploadedReviewPhotoUrl = null;
+            photoWasRemoved = false;
+            reviewPhotoInput.value = "";
+            if (review.foto_url) {
+              reviewPhotoImage.src = /^(https?:\/\/)/i.test(review.foto_url) ? review.foto_url : `${BASE_URL}/${review.foto_url.replace(/^\/+/, "")}`;
+              reviewPhotoPreview.hidden = false;
+            } else {
+              reviewPhotoPreview.hidden = true;
+              reviewPhotoImage.removeAttribute("src");
+            }
+            submitReview.textContent = "Simpan Perubahan";
+            cancelReviewEdit.hidden = false;
+            reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            reviewComment.focus();
+          };
+
+          reviewsContainer.addEventListener("click", async (event) => {
+            const action = event.target.closest("[data-review-action]");
+            if (!action) return;
+
+            const reviewId = action.dataset.reviewId;
+            if (action.dataset.reviewAction === "edit") {
+              beginReviewEdit(reviewId);
+              return;
+            }
+            if (action.dataset.reviewAction !== "delete" || !window.confirm("Yakin ingin menghapus ulasan ini?")) return;
+
+            action.disabled = true;
+            try {
+              const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id_ulasan: reviewId }),
+              });
+              const responseData = await response.json();
+              if (response.status === 401) {
+                window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}`);
+                return;
+              }
+              if (!response.ok || !responseData.status) {
+                throw new Error(responseData.message || "Ulasan gagal dihapus.");
+              }
+
+              ulasanList = ulasanList.filter((item) => String(item.id_ulasan) !== String(reviewId));
+              renderReviews(ulasanList, reviewsContainer);
+              updateReviewSummary();
+              try {
+                await refreshReviewData();
+              } catch (error) {
+                console.error("Ulasan terhapus, tetapi daftar gagal diperbarui:", error);
+                window.alert("Ulasan berhasil dihapus, tetapi daftar belum diperbarui. Muat ulang halaman.");
+                return;
+              }
+              window.alert("Ulasan berhasil dihapus.");
+            } catch (error) {
+              console.error("Gagal menghapus ulasan:", error);
+              window.alert(error.message || "Ulasan gagal dihapus. Silakan coba lagi.");
+              action.disabled = false;
+            }
+          });
+
+          cancelReviewEdit.addEventListener("click", () => {
+            editingReviewId = null;
+            reviewForm.reset();
+            updateSelectedRating();
+            clearReviewPhoto();
+            document.getElementById("reviewCharacterCount").textContent = "0/100";
+            reviewFormMessage.textContent = "";
+            reviewForm.hidden = true;
+            submitReview.textContent = "Kirim Ulasan";
+            cancelReviewEdit.hidden = true;
+            const detailUrl = new URL(window.location.href);
+            detailUrl.searchParams.delete("edit_ulasan");
+            window.history.replaceState({}, "", detailUrl);
+          });
+
+          const requestedEditId = urlParams.get("edit_ulasan");
+          if (requestedEditId) beginReviewEdit(requestedEditId);
+
           document.getElementById("btnReview").addEventListener("click", () => {
+            if (editingReviewId) return;
             if (reviewForm.hidden) openReviewForm(reviewComment);
             else reviewForm.hidden = true;
           });
 
           document.getElementById("btnRate").addEventListener("click", () => {
+            if (editingReviewId) return;
             if (reviewForm.hidden) openReviewForm(reviewRatingInputs[0]);
             else {
               reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -373,6 +516,7 @@
             if (reviewPhotoPreviewUrl) URL.revokeObjectURL(reviewPhotoPreviewUrl);
             selectedReviewPhoto = file;
             uploadedReviewPhotoUrl = null;
+            photoWasRemoved = false;
             reviewPhotoPreviewUrl = URL.createObjectURL(file);
             reviewPhotoImage.src = reviewPhotoPreviewUrl;
             reviewPhotoPreview.hidden = false;
@@ -395,8 +539,9 @@
               return;
             }
 
+            const isEditing = Boolean(editingReviewId);
             submitReview.disabled = true;
-            submitReview.textContent = "Mengirim...";
+            submitReview.textContent = isEditing ? "Menyimpan..." : "Mengirim...";
             reviewFormMessage.textContent = "";
             try {
               let foto_url = uploadedReviewPhotoUrl;
@@ -418,11 +563,15 @@
                 uploadedReviewPhotoUrl = foto_url;
               }
 
+              const payload = { rating, komentar };
+              if (uploadedReviewPhotoUrl) payload.foto_url = uploadedReviewPhotoUrl;
+              else if (editingReviewId && photoWasRemoved) payload.foto_url = "";
+
               const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
-                method: "POST",
+                method: editingReviewId ? "PUT" : "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_tempat: idTempat, rating, komentar, foto_url }),
+                body: JSON.stringify(editingReviewId ? { ...payload, id_ulasan: editingReviewId } : { ...payload, id_tempat: idTempat, foto_url }),
               });
               const result = await response.json();
               if (response.status === 401) {
@@ -431,38 +580,53 @@
               }
               if (!response.ok || !result.status) throw new Error(result.message || "Ulasan gagal dikirim.");
 
+              const editedReviewId = editingReviewId;
+              const removedReviewPhoto = photoWasRemoved;
+              const editedPhotoUrl = uploadedReviewPhotoUrl;
               reviewForm.reset();
+              editingReviewId = null;
               updateSelectedRating();
               clearReviewPhoto();
               document.getElementById("reviewCharacterCount").textContent = "0/100";
               reviewForm.hidden = true;
-              
-              try {
-                const [detailResponse, reviewsResponse] = await Promise.all([
-                  fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
-                  fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
-                ]);
-                const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
-                if (detailResponse.ok && refreshedDetail.status) {
-                  const latestRating = Number(refreshedDetail.data.rata_rata_rating || 0).toFixed(1);
-                  document.getElementById("foodRatingSmall").textContent = latestRating;
-                  document.getElementById("ratingScoreText").textContent = latestRating;
-                  document.getElementById("reviewCountText").textContent = `(${refreshedDetail.data.jumlah_ulasan || (refreshedReviews.data || []).length} Ulasan)`;
-                  updateAggregateStars(Number(latestRating));
-                }
-                if (reviewsResponse.ok && refreshedReviews.status) {
-                  renderReviews(refreshedReviews.data || [], reviewsContainer);
-                }
-              } catch (error) {
-                console.error("Gagal memperbarui ulasan setelah kirim:", error);
+              submitReview.textContent = "Kirim Ulasan";
+              cancelReviewEdit.hidden = true;
+
+              if (isEditing) {
+                ulasanList = ulasanList.map((review) => {
+                  if (String(review.id_ulasan) !== String(editedReviewId)) return review;
+                  return {
+                    ...review,
+                    rating,
+                    komentar,
+                    review_text: komentar,
+                    ...(editedPhotoUrl ? { foto_url: editedPhotoUrl } : {}),
+                    ...(removedReviewPhoto ? { foto_url: null } : {}),
+                  };
+                });
+                renderReviews(ulasanList, reviewsContainer);
+                updateReviewSummary();
+                const detailUrl = new URL(window.location.href);
+                detailUrl.searchParams.delete("edit_ulasan");
+                window.history.replaceState({}, "", detailUrl);
               }
+
+              let refreshFailed = false;
+              try {
+                await refreshReviewData();
+              } catch (error) {
+                console.error("Gagal memperbarui daftar ulasan:", error);
+                refreshFailed = true;
+              }
+              const successMessage = isEditing ? "Ulasan berhasil diubah." : "Ulasan berhasil disimpan.";
+              window.alert(refreshFailed ? `${successMessage} Namun daftar ulasan belum diperbarui. Muat ulang halaman.` : successMessage);
             } catch (error) {
               console.error("Gagal mengirim ulasan:", error);
               reviewForm.hidden = false;
               reviewFormMessage.textContent = error.message || "Ulasan gagal dikirim. Silakan coba lagi.";
             } finally {
               submitReview.disabled = false;
-              submitReview.textContent = "Kirim Ulasan";
+              submitReview.textContent = editingReviewId ? "Simpan Perubahan" : "Kirim Ulasan";
             }
           });
         } catch (error) {
@@ -626,7 +790,16 @@
                 ${Number(u.rating) >= 1 && Number(u.rating) <= 5 ? `<div style="color: #FFBF00; font-size: 12px; margin-bottom: 4px;">⭐ ${escapeHTML(u.rating)} / 5</div>` : ""}
                 <p style="font-size: 12px; color: #333; margin: 0;">${escapeHTML(u.komentar || u.review_text || "")}</p>
                 ${u.foto_url ? `<img class="review-photo" src="${escapeHTML(/^(https?:\/\/)/i.test(u.foto_url) ? u.foto_url : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
-                ${isOwner ? `<div class="review-owner-actions" aria-label="Aksi ulasan milik Anda"><iconify-icon icon="material-symbols:edit-outline" title="Ubah ulasan"></iconify-icon><iconify-icon icon="material-symbols:delete-outline" title="Hapus ulasan"></iconify-icon></div>` : ""}
+                ${isOwner ? `
+                  <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
+                    <button class="review-action" type="button" data-review-action="edit" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Ubah ulasan">
+                      <iconify-icon icon="material-symbols:edit-outline" aria-hidden="true"></iconify-icon>
+                    </button>
+                    <button class="review-action" type="button" data-review-action="delete" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Hapus ulasan">
+                      <iconify-icon icon="material-symbols:delete-outline" aria-hidden="true"></iconify-icon>
+                    </button>
+                  </div>
+                ` : ""}
               </div>
               `;
             }
