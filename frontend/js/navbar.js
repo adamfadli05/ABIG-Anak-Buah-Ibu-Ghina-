@@ -132,8 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Proteksi Navigasi Halaman Profil
     if (profileButton) {
-      event.preventDefault();
       if (!isLoggedIn) {
+        event.preventDefault();
         window.location.href = "login.html";
       }
       return;
