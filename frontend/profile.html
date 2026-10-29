@@ -8,6 +8,86 @@
     <link rel="stylesheet" href="css/profile.css" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
   </head>
-  <body></body>
+  <body>
+    <p class="page-caption">Halaman profile</p>
+    <div class="profile-shell">
+      <header class="profile-navbar">
+        <a class="profile-brand" href="index.html" aria-label="Mangan Yukkk beranda">
+          <img src="assets/Logo%20Gelembung%20Putih%20%E2%80%9CMangan%20Yukkk%E2%80%9D%201.png" alt="Mangan Yukkk" />
+        </a>
+        <nav class="profile-top-links" aria-label="Navigasi akun">
+          <a href="index.html">Beranda</a>
+          <span id="headerName" class="header-name"></span>
+          <span class="header-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+        </nav>
+      </header>
+
+      <main class="profile-page">
+        <div id="profileLoading" class="profile-notice" role="status">Memuat profil...</div>
+        <div id="profileError" class="profile-notice profile-notice-error" role="alert" hidden>
+          <span id="profileErrorText">Gagal memuat profil.</span>
+          <button id="retryProfile" class="text-button" type="button">Coba lagi</button>
+        </div>
+
+        <div id="profileContent" class="profile-layout" hidden>
+          <aside class="profile-sidebar" aria-label="Menu akun">
+            <div class="profile-avatar-wrap">
+              <img id="profileAvatar" class="profile-avatar" alt="Foto profil" hidden />
+              <span id="profileAvatarFallback" class="profile-avatar-fallback" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+              <button id="editPhotoButton" class="avatar-edit-button" type="button" title="Ubah foto profil" aria-label="Ubah foto profil" aria-haspopup="menu" aria-expanded="false"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+            </div>
+            <div id="photoMenu" class="photo-menu" role="menu" aria-label="Aksi foto profil" hidden>
+              <button id="uploadPhotoButton" type="button" role="menuitem"><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i> Unggah foto</button>
+              <button id="replacePhotoButton" type="button" role="menuitem"><i class="fa-regular fa-image" aria-hidden="true"></i> Ganti foto</button>
+              <button id="removePhotoButton" type="button" role="menuitem"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> Hapus foto</button>
+            </div>
+            <input id="photoFileInput" type="file" accept="image/*" hidden />
+            <p id="sidebarName" class="sidebar-name"></p>
+            <a class="profile-nav-link" href="saved.html"><i class="fa-solid fa-bookmark" aria-hidden="true"></i> Kuliner Tersimpan</a>
+            <a class="profile-nav-link" href="reviews.html"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Ulasan Anda</a>
+          </aside>
+
+          <section class="profile-main" aria-labelledby="profileTitle">
+            <div class="profile-summary">
+              <h1 id="profileTitle">Profile Saya</h1>
+              <p class="profile-detail-line">Nama Pengguna : <span id="displayName"></span> <button id="editNameButton" class="inline-edit-button" type="button">Ubah <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button></p>
+              <p class="profile-detail-line">Email : <span id="displayEmail"></span></p>
+            </div>
+            <p id="photoActionMessage" class="form-message photo-action-message" role="status" aria-live="polite" hidden></p>
+
+            <form id="profileForm" class="profile-form profile-edit-panel" hidden novalidate>
+              <div class="edit-form-heading"><strong>Edit profil</strong><button id="cancelProfileEdit" class="icon-close-button" type="button" aria-label="Tutup edit profil"><i class="fa-solid fa-xmark"></i></button></div>
+              <label class="field-label" for="profileName">Nama pengguna</label>
+              <input id="profileName" name="nama" type="text" autocomplete="name" minlength="2" maxlength="100" required />
+              <label class="field-label" for="profilePhoto">Foto profil (URL)</label>
+              <input id="profilePhoto" name="foto_profil" type="url" inputmode="url" placeholder="https://contoh.com/foto.jpg" />
+              <p class="field-hint">Gunakan tautan gambar yang dapat diakses publik.</p>
+              <p id="profileFormMessage" class="form-message" role="status" aria-live="polite" hidden></p>
+              <div class="form-actions">
+                <button class="primary-button" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Simpan perubahan</button>
+              </div>
+            </form>
+
+            <button id="togglePasswordButton" class="password-toggle-button" type="button" aria-expanded="false" aria-controls="passwordForm"><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Kelola Kata Sandi Anda</button>
+            <form id="passwordForm" class="profile-form password-panel" hidden novalidate>
+              <div class="edit-form-heading"><strong>Kelola kata sandi</strong><button id="cancelPasswordEdit" class="icon-close-button" type="button" aria-label="Tutup kelola kata sandi"><i class="fa-solid fa-xmark"></i></button></div>
+              <label class="field-label" for="currentPassword">Kata sandi saat ini</label>
+              <input id="currentPassword" name="current_password" type="password" autocomplete="current-password" required />
+              <label class="field-label" for="newPassword">Kata sandi baru</label>
+              <input id="newPassword" name="new_password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="passwordHint" />
+              <p id="passwordHint" class="field-hint">Kata sandi baru minimal 8 karakter.</p>
+              <label class="field-label" for="confirmPassword">Konfirmasi kata sandi baru</label>
+              <input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password" required />
+              <p id="passwordFormMessage" class="form-message" role="status" aria-live="polite" hidden></p>
+              <div class="form-actions"><button class="primary-button" type="submit"><i class="fa-solid fa-key" aria-hidden="true"></i> Simpan kata sandi</button></div>
+            </form>
+            <div class="profile-logout-row"><button id="logoutButton" class="logout-button" type="button">Keluar <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="js/profile.js"></script>
+  </body>
 </html>
