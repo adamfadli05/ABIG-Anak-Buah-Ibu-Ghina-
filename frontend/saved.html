@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
@@ -368,13 +368,11 @@
 
       <!-- 1. Kondisi Kosong -->
       <div id="emptyState" class="state-container" style="display: none">
-        <div class="state-heading">Kuliner Tersimpan</div>
         <div class="state-text">Belum ada kuliner yang tersimpan</div>
       </div>
 
       <!-- 2. Kondisi Gagal Dimuat -->
       <div id="errorState" class="state-container" style="display: none">
-        <div class="state-heading">Kuliner Tersimpan</div>
         <div class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
       </div>
 
@@ -442,7 +440,17 @@
 
         savedGrid.innerHTML = items
           .map((item) => {
-            const fotoPath = item.foto_kuliner || item.foto_tempat || "";
+            let fotoPath = item.foto_kuliner || item.foto_tempat || "";
+
+            // --- PENYESUAIAN FOTO MANUAL KHUSUS MANG DUL / IBU NUR ---
+            const namaTempat = (item.nama_kuliner || item.nama_tempat || "").toLowerCase();
+            if (namaTempat.includes("mang dul")) {
+              fotoPath = "mang_dul.jpg"; // Ubah sesuai nama file foto Mang Dul di folder uploads
+            } else if (namaTempat.includes("ibu nur")) {
+              fotoPath = "ibu_nur.jpg"; // Ubah sesuai nama file foto Ibu Nur di folder uploads
+            }
+            // --------------------------------------------------------
+
             let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
             if (fotoPath) {
               if (/^(https?:\/\/)/i.test(fotoPath)) {
@@ -480,7 +488,7 @@
       }
 
       function escapeHTML(value) {
-        return String(value || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+        return String(value || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       }
     </script>
   </body>
