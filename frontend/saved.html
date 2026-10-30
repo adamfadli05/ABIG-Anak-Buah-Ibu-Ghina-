@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kuliner Tersimpan | Mangan Yukkk</title>
 
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="css/style.css" />
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,69 +37,6 @@
         font-size: 14px;
       }
 
-      /* ==========================================================================
-         NAVBAR UTAMA
-         ========================================================================== */
-      .navbar {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 9999 !important;
-        min-height: 84px;
-        background: var(--primary);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px clamp(18px, 5vw, 54px);
-        gap: 18px;
-      }
-
-      .brand {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        color: white;
-        text-decoration: none;
-        font-family: "Instrument Serif", serif;
-        font-size: 26px;
-        font-weight: 400;
-        line-height: 1.05;
-        margin-left: auto;
-      }
-
-      .brand span:last-child {
-        padding-left: 15px;
-        font-size: 23px;
-      }
-
-      /* TOMBOL KEMBALI DI NAVBAR KIRI */
-      .btn-back-nav {
-        border: none;
-        background: #ffffff;
-        color: var(--primary);
-        cursor: pointer;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        text-decoration: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease;
-      }
-
-      .btn-back-nav:hover {
-        transform: scale(1.05);
-      }
-
-      .btn-back-nav iconify-icon {
-        font-size: 26px !important;
-        color: var(--primary) !important;
-      }
-
       /* CONTAINER HALAMAN DESKTOP */
       .page-container {
         width: 100% !important;
@@ -120,15 +60,6 @@
         margin-top: 40px;
         text-align: center;
         font-family: "Inter", sans-serif;
-      }
-
-      .state-heading {
-        font-style: italic;
-        font-weight: 500;
-        font-size: 16px;
-        line-height: 19px;
-        color: #000000;
-        margin-bottom: 12px;
       }
 
       .state-text {
@@ -159,10 +90,8 @@
       }
 
       /* ==========================================================================
-         GRID KARTU KULINER
+         GRID KARTU KULINER (DISAMAKAN DENGAN INDEX.HTML)
          ========================================================================== */
-      .food-grid,
-      .card-grid,
       .saved-grid {
         display: flex !important;
         flex-wrap: wrap !important;
@@ -177,7 +106,7 @@
         width: calc(25% - 15px) !important;
         min-width: 250px !important;
         max-width: 320px !important;
-        height: 360px !important;
+        min-height: 360px !important;
         padding: 12px !important;
         background: #ffffff !important;
         border: 1px solid #d4d4d4 !important;
@@ -194,19 +123,13 @@
         color: inherit;
       }
 
-      .food-photo-wrapper {
-        position: relative;
-        width: 100% !important;
-        height: 190px !important;
-        margin: 0 auto 8px auto !important;
-      }
-
       .food-photo {
         width: 100% !important;
-        height: 100% !important;
+        height: 190px !important;
         object-fit: cover !important;
         border-radius: 5px !important;
         display: block !important;
+        margin-bottom: 8px !important;
       }
 
       .food-name {
@@ -222,6 +145,7 @@
         text-overflow: ellipsis !important;
       }
 
+      /* Perbaikan Alamat agar tidak kepotong (multiline rapi) */
       .food-location {
         display: flex !important;
         align-items: flex-start !important;
@@ -230,7 +154,12 @@
         font-size: 12px !important;
         line-height: 15px !important;
         margin-bottom: 8px !important;
-        white-space: nowrap !important;
+      }
+
+      .food-location span {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
       }
@@ -252,35 +181,10 @@
         color: #000000 !important;
       }
 
-      .food-rating-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-      }
-
-      .food-rating-wrapper iconify-icon {
-        font-size: 20px;
-        color: #ffbf00;
-      }
-
       /* ==========================================================================
          RESPONSIVE MOBILE
          ========================================================================== */
       @media (max-width: 480px) {
-        .navbar {
-          min-height: 80px !important;
-          padding: 12px 16px !important;
-        }
-
-        .brand {
-          font-size: 24px !important;
-        }
-
-        .brand span:last-child {
-          font-size: 20px !important;
-          padding-left: 15 !important;
-        }
-
         .page-container {
           width: 100% !important;
           max-width: 402px !important;
@@ -289,8 +193,6 @@
           padding-top: 95px !important;
         }
 
-        .food-grid,
-        .card-grid,
         .saved-grid {
           display: grid !important;
           grid-template-columns: repeat(2, 165px) !important;
@@ -317,11 +219,10 @@
           flex-direction: column !important;
         }
 
-        .food-photo-wrapper {
-          width: 145px !important;
-          min-width: 145px !important;
+        .food-photo {
+          width: 100% !important;
           height: 95px !important;
-          margin: 0 auto 6px auto !important;
+          margin-bottom: 6px !important;
         }
 
         .food-name {
@@ -343,25 +244,13 @@
         .food-meta {
           font-size: 10px !important;
         }
-
-        .food-rating-wrapper iconify-icon {
-          font-size: 14px !important;
-        }
       }
     </style>
   </head>
   <body>
-    <!-- NAVBAR UTAMA -->
-    <header class="navbar">
-      <a href="index.html" class="btn-back-nav" aria-label="Kembali">
-        <iconify-icon icon="material-symbols:chevron-left"></iconify-icon>
-      </a>
+    <!-- PEMGILIK NAVBAR HTML OTOMATIS -->
+    <div id="navbar-container"></div>
 
-      <a href="index.html" class="brand">
-        <span>MANGAN</span>
-        <span>YUKKK</span>
-      </a>
-    </header>
     <main class="page-container" style="padding-top: 130px">
       <!-- Judul Halaman -->
       <h1 class="page-title" style="text-align: center; font-style: italic; font-weight: 500; font-size: 18px; color: #000000; margin-bottom: 24px">Kuliner Tersimpan</h1>
@@ -379,7 +268,9 @@
       <!-- 3. Daftar Kartu Kuliner Tersimpan -->
       <div id="savedGrid" class="saved-grid" style="display: none"></div>
     </main>
-    <!-- Script Integrasi Backend API favorit.php -->
+
+    <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
+    <script src="js/navbar.js"></script>
     <script>
       const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
@@ -440,55 +331,74 @@
 
         savedGrid.innerHTML = items
           .map((item) => {
-            let fotoPath = item.foto_kuliner || item.foto_tempat || "";
+            // Menyamakan sumber foto agar mengambil foto kuliner/makanan terlebih dahulu seperti di index.html
+            const rawPhoto = item.foto_kuliner || item.foto_makanan || item.foto || "";
+            const photo = getSafePhoto(rawPhoto);
 
-            // --- PENYESUAIAN FOTO MANUAL KHUSUS MANG DUL / IBU NUR ---
-            const namaTempat = (item.nama_kuliner || item.nama_tempat || "").toLowerCase();
-            if (namaTempat.includes("mang dul")) {
-              fotoPath = "mang_dul.jpg"; // Ubah sesuai nama file foto Mang Dul di folder uploads
-            } else if (namaTempat.includes("ibu nur")) {
-              fotoPath = "ibu_nur.jpg"; // Ubah sesuai nama file foto Ibu Nur di folder uploads
-            }
-            // --------------------------------------------------------
+            const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");
+            const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
+            const address = escapeHTML(item.alamat || "Alamat belum tersedia");
 
-            let safePhoto = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
-            if (fotoPath) {
-              if (/^(https?:\/\/)/i.test(fotoPath)) {
-                safePhoto = fotoPath;
-              } else {
-                safePhoto = `${BASE_URL}/uploads/${fotoPath.replace(/^uploads\//, "")}`;
-              }
-            }
+            const numericPrice = Number(item.harga);
+            const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
 
-            const hargaNum = Number(item.harga);
-            const formattedPrice = Number.isFinite(hargaNum) ? `RP. ${hargaNum.toLocaleString("id-ID")}` : "RP. 0";
+            // Mengambil rating rata-rata dari API favorit.php yang sudah dinamis
             const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
 
+            const dataQuery = new URLSearchParams({
+              id: item.id_tempat || item.id_kuliner || "",
+              nama: item.nama_kuliner || item.nama_tempat || "Kuliner",
+              deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
+              foto: photo,
+              harga: item.harga || "0",
+              alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
+              jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
+              lat: item.latitude || "",
+              lng: item.longitude || "",
+              no_telepon: item.no_telepon || "",
+            }).toString();
+
             return `
-             <div class="food-card" onclick="location.href='detail_kuliner.html?id_tempat=${item.id_tempat}'">
-                <div class="food-photo-wrapper">
-                  <img src="${safePhoto}" class="food-photo" alt="${escapeHTML(item.nama_kuliner || item.nama_tempat)}" onerror="this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
-                </div>
-                <div class="food-name">${escapeHTML(item.nama_kuliner || item.nama_tempat)}</div>
-                <div class="food-location">
-                  <iconify-icon icon="material-symbols:location-on"></iconify-icon>
-                  <span>${escapeHTML(item.alamat || "Alamat tidak tersedia")}</span>
-                </div>
-                <div class="food-meta">
-                  <span>${formattedPrice}</span>
-                  <div class="food-rating-wrapper">
-                    <iconify-icon icon="material-symbols:star"></iconify-icon>
-                    <span>${ratingNum}</span>
-                  </div>
+            <a href="detail_kuliner.html?${dataQuery}" class="food-card" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column;">
+              <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+              <h3 class="food-name">${name}</h3>
+              <div class="food-location">
+                <iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>
+                <span>${place} — ${address}</span>
+              </div>
+              <div class="food-meta">
+                <span>Rp. ${price}</span>
+                <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; color: #333333;">
+                  <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 18px;"></iconify-icon>
+                  <span>${ratingNum}</span>
                 </div>
               </div>
-            `;
+            </a>
+          `;
           })
           .join("");
       }
 
+      function getSafePhoto(value) {
+        const photo = String(value || "").trim();
+        if (!photo) return "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
+
+        if (/^(https?:\/\/)/i.test(photo) && !/^javascript:/i.test(photo)) {
+          return escapeHTML(photo);
+        }
+
+        if (photo.startsWith("/")) {
+          return escapeHTML(photo);
+        }
+
+        return escapeHTML(`${BASE_URL}/uploads/${photo.replace(/^uploads\//, "")}`);
+      }
+
       function escapeHTML(value) {
-        return String(value || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        return String(value || "").replace(/[&<>"']/g, (character) => {
+          const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+          return entities[character];
+        });
       }
     </script>
   </body>
