@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Daftar | Mangan Yukkk</title>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/register.css" />
+    <link rel="stylesheet" href="css/register.css?v=auth-logo" />
 
    <style>
       /* OVERRIDE CSS MODAL REGISTRATION */
@@ -76,10 +76,7 @@
         <a href="index.html" class="back-btn" aria-label="Kembali">
           <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
         </a>
-        <h1 class="auth-brand">
-          <span>MANGAN</span>
-          <span>YUKKK</span>
-        </h1>
+        <img class="auth-brand" src="assets/logo.png" alt="Mangan Yukkk" />
         <p class="auth-subtitle">Kuliner Khas Cirebon</p>
       </div>
 
@@ -249,9 +246,9 @@
           return;
         }
 
-        if (!email.toLowerCase().endsWith("@gmail.com")) {
+        if (!email.toLowerCase().endsWith("gmail.com")) {
           emailInput.closest(".input-wrapper").classList.add("error");
-          showError("Gunakan email yang berakhiran @gmail.com");
+          showError("Gunakan email yang berakhiran gmail.com");
           return;
         }
 

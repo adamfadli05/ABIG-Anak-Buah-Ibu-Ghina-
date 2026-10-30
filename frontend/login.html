@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Login | Mangan Yukkk</title>
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/login.css?v=auth-logo" />
 
     <!-- Google Fonts: Instrument Serif & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -104,10 +104,7 @@
         <a href="index.html" class="back-btn" aria-label="Kembali">
           <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" /></svg>
         </a>
-        <h1 class="auth-brand">
-          <span>MANGAN</span>
-          <span>YUKKK</span>
-        </h1>
+        <img class="auth-brand" src="assets/logo.png" alt="Mangan Yukkk" />
         <p class="auth-subtitle">Kuliner Khas Cirebon</p>
       </div>
 
@@ -325,9 +322,9 @@
           showError("Email dan kata sandi<br>wajib di isi");
           return;
         }
-        if (!email.toLowerCase().endsWith("@gmail.com")) {
+        if (!email.toLowerCase().endsWith("gmail.com")) {
           emailWrapper.classList.add("error");
-          showError("Gunakan email yang<br>berakhiran @gmail.com");
+          showError("Gunakan email yang<br>berakhiran gmail.com");
           return;
         }
 

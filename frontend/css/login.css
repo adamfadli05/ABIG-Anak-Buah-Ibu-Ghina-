@@ -76,21 +76,11 @@ body {
 
 /* LOGO MANGAN YUKKK (Ukuran Font Sesuai Figma) */
 .auth-brand {
+  display: block;
+  width: 220px;
+  height: 88px;
   margin: 0;
-  font-family: var(--font-title), serif;
-  font-weight: 400;
-  font-size: 48px; /* Font 'MANGAN' Figma */
-  line-height: 1.1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #ffffff;
-}
-
-.auth-brand span:last-child {
-  font-size: 40px; /* Font 'YUKKK' Figma */
-  line-height: 1;
-  margin-top: 2px;
+  object-fit: contain;
 }
 
 /* SUBTITLE KULINER KHAS CIREBON */
