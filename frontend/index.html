@@ -202,7 +202,7 @@
 
     <!-- File JavaScript External -->
     <script src="js/navbar.js"></script>
-    
+
     <script>
       const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
@@ -324,8 +324,8 @@
         }
       }
 
-      // 2. LOAD KULINER CARD
-      async function loadKuliner() {
+   // 2. LOAD KULINER CARD
+   async function loadKuliner() {
         const foodGrid = document.getElementById("foodGrid");
         const loadingIndicator = document.getElementById("loadingIndicator");
         const emptyMessage = document.getElementById("emptyMessage");
@@ -349,18 +349,38 @@
             kulinerMap.set(String(k.id_kuliner), k);
           });
 
-          window.allKuliner = jsonTempat.data.map((item) => {
-            const detailKuliner = kulinerMap.get(String(item.id_kuliner)) || {};
-            return {
-              ...item,
-              nama_kuliner: item.nama_kuliner || detailKuliner.nama_kuliner || detailKuliner.nama || "",
-              kategori: detailKuliner.kategori || detailKuliner.nama_kategori || item.kategori || "",
-              deskripsi: detailKuliner.deskripsi || detailKuliner.deskripsi_kuliner || "",
-              foto: item.foto || detailKuliner.foto || "",
-              // Pastikan mengambil harga dari detailKuliner terlebih dahulu, lalu item, dan fallback ke 0
-              harga: detailKuliner.harga !== undefined ? detailKuliner.harga : item.harga !== undefined ? item.harga : 0,
-            };
-          });
+          // Ambil rating secara paralel untuk setiap tempat agar akurat seperti di detail_kuliner.html
+          window.allKuliner = await Promise.all(
+            jsonTempat.data.map(async (item) => {
+              const detailKuliner = kulinerMap.get(String(item.id_kuliner)) || {};
+              const idTempat = item.id_tempat || detailKuliner.id_tempat;
+              
+              let dynRating = 0;
+              if (idTempat) {
+                try {
+                  const resDetail = await fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`);
+                  if (resDetail.ok) {
+                    const jsonDetail = await resDetail.json();
+                    if (jsonDetail.status && jsonDetail.data) {
+                      dynRating = Number(jsonDetail.data.rata_rata_rating || 0);
+                    }
+                  }
+                } catch (e) {
+                  // abaikan jika gagal fetch individual
+                }
+              }
+
+              return {
+                ...item,
+                nama_kuliner: item.nama_kuliner || detailKuliner.nama_kuliner || detailKuliner.nama || "",
+                kategori: detailKuliner.kategori || detailKuliner.nama_kategori || item.kategori || "",
+                deskripsi: detailKuliner.deskripsi || detailKuliner.deskripsi_kuliner || "",
+                foto: item.foto || detailKuliner.foto || "",
+                harga: detailKuliner.harga !== undefined ? detailKuliner.harga : item.harga !== undefined ? item.harga : 0,
+                rata_rata_rating: dynRating > 0 ? dynRating : (item.rata_rata_rating || detailKuliner.rata_rata_rating || 0),
+              };
+            })
+          );
 
           renderKuliner();
         } catch (error) {
@@ -413,6 +433,9 @@
             const numericPrice = Number(item.harga);
             const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
             const photo = getSafePhoto(item.foto);
+            
+            // Rating dinamis sesuai data ulasan pengguna
+            const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
 
             const dataQuery = new URLSearchParams({
               id: item.id_tempat || item.id_kuliner || "",
@@ -439,7 +462,7 @@
                 <span>Rp. ${price}</span>
                 <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; color: #333333;">
                   <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 18px;"></iconify-icon>
-                  <span>0.0</span>
+                  <span>${ratingNum}</span>
                 </div>
               </div>
             </a>
@@ -475,7 +498,6 @@
       }
 
       // 5. EVENT LISTENER TOMBOL KATEGORI MENGGUNAKAN API filter_kuliner.php
-      // 5. EVENT LISTENER TOMBOL KATEGORI (Sinkron dengan data lengkap)
       function setupCategoryEventListeners() {
         const categoryBtns = document.querySelectorAll(".category-btn");
 
@@ -496,19 +518,16 @@
 
             try {
               if (selectedCat === "semua") {
-                // Jika pilih 'semua', panggil kembali loadKuliner agar data lengkap terisi
                 await loadKuliner();
                 return;
               }
 
-              // Ambil data dari filter_kuliner.php
               const response = await fetch(`${BASE_URL}/api/filter_kuliner.php?kategori=${encodeURIComponent(selectedCat)}`);
               if (!response.ok) throw new Error("Gagal mengambil data berdasarkan kategori.");
 
               const jsonResult = await response.json();
               const rawData = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
 
-              // Pastikan data hasil filter dilengkapi harga & tempat jika backend belum melakukan JOIN
               window.allKuliner = rawData.map((item) => {
                 return {
                   ...item,
@@ -518,6 +537,7 @@
                   deskripsi: item.deskripsi || "",
                   foto: item.foto || "",
                   harga: item.harga !== undefined && item.harga !== null ? item.harga : 0,
+                  rata_rata_rating: item.rata_rata_rating || item.rating || 0,
                 };
               });
 
@@ -655,33 +675,27 @@
             if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
 
             try {
-              // 1. Ambil data dari backend (menggunakan endpoint search.php atau fallback ke data lokal window.allKuliner)
               const response = await fetch(`${BASE_URL}/api/search.php?q=${encodeURIComponent(rawKeyword)}`);
-              
+
               let searchResults = [];
               if (response.ok) {
                 const jsonResult = await response.json();
                 searchResults = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
               }
 
-              // 2. Jika backend hanya mencocokkan satu kolom, kita lakukan filter tambahan di frontend
-              // agar pencarian multi-kata (Nama Kuliner + Tempat/Alamat) lebih fleksibel dan akurat.
-              // Kita ambil sumber data dari allKuliner yang sudah ada atau hasil fetch search.php
               let baseSource = window.allKuliner.length > 0 ? window.allKuliner : searchResults;
-              
-              // Pecah input pencarian menjadi beberapa kata (contoh: "mie koclok lawanggada" -> ["mie", "koclok", "lawanggada"])
               const searchWords = rawKeyword.split(/\s+/);
 
-              window.allKuliner = baseSource.map(item => {
-                // Pastikan properti nama kuliner, tempat, dan alamat digabung menjadi satu teks pencarian
-                const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
-                item.__searchMatch = searchWords.every(word => searchableText.includes(word));
-                return item;
-              }).filter(item => {
-                // Jika pencarian dari backend kosong tapi data lokal ada, atau untuk memfilter multi-kata
-                const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
-                return searchWords.every(word => searchableText.includes(word));
-              });
+              window.allKuliner = baseSource
+                .map((item) => {
+                  const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
+                  item.__searchMatch = searchWords.every((word) => searchableText.includes(word));
+                  return item;
+                })
+                .filter((item) => {
+                  const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
+                  return searchWords.every((word) => searchableText.includes(word));
+                });
 
               renderKuliner();
             } catch (error) {
@@ -717,7 +731,6 @@
         loadKuliner();
         checkGoogleLoginSession();
       });
-      
     </script>
 
     <!-- 1. Script Handler (Wajib SEBELUM script Google Maps API) -->
@@ -735,18 +748,13 @@
         }
       }
 
-      // Dipanggil otomatis jika API Key / Billing bermasalah
       window.gm_authFailure = function () {
         showMapError();
       };
     </script>
 
-    <!-- 2. Google Maps API (Hanya 1 tag script saja) -->
-    <script 
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAVT4Fqq5bqOwF7x2sfKR0yrUpV-oY1z4M&callback=initMap" 
-      onerror="showMapError()" 
-      async defer>
-    </script>
+    <!-- 2. Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAVT4Fqq5bqOwF7x2sfKR0yrUpV-oY1z4M&callback=initMap" onerror="showMapError()" async defer></script>
 
     <!-- 3. Styling Fallback Error Box -->
     <style>
