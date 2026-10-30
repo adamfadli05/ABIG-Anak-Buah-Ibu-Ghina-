@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, PUT, OPTIONS');
+header('Access-Control-Allow-Methods: GET, PUT, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -172,6 +172,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             "email"       => $data['email'],
             "foto_profil" => $data['foto_profil']
         ]
+    ]);
+    exit;
+}
+
+// ============================================================
+// POST — Ubah kata sandi pengguna
+// Task 28.3: Validasi password lama, password baru min 8 karakter.
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $body             = json_decode(file_get_contents("php://input"), true);
+    $password_lama    = $body['password_lama']    ?? '';
+    $password_baru    = $body['password_baru']    ?? '';
+    $konfirmasi_baru  = $body['konfirmasi_baru']  ?? '';
+
+    // Validasi field kosong
+    if (empty($password_lama) || empty($password_baru) || empty($konfirmasi_baru)) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Semua field kata sandi wajib diisi"
+        ]);
+        exit;
+    }
+
+    // Validasi password baru minimal 8 karakter
+    if (strlen($password_baru) < 8) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Kata sandi baru minimal 8 karakter"
+        ]);
+        exit;
+    }
+
+    // Validasi konfirmasi password baru
+    if ($password_baru !== $konfirmasi_baru) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Konfirmasi kata sandi tidak cocok"
+        ]);
+        exit;
+    }
+
+    // Ambil password lama dari database
+    $cek = pg_query_params(
+        $conn,
+        'SELECT password FROM users WHERE id_user = $1',
+        [$id_user]
+    );
+
+    if (!$cek) {
+        http_response_code(500);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Gagal memeriksa data pengguna"
+        ]);
+        exit;
+    }
+
+    $data = pg_fetch_assoc($cek);
+
+    // Validasi user tidak punya password (akun Google)
+    if (empty($data['password'])) {
+        http_response_code(400);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Akun Google tidak dapat mengubah kata sandi melalui fitur ini"
+        ]);
+        exit;
+    }
+
+    // Validasi password lama
+    if (!password_verify($password_lama, $data['password'])) {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Kata sandi lama tidak sesuai"
+        ]);
+        exit;
+    }
+
+    // Hash password baru dan update
+    $hash = password_hash($password_baru, PASSWORD_DEFAULT);
+    $result = pg_query_params(
+        $conn,
+        'UPDATE users SET password = $1 WHERE id_user = $2',
+        [$hash, $id_user]
+    );
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode([
+            "status"  => false,
+            "message" => "Gagal mengubah kata sandi"
+        ]);
+        exit;
+    }
+
+    http_response_code(200);
+    echo json_encode([
+        "status"  => true,
+        "message" => "Kata sandi berhasil diubah"
     ]);
     exit;
 }

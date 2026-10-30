@@ -43,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             tk.harga,
             tk.jam_buka,
             tk.jam_tutup,
-            tk.foto AS foto_tempat,
+            tk.foto_tempat,
+            tk.foto AS foto_makanan,
             COALESCE(AVG(u.rating), 0) AS rata_rata_rating,
             COUNT(u.id_ulasan) AS jumlah_ulasan
         FROM favorit f
@@ -63,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             tk.harga,
             tk.jam_buka,
             tk.jam_tutup,
+            tk.foto_tempat,
             tk.foto
         ORDER BY f.tanggal DESC",
         [$id_user]
