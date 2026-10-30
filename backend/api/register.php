@@ -37,12 +37,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-if (!preg_match('/@gmail\.com$/i', $email)) {
-    http_response_code(400);
-    echo json_encode(["status" => false, "message" => "Gunakan email yang berakhiran @gmail.com"]);
-    exit;
-}
-
 if (strlen($password) < 8) {
     http_response_code(400);
     echo json_encode(["status" => false, "message" => "Kata sandi minimal 8 karakter"]);
