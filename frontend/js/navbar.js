@@ -79,20 +79,28 @@ document.addEventListener("DOMContentLoaded", function () {
       role: userRole || "guest",
     });
 
+    const guestNavLinks = document.getElementById("guestNavLinks");
+    const userNavLinks = document.getElementById("userNavLinks");
     const profileButton = document.getElementById("profileButton");
     const btnLogout = document.getElementById("btnLogout");
 
-    if (profileButton) {
-      profileButton.title = isLoggedIn ? "Profil" : "Masuk / Profil";
-      profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
-    }
+    if (isLoggedIn) {
+      // Jika SUDAH LOGIN: Tampilkan ikon-ikon menu, sembunyikan tombol Beranda & Masuk
+      if (guestNavLinks) guestNavLinks.style.setProperty("display", "none", "important");
+      if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
 
-    if (btnLogout) {
-      if (isLoggedIn) {
-        btnLogout.style.setProperty("display", "inline-flex", "important");
-      } else {
-        btnLogout.style.setProperty("display", "none", "important");
+      if (profileButton) {
+        profileButton.title = "Profil";
+        profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
       }
+
+      if (btnLogout) {
+        btnLogout.style.setProperty("display", "inline-flex", "important");
+      }
+    } else {
+      // Jika BELUM LOGIN: Tampilkan tulisan "Beranda" & tombol "Masuk", sembunyikan dropdown ikon
+      if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
+      if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
     }
 
     // Log status sistem auth ke console untuk debugging
@@ -139,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-   // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
+    // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
     if (savedButton) {
       const checkUser = localStorage.getItem("user");
       const checkRole = localStorage.getItem("role");
@@ -150,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         window.location.href = "login.html";
       }
-      // Jika SUDAH LOGIN, biarkan kosong! 
+      // Jika SUDAH LOGIN, biarkan kosong!
       // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
       return;
     }

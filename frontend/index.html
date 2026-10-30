@@ -632,14 +632,13 @@
       document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById("searchInput");
         const modalCloseBtn = document.getElementById("modalCloseBtn");
-
         if (searchInput) {
           searchInput.addEventListener("input", async (e) => {
-            const keyword = e.target.value.trim();
+            const rawKeyword = e.target.value.trim().toLowerCase();
             const foodGrid = document.getElementById("foodGrid");
             const emptyMessage = document.getElementById("emptyMessage");
 
-            if (keyword === "") {
+            if (rawKeyword === "") {
               if (window.selectedCategory && window.selectedCategory !== "semua") {
                 fetch(`${BASE_URL}/api/filter_kuliner.php?kategori=${encodeURIComponent(window.selectedCategory)}`)
                   .then((res) => res.json())
@@ -656,11 +655,33 @@
             if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
 
             try {
-              const response = await fetch(`${BASE_URL}/api/search.php?q=${encodeURIComponent(keyword)}`);
-              if (!response.ok) throw new Error("Gagal melakukan pencarian.");
+              // 1. Ambil data dari backend (menggunakan endpoint search.php atau fallback ke data lokal window.allKuliner)
+              const response = await fetch(`${BASE_URL}/api/search.php?q=${encodeURIComponent(rawKeyword)}`);
+              
+              let searchResults = [];
+              if (response.ok) {
+                const jsonResult = await response.json();
+                searchResults = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
+              }
 
-              const jsonResult = await response.json();
-              window.allKuliner = jsonResult.status && Array.isArray(jsonResult.data) ? jsonResult.data : [];
+              // 2. Jika backend hanya mencocokkan satu kolom, kita lakukan filter tambahan di frontend
+              // agar pencarian multi-kata (Nama Kuliner + Tempat/Alamat) lebih fleksibel dan akurat.
+              // Kita ambil sumber data dari allKuliner yang sudah ada atau hasil fetch search.php
+              let baseSource = window.allKuliner.length > 0 ? window.allKuliner : searchResults;
+              
+              // Pecah input pencarian menjadi beberapa kata (contoh: "mie koclok lawanggada" -> ["mie", "koclok", "lawanggada"])
+              const searchWords = rawKeyword.split(/\s+/);
+
+              window.allKuliner = baseSource.map(item => {
+                // Pastikan properti nama kuliner, tempat, dan alamat digabung menjadi satu teks pencarian
+                const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
+                item.__searchMatch = searchWords.every(word => searchableText.includes(word));
+                return item;
+              }).filter(item => {
+                // Jika pencarian dari backend kosong tapi data lokal ada, atau untuk memfilter multi-kata
+                const searchableText = `${item.nama_kuliner || item.nama || ""} ${item.nama_tempat || ""} ${item.alamat || ""}`.toLowerCase();
+                return searchWords.every(word => searchableText.includes(word));
+              });
 
               renderKuliner();
             } catch (error) {

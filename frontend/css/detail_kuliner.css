@@ -1,640 +1,93 @@
-:root {
-  --primary: #001b7d;
-  --text-dark: #34343a;
-  --bg-white: #ffffff;
+/* Styling Tombol Harga Biru di Atas (Sesuai Figma) */
+.price-badge {
+  display: inline-flex !important;
+  height: 44px !important;
+  padding: 0 24px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #001b7d !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  font-family: "Inter", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin-top: 16px !important;
+  width: fit-content !important;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  margin: 0;
-  background: #ffffff;
-  font-family: "Inter", sans-serif;
-  color: var(--text-dark);
-}
-
-/* ==========================================================================
-   1. NAVBAR UTAMA (DESKTOP & UMUM)
-   ========================================================================== */
-.navbar {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  z-index: 9999 !important;
-  min-height: 84px;
-  background: var(--primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px clamp(18px, 5vw, 54px);
-  gap: 18px;
-}
-
-/* TULISAN MANGAN YUKKK DI POJOK KANAN */
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  color: white;
-  text-decoration: none;
-  font-family: "Instrument Serif", serif;
-  font-size: 26px;
-  font-weight: 400;
-  line-height: 1.05;
-  text-align: center;
-  margin-left: auto;
-}
-
-.brand span:last-child {
-  padding-left: 0px;
-  font-size: 23px;
-}
-
-/* TOMBOL KEMBALI DI NAVBAR KIRI */
-.btn-back-nav {
-  border: none;
-  background: #ffffff;
-  color: var(--primary);
-  cursor: pointer;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  text-decoration: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease;
-}
-
-.btn-back-nav:hover {
-  transform: scale(1.05);
-}
-
-.btn-back-nav iconify-icon {
-  font-size: 26px !important;
-  color: var(--primary) !important;
-}
-
-/* CONTAINER HALAMAN UTAMA */
-.page-container {
-  width: 100% !important;
-  max-width: 1340px !important;
-  min-height: 100vh !important;
-  margin: 0 auto !important;
-  padding: 24px 32px 60px !important;
-  padding-top: 115px !important;
-  box-sizing: border-box !important;
-  background: #ffffff !important;
-}
-
-/* GRID UTAMA */
+/* Penyesuaian Grid Detail */
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 480px) 1fr;
+  grid-template-columns: 460px 1fr;
   gap: 40px;
   align-items: start;
   width: 100%;
 }
 
-/* KOLOM KIRI: FOTO, HARGA, RATING, & TOMBOL AKSI */
-.detail-left-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.food-photo-container {
-  position: relative;
-  width: 100%;
-}
-
 .food-detail-photo {
   width: 100%;
-  height: 360px;
+  height: 340px;
   object-fit: cover;
   border-radius: 16px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   display: block;
 }
 
-/* ==========================================================================
-   TOMBOL SIMPAN / BOOKMARK (Kondisi Awal: Latar Putih, Ikon Garis Biru)
-   ========================================================================== */
-.btn-bookmark-floating {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  width: 48px;
-  height: 48px;
-  background-color: #ffffff !important;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.btn-bookmark-floating:hover {
-  transform: scale(1.05);
-}
-
-.btn-bookmark-floating iconify-icon {
-  font-size: 24px;
-  color: #001b7d !important;
-}
-
-/* ==========================================================================
-   Kondisi Setelah Diklik / Tersimpan (.saved): Latar Putih, Ikon Biru Penuh
-   ========================================================================== */
-.btn-bookmark-floating.saved {
-  background-color: #ffffff !important;
-}
-
-.btn-bookmark-floating.saved iconify-icon {
-  color: #001b7d !important;
-}
-
-/* ==========================================================================
-   STYLING TOAST / KOTAK PESAN VALIDASI (Desktop: 400px x 50px)
-   ========================================================================== */
-.bookmark-toast {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  width: 350px;
-  height: 50px;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  font-family: "Inter";
-  z-index: 10;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-
-.bookmark-toast.show {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.toast-content-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #001b7d;
-}
-
-.toast-content-wrapper iconify-icon {
-  font-size: 22px;
-  color: #001b7d;
-}
-
-/* Tombol Kelola di dalam Toast */
-.btn-toast-kelola {
-  background-color: #001b7d !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 10px !important;
-  padding: 5px 12px !important;
-  font-family: "Inter" !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  text-decoration: none !important;
-  transition: opacity 0.2s !important;
-  margin-left: 12px !important;
-  white-space: nowrap !important;
-}
-
-.btn-toast-kelola:hover {
-  opacity: 0.9 !important;
-}
-
-/* BARIS HARGA & RATING */
-.meta-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100% !important;
-  gap: 12px !important;
-  margin-top: 14px !important;
-}
-
-/* TOMBOL HARGA BIRU */
-.price-badge {
-  flex: 1 !important;
-  height: 40px !important;
-  padding: 0 16px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #001b7d !important;
-  color: #ffffff !important;
-  border-radius: 10px !important;
-  font-family: "Inter", sans-serif !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  box-sizing: border-box !important;
-}
-
-/* TOMBOL RATING BIRU */
-.rating-badge-small {
-  flex: 1 !important;
-  height: 40px !important;
-  padding: 0 16px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  background: #001b7d !important;
-  color: #ffffff !important;
-  border-radius: 10px !important;
-  font-family: "Inter", sans-serif !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  box-sizing: border-box !important;
-}
-
-.rating-badge-small iconify-icon {
-  font-size: 18px !important;
-  color: #ffbf00 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-/* TOMBOL AKSI */
-.action-row {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-}
-
-.btn-action-outline {
-  flex: 1;
-  height: 48px;
-  background: transparent;
-  border: 1px solid var(--primary);
-  color: var(--primary);
-  border-radius: 12px;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.btn-action-outline:hover {
-  background: rgba(0, 27, 125, 0.05);
-}
-
-.review-form {
-  width: 100%;
-  padding: 18px;
-  border: 1px solid #d7dced;
-  border-radius: 12px;
-  background: #f8f9fc;
-}
-
-.review-form[hidden],
-.review-photo-preview[hidden] {
-  display: none;
-}
-
-.review-form-label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--primary);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.review-rating-fieldset {
-  margin: 0 0 14px;
-  padding: 0;
-  border: 0;
-}
-
-.review-rating-fieldset legend {
-  padding: 0;
-}
-
-.review-rating-inputs {
-  display: flex;
-  gap: 5px;
-}
-
-.review-rating-option {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #a7a7a7;
-  cursor: pointer;
-  font-size: 30px;
-}
-
-.review-rating-option.selected {
-  color: #ffbf00;
-}
-
-.review-rating-option input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-}
-
-.review-rating-option:focus-within {
-  outline: 2px solid rgba(0, 27, 125, 0.55);
-  outline-offset: 2px;
-  border-radius: 3px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.review-form textarea {
-  display: block;
-  width: 100%;
-  min-height: 104px;
-  padding: 12px;
-  border: 1px solid #c8cedc;
-  border-radius: 8px;
-  font: inherit;
-  font-size: 14px;
-  resize: vertical;
-}
-
-.review-form textarea:focus {
-  outline: 2px solid rgba(0, 27, 125, 0.2);
-  border-color: var(--primary);
-}
-
-.review-form-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 22px;
-  margin-top: 5px;
-  color: #666;
-  font-size: 12px;
-}
-
-.review-form-message {
-  color: #b42318;
-}
-
-.review-photo-controls {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 10px 0;
-  color: #555;
-  font-size: 13px;
-}
-
-.review-photo-add {
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--primary);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--primary);
-  cursor: pointer;
-}
-
-.review-photo-add iconify-icon {
-  font-size: 24px;
-}
-
-.review-photo-preview {
-  position: relative;
-  width: fit-content;
-  margin-bottom: 12px;
-}
-
-.review-photo-preview img,
-.review-photo {
-  display: block;
-  max-width: 100%;
-  width: 180px;
-  max-height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.review-owner-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-  color: var(--primary);
-}
-
-.review-action {
-  display: inline-grid;
-  place-items: center;
-  border: 0;
-  padding: 2px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.review-action iconify-icon {
-  font-size: 20px;
-}
-
-.review-action:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
-
-.review-photo-preview button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.review-submit {
-  min-height: 40px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--primary);
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.review-submit:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.review-cancel {
-  min-height: 40px;
-  padding: 0 18px;
-  border: 1px solid var(--primary);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--primary);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.review-cancel[hidden] {
-  display: none;
-}
-
-/* KOLOM KANAN: DETAIL INFORMASI */
-.detail-right-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
 .food-detail-title {
-  font-size: clamp(28px, 3.5vw, 38px);
+  font-size: 38px;
   font-weight: 700;
-  color: var(--primary);
+  color: #000000;
   line-height: 1.2;
-  margin: 0;
-}
-
-.rating-header-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-bottom: 14px !important;
-  font-size: 20px !important;
-}
-
-.rating-header-row .stars {
-  display: flex;
-  color: #ffbf00;
-  font-size: 24px;
+  margin-bottom: 16px;
 }
 
 .food-description {
   font-size: 15px;
   line-height: 1.6;
   color: #444;
-  font-weight: 400;
-  text-align: justify;
+  margin-bottom: 24px;
+}
+
+.food-location-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.food-location-wrapper iconify-icon {
+  font-size: 20px;
+  color: #555;
+  flex-shrink: 0;
 }
 
 .info-section-title {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: #000000;
-  margin-top: 4px;
-}
-
-.info-grid {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-  font-size: 15px;
-  color: #333;
+  margin-bottom: 12px;
 }
 
 .info-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 15px;
+  color: #333;
 }
 
 .info-item iconify-icon {
   font-size: 20px;
-  color: #666;
-}
-
-.location-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-
-.food-location-wrapper {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  color: #333;
-  flex: 1;
-}
-
-.food-location-wrapper iconify-icon {
-  font-size: 24px;
-  color: #938f99;
-  flex-shrink: 0;
-  margin-top: 2px;
+  color: #555;
 }
 
 .btn-location {
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-  padding: 12px 28px;
+  padding: 12px 32px;
   background: var(--primary);
   color: #ffffff;
-  border-radius: 5px;
+  border-radius: 8px;
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
@@ -642,388 +95,285 @@ body {
   white-space: nowrap;
 }
 
-.btn-location:hover {
-  opacity: 0.9;
+/* Styling Bintang Interaktif Kotak Kiri */
+.direct-star-option {
+  transition: transform 0.15s ease, color 0.15s ease;
+  user-select: none;
 }
 
-/* ULASAN PENGGUNA */
-.review-section {
-  margin-top: 32px;
-  width: 100%;
+.direct-star-option:hover {
+  transform: scale(1.15);
 }
 
-.review-card-empty {
-  width: 100%;
-  padding: 16px;
+.direct-star-option.active {
+  color: #ffbf00 !important;
+}
+
+/* Toast Notifikasi Bookmark */
+.bookmark-toast {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #ffffff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.bookmark-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-content-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #001b7d;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+}
+
+.toast-content-wrapper iconify-icon {
+  font-size: 20px;
+  color: #2e7d32;
+}
+
+.btn-toast-kelola {
+  background: #001b7d;
+  color: #ffffff;
+  padding: 6px 12px;
   border-radius: 8px;
-  background: #d9d9d9;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tombol Bookmark Melayang di Foto */
+.btn-bookmark-floating {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 5;
+}
+
+.btn-bookmark-floating:hover {
+  transform: scale(1.08);
+}
+
+.btn-bookmark-floating iconify-icon {
+  font-size: 24px;
+  color: #001b7d;
+}
+
+.btn-bookmark-floating.saved iconify-icon {
+  color: #001b7d;
+}
+
+/* Formulir Ulasan & Pratinjau Foto */
+.review-form {
+  background: #f9f9f9;
+  border: 1px solid #d7dced;
+  border-radius: 16px;
+  padding: 24px;
+  font-family: "Inter", sans-serif;
+}
+
+.review-rating-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.review-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.review-rating-inputs {
+  display: flex;
+  gap: 6px;
+}
+
+.review-rating-option {
+  cursor: pointer;
+  font-size: 28px;
+  color: #ffbf00;
+}
+
+.review-rating-option input {
+  display: none;
+}
+
+.review-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.review-form-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.review-photo-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.review-photo-add {
+  width: 36px;
+  height: 36px;
+  background: #001b7d;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.review-photo-preview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 12px;
+}
+
+.review-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+#removeReviewPhoto {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.review-submit {
+  background: #001b7d;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-cancel {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Kartu Ulasan Pengguna */
+.review-photo {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-top: 8px;
+  display: block;
+}
+
+.review-owner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.review-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #555;
+  padding: 0;
+}
+
+.review-action:hover {
+  color: #001b7d;
+}
+
+/* Tampilan Error */
+.error-state-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.error-message-box {
   text-align: center;
   font-family: "Inter", sans-serif;
 }
 
-.review-card-empty div:first-child {
-  margin-bottom: 4px;
-  color: #000;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.review-card-empty div:last-child {
-  color: #333;
-  font-size: 12px;
-}
-
-.review-status-message {
-  margin-bottom: 8px;
-  color: #176b37;
-  font-size: 13px;
-}
-
-.review-section-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 14px;
-  color: #000000;
-}
-
-/* TAMPILAN ERROR / VALIDASI GAGAL DIMUAT */
-.error-state-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  padding-top: 40px;
-  min-height: auto;
-}
-
-.error-message-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-}
-
 .error-title {
-  font-size: 16px;
-  font-weight: 400;
-  color: #000000;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
 }
 
 .error-retry-link {
-  font-size: 14px;
-  color: #000000;
-  font-weight: 400;
-  text-decoration: underline;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-/* ==========================================================================
-   2. KODE KHUSUS UKURAN MOBILE (@media max-width: 768px)
-   ========================================================================== */
-@media (max-width: 768px) {
-  .page-container {
-    max-width: 402px !important;
-    padding: 20px 26px 40px !important;
-    padding-top: 110px !important;
-    background: #ffffff !important;
-  }
-
-  .navbar {
-    height: 93px !important;
-    min-height: 93px !important;
-    padding: 0 26px !important;
-    background: #001b7d !important;
-  }
-
-  .btn-back-nav {
-    width: 35px !important;
-    height: 35px !important;
-  }
-
-  .brand {
-    font-size: 24px !important;
-    line-height: 31px !important;
-  }
-
-  .brand span:last-child {
-    font-size: 20px !important;
-    line-height: 26px !important;
-  }
-
-  .detail-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
-  }
-
-  .food-detail-photo {
-    width: 100% !important;
-    height: 200px !important;
-    border-radius: 0px !important;
-    object-fit: cover !important;
-  }
-
-  .btn-bookmark-floating {
-    width: 38px !important;
-    height: 38px !important;
-    right: 12px !important;
-    bottom: 12px !important;
-    background-color: #ffffff !important;
-  }
-
-  .btn-bookmark-floating iconify-icon {
-    font-size: 20px !important;
-    color: #001b7d !important;
-  }
-
-  .btn-bookmark-floating.saved {
-    background-color: #ffffff !important;
-  }
-
-  .btn-bookmark-floating.saved iconify-icon {
-    color: #001b7d !important;
-  }
-
-  /* Toast menyesuaikan mobile agar tidak terlalu lebar */
-  .bookmark-toast {
-    left: 12px !important;
-    right: 60px !important;
-    bottom: 12px !important;
-    width: auto !important;
-    height: 42px !important;
-    padding: 0 10px !important;
-    border-radius: 15px !important;
-  }
-
-  .toast-content-wrapper {
-    font-size: 12px !important;
-    gap: 6px !important;
-  }
-
-  .toast-content-wrapper iconify-icon {
-    font-size: 18px !important;
-  }
-
-  .btn-toast-kelola {
-    padding: 4px 10px !important;
-    font-size: 11px !important;
-    border-radius: 10px !important;
-  }
-
-  .meta-row {
-    display: flex !important;
-    gap: 9px !important;
-    margin-top: 15px !important;
-    margin-bottom: 15px !important;
-  }
-
-  .price-badge,
-  .rating-badge-small {
-    flex: 1 !important;
-    height: 30px !important;
-    padding: 0 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    background: #001b7d !important;
-    border-radius: 10px !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-  }
-
-  .rating-badge-small iconify-icon {
-    position: static !important;
-    display: inline-block !important;
-    width: 20px !important;
-    height: 20px !important;
-    color: #ffbf00 !important;
-  }
-
-  .food-detail-title {
-    font-size: 20px !important;
-    font-weight: 700 !important;
-    color: #001b7d !important;
-    margin-bottom: 6px !important;
-    text-align: left !important;
-  }
-
-  .rating-header-row {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-    margin-bottom: 14px !important;
-    width: 100% !important;
-  }
-
-  .rating-header-row .stars {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 4px !important;
-  }
-
-  .rating-header-row .stars iconify-icon {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    font-size: 18px !important;
-    width: 18px !important;
-    height: 18px !important;
-    color: #ffbf00 !important;
-  }
-
-  #ratingScoreText {
-    font-size: 16px !important;
-    font-weight: 400 !important;
-    color: #000000 !important;
-    margin: 0 !important;
-  }
-
-  #reviewCountText {
-    font-size: 14px !important;
-    font-weight: 400 !important;
-    color: #666666 !important;
-    opacity: 1 !important;
-    margin: 0 !important;
-  }
-
-  .food-description {
-    font-size: 14px !important;
-    line-height: 17px !important;
-    text-align: justify !important;
-    color: #000000 !important;
-    margin-bottom: 25px !important;
-  }
-
-  .info-section-title {
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: #000000 !important;
-    margin-bottom: 9px !important;
-  }
-
-  .info-grid {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    gap: 12px !important;
-    margin-bottom: 14px !important;
-    font-size: 12px !important;
-    width: 100% !important;
-    flex-wrap: nowrap !important;
-  }
-
-  .info-item {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    white-space: nowrap !important;
-  }
-
-  .info-item span {
-    color: #8a8a8a !important;
-  }
-
-  .info-item strong {
-    color: #000000 !important;
-  }
-
-  .info-item iconify-icon {
-    font-size: 20px !important;
-    color: #8a8a8a !important;
-  }
-
-  .location-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 10px !important;
-    margin-bottom: 16px !important;
-  }
-
-  .food-location-wrapper {
-    font-size: 14px !important;
-    color: #000000 !important;
-    gap: 8px !important;
-    flex: 1 !important;
-    display: flex !important;
-    align-items: flex-start !important;
-  }
-
-  .food-location-wrapper iconify-icon {
-    color: #8a8a8a !important;
-    font-size: 22px !important;
-  }
-
-  .btn-location {
-    height: 30px !important;
-    padding: 0 16px !important;
-    background: #001b7d !important;
-    border-radius: 5px !important;
-    font-size: 14px !important;
-    font-weight: 400 !important;
-    white-space: nowrap !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .action-row {
-    display: flex !important;
-    gap: 9px !important;
-    margin-bottom: 14px !important;
-  }
-
-  .btn-action-outline {
-    flex: 1 !important;
-    height: 30px !important;
-    border: 1px solid #001b7d !important;
-    border-radius: 10px !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    color: #001b7d !important;
-    background: transparent !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-  }
-
-  .btn-action-outline iconify-icon {
-    font-size: 18px !important;
-    color: #001b7d !important;
-  }
-
-  .review-section {
-    margin-top: 0 !important;
-  }
-
-  .review-section-title {
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: #000000 !important;
-    margin-bottom: 9px !important;
-  }
-
-  .review-card-empty {
-    width: 100% !important;
-    height: 80px !important;
-    background: #d9d9d9 !important;
-    border-radius: 10px !important;
-    padding: 15px 12px !important;
-    text-align: center !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    gap: 4px !important;
-  }
+  display: inline-block;
+  background: #001b7d;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
 }
