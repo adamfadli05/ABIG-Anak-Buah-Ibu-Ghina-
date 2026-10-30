@@ -1,0 +1,1196 @@
+openapi: 3.0.0
+info:
+  title: Mangan Yukkk API
+  version: 2.0.0
+  description: API untuk aplikasi kuliner Mangan Yukkk — Sprint 3
+
+servers:
+  - url: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend
+    description: Local Development
+
+tags:
+  - name: Auth
+    description: Autentikasi pengguna
+  - name: Kuliner
+    description: Data kuliner dan tempat
+  - name: Favorit
+    description: Kuliner tersimpan
+  - name: Ulasan
+    description: Ulasan pengguna
+  - name: Rating
+    description: Rating kuliner
+  - name: Profil
+    description: Profil pengguna
+
+paths:
+
+  /api/register.php:
+    post:
+      summary: Register Email
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nama, email, password, konfirmasi_password]
+              properties:
+                nama:
+                  type: string
+                  example: Rizki
+                email:
+                  type: string
+                  example: rizki@gmail.com
+                password:
+                  type: string
+                  example: "12345678"
+                konfirmasi_password:
+                  type: string
+                  example: "12345678"
+      responses:
+        '201':
+          description: Pendaftaran berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Pendaftaran berhasil."
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                kolom_kosong:
+                  value: { status: false, message: "Semua kolom wajib diisi" }
+                format_email:
+                  value: { status: false, message: "Format email tidak valid" }
+                bukan_gmail:
+                  value: { status: false, message: "Gunakan email yang berakhiran @gmail.com" }
+                password_pendek:
+                  value: { status: false, message: "Kata sandi minimal 8 karakter" }
+                konfirmasi_salah:
+                  value: { status: false, message: "Konfirmasi kata sandi tidak cocok" }
+        '405':
+          description: Method salah
+          content:
+            application/json:
+              example: { status: false, message: "Method harus POST" }
+        '409':
+          description: Email sudah terdaftar
+          content:
+            application/json:
+              example: { status: false, message: "Email anda sudah terdaftar. Gunakan email lain." }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek_akun:
+                  value: { status: false, message: "Terjadi kesalahan saat memeriksa akun" }
+                daftar_gagal:
+                  value: { status: false, message: "Pendaftaran gagal. Silakan coba lagi" }
+
+  /api/login.php:
+    post:
+      summary: Login Email
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: rizki@gmail.com
+                password:
+                  type: string
+                  example: "12345678"
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              examples:
+                user:
+                  value:
+                    status: true
+                    message: "Berhasil masuk."
+                    role: user
+                    data:
+                      id_user: 1
+                      nama: Rizki
+                      email: rizki@gmail.com
+                      foto_profil: null
+                admin:
+                  value:
+                    status: true
+                    message: "Admin berhasil masuk."
+                    role: admin
+                    data:
+                      id_admin: 1
+                      nama: Admin
+                      email: admin@gmail.com
+        '400':
+          description: Field kosong
+          content:
+            application/json:
+              example: { status: false, message: "Email dan kata sandi wajib diisi" }
+        '401':
+          description: Kredensial salah
+          content:
+            application/json:
+              example: { status: false, message: "Email atau kata sandi salah" }
+        '405':
+          description: Method salah
+          content:
+            application/json:
+              example: { status: false, message: "Method harus POST" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek_admin:
+                  value: { status: false, message: "Gagal memeriksa akun admin" }
+                cek_user:
+                  value: { status: false, message: "Gagal memeriksa akun user" }
+
+  /api/me.php:
+    get:
+      summary: Cek Sesi Login
+      tags: [Auth]
+      responses:
+        '200':
+          description: Sudah login
+          content:
+            application/json:
+              examples:
+                user:
+                  value:
+                    status: true
+                    role: user
+                    data:
+                      id_user: 1
+                      nama: Rizki
+                      email: rizki@gmail.com
+                      foto_profil: null
+                admin:
+                  value:
+                    status: true
+                    role: admin
+                    data:
+                      id_admin: 1
+                      nama: Admin
+                      email: admin@gmail.com
+                      foto_profil: null
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Belum masuk" }
+
+  /api/kuliner.php:
+    get:
+      summary: Data Kuliner
+      tags: [Kuliner]
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  - id_kuliner: 1
+                    nama_kuliner: Empal Gentong
+                    deskripsi: "..."
+                    foto: "..."
+                    id_kategori: 1
+                    nama_kategori: Makanan Berat
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kuliner" }
+
+  /api/kategori.php:
+    get:
+      summary: Data Kategori
+      tags: [Kuliner]
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  - id_kategori: 1
+                    nama_kategori: Makanan Berat
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kategori" }
+
+  /api/tempat_kuliner.php:
+    get:
+      summary: Data Tempat Kuliner
+      tags: [Kuliner]
+      description: Data tanpa koordinat tidak dikembalikan.
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  - id_tempat: 1
+                    id_kuliner: 1
+                    nama_kuliner: Empal Gentong
+                    deskripsi: "..."
+                    foto_kuliner: "..."
+                    nama_tempat: Empal Gentong H. Apud
+                    alamat: Jalan Tuparev, Cirebon
+                    latitude: "-6.7320"
+                    longitude: "108.5523"
+                    jam_buka: "07:00:00"
+                    jam_tutup: "21:00:00"
+                    no_telepon: "08123456789"
+                    foto_tempat: "..."
+                    foto: "..."
+                    harga: "25000"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kuliner" }
+
+  /api/detail_kuliner.php:
+    get:
+      summary: Detail Kuliner
+      tags: [Kuliner]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 9
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  id_tempat: 9
+                  id_kuliner: 21
+                  nama_kuliner: Empal Gentong
+                  deskripsi: "..."
+                  foto_kuliner: "..."
+                  nama_tempat: Empal Gentong H. Apud Pusat
+                  alamat: Jl. Raya Kedawung No. 24
+                  latitude: "-6.7076702"
+                  longitude: "108.5180130"
+                  jam_buka: "09:00:00"
+                  jam_tutup: "21:00:00"
+                  no_telepon: "085115349177"
+                  foto_tempat: "..."
+                  foto: "..."
+                  harga: "25000"
+                  nama_kategori: Makanan Berat
+                  rata_rata_rating: "4.5"
+                  jumlah_ulasan: "10"
+                ulasan:
+                  - id_ulasan: 1
+                    id_user: 1
+                    rating: "5"
+                    komentar: Enak banget!
+                    foto_url: "..."
+                    tanggal: "2026-10-01"
+                    nama_user: Rizki
+                    foto_profil: "..."
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID kuliner tidak valid" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Detail kuliner tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Detail kuliner gagal dimuat" }
+
+  /api/filter_kuliner.php:
+    get:
+      summary: Filter Kuliner Berdasarkan Kategori
+      tags: [Kuliner]
+      parameters:
+        - name: kategori
+          in: query
+          required: true
+          schema:
+            type: string
+          example: makanan berat
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  - id_tempat: 1
+                    nama_kuliner: Empal Gentong
+                    harga: "25000"
+                    nama_kategori: Makanan Berat
+        '400':
+          description: Kategori kosong
+          content:
+            application/json:
+              example: { status: false, message: "Pilih kategori terlebih dahulu" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kuliner" }
+
+  /api/search.php:
+    get:
+      summary: Pencarian Kuliner
+      tags: [Kuliner]
+      description: Pencarian berdasarkan nama kuliner, nama tempat, dan alamat.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          example: empal
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                ada_hasil:
+                  value:
+                    status: true
+                    data:
+                      - id_tempat: 1
+                        nama_kuliner: Empal Gentong
+                        nama_tempat: Empal Gentong H. Apud
+                        harga: "25000"
+                tidak_ada:
+                  value:
+                    status: true
+                    message: "Tidak ada kuliner yang cocok dengan pencarian"
+                    data: []
+        '400':
+          description: Kata kunci kosong
+          content:
+            application/json:
+              example: { status: false, message: "Kata kunci pencarian tidak boleh kosong" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal melakukan pencarian" }
+
+  /api/rekomendasi.php:
+    get:
+      summary: Rekomendasi Kuliner
+      tags: [Kuliner]
+      description: Maksimal 10 data, urut rating tertinggi lalu jumlah ulasan terbanyak. Data tanpa koordinat tidak dikembalikan.
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                ada_data:
+                  value:
+                    status: true
+                    data:
+                      - id_tempat: 1
+                        nama_kuliner: Empal Gentong
+                        rata_rata_rating: "4.5"
+                        jumlah_ulasan: "10"
+                kosong:
+                  value:
+                    status: true
+                    message: "Belum ada data rekomendasi"
+                    data: []
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data rekomendasi" }
+
+  /api/favorit.php:
+    get:
+      summary: Daftar Favorit
+      tags: [Favorit]
+      description: Butuh login sebagai user.
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                ada_data:
+                  value:
+                    status: true
+                    data:
+                      - id_favorit: 1
+                        id_tempat: 9
+                        status_kunjungan: false
+                        tanggal: "2026-10-19T10:00:00"
+                        nama_kuliner: Empal Gentong
+                        foto_kuliner: "..."
+                        foto_makanan: "..."
+                        foto_tempat: "..."
+                        nama_tempat: "..."
+                        alamat: "..."
+                        harga: "25000"
+                        jam_buka: "09:00:00"
+                        jam_tutup: "21:00:00"
+                        rata_rata_rating: "4.5"
+                        jumlah_ulasan: "10"
+                kosong:
+                  value:
+                    status: true
+                    message: "Belum ada kuliner yang disimpan"
+                    data: []
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk menggunakan fitur ini" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data favorit" }
+    post:
+      summary: Simpan Favorit
+      tags: [Favorit]
+      description: Butuh login sebagai user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_tempat]
+              properties:
+                id_tempat:
+                  type: integer
+                  example: 9
+      responses:
+        '201':
+          description: Berhasil disimpan
+          content:
+            application/json:
+              example: { status: true, message: "Kuliner berhasil disimpan ke favorit", id_favorit: 1 }
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID tempat kuliner tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk menggunakan fitur ini" }
+        '404':
+          description: Tempat tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Tempat kuliner tidak ditemukan" }
+        '409':
+          description: Sudah difavoritkan
+          content:
+            application/json:
+              example: { status: false, message: "Kuliner sudah ada di daftar favorit" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data favorit" }
+                simpan:
+                  value: { status: false, message: "Gagal menyimpan favorit" }
+    delete:
+      summary: Hapus Favorit
+      tags: [Favorit]
+      description: Butuh login sebagai user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_tempat]
+              properties:
+                id_tempat:
+                  type: integer
+                  example: 9
+      responses:
+        '200':
+          description: Berhasil dihapus
+          content:
+            application/json:
+              example: { status: true, message: "Kuliner berhasil dihapus dari favorit" }
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID tempat kuliner tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk menggunakan fitur ini" }
+        '404':
+          description: Favorit tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kuliner tidak ada di daftar favorit" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal menghapus favorit" }
+
+  /api/ulasan.php:
+    get:
+      summary: Daftar Ulasan
+      tags: [Ulasan]
+      parameters:
+        - name: id_tempat
+          in: query
+          schema:
+            type: integer
+          example: 9
+          description: Ulasan publik per kuliner
+        - name: milik_saya
+          in: query
+          schema:
+            type: string
+            enum: ["1"]
+          description: Ulasan pribadi — butuh login
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                per_kuliner:
+                  value:
+                    status: true
+                    data:
+                      - id_ulasan: 1
+                        id_user: 1
+                        id_tempat: 9
+                        rating: "5"
+                        review_text: Enak banget!
+                        foto_url: "..."
+                        created_at: "2026-10-19T10:00:00"
+                        nama_user: Rizki
+                        foto_profil: "..."
+                        nama_kuliner: Empal Gentong
+                        nama_tempat: "..."
+                        photo_url: "..."
+                kosong_kuliner:
+                  value:
+                    status: true
+                    message: "Belum ada ulasan untuk kuliner ini"
+                    data: []
+                milik_saya:
+                  value:
+                    status: true
+                    data:
+                      - id_ulasan: 1
+                        id_user: 1
+                        id_tempat: 9
+                        rating: "5"
+                        review_text: Enak banget!
+                        foto_url: "..."
+                        created_at: "2026-10-19T10:00:00"
+                        nama_kuliner: Empal Gentong
+                        nama_tempat: "..."
+                        alamat: "..."
+                        photo_url: "..."
+                kosong_pribadi:
+                  value:
+                    status: true
+                    message: "Belum ada ulasan yang dibuat"
+                    data: []
+        '400':
+          description: Parameter tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "Parameter tidak valid. Gunakan ?id_tempat=X atau ?milik_saya=1" }
+        '401':
+          description: Belum login (milik_saya)
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk melihat ulasan pribadi" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data ulasan" }
+    post:
+      summary: Tambah Ulasan
+      tags: [Ulasan]
+      description: Butuh login. Rating dan komentar tidak bergantungan — salah satu wajib diisi. Foto opsional, max 1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_tempat]
+              properties:
+                id_tempat:
+                  type: integer
+                  example: 9
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                komentar:
+                  type: string
+                  minLength: 5
+                  maxLength: 100
+                  example: "Enak banget!"
+                foto_url:
+                  type: string
+                  example: "https://kppeplufcluygonkolou.supabase.co/storage/v1/object/public/foto-ulasan/..."
+      responses:
+        '201':
+          description: Ulasan berhasil disimpan
+          content:
+            application/json:
+              example: { status: true, message: "Ulasan berhasil disimpan", id_ulasan: 1 }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                id_invalid:
+                  value: { status: false, message: "ID tempat kuliner tidak valid" }
+                harus_isi:
+                  value: { status: false, message: "Rating atau komentar harus diisi" }
+                rating_invalid:
+                  value: { status: false, message: "Rating harus antara 1 sampai 5" }
+                komentar_min:
+                  value: { status: false, message: "Komentar minimal 5 karakter" }
+                komentar_max:
+                  value: { status: false, message: "Komentar maksimal 100 karakter" }
+                foto_invalid:
+                  value: { status: false, message: "Format URL foto tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk memberikan ulasan" }
+        '404':
+          description: Tempat tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Tempat kuliner tidak ditemukan" }
+        '409':
+          description: Sudah pernah ulasan
+          content:
+            application/json:
+              example: { status: false, message: "Anda sudah memberikan ulasan untuk kuliner ini" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data ulasan" }
+                simpan:
+                  value: { status: false, message: "Gagal menyimpan ulasan" }
+    put:
+      summary: Ubah Ulasan
+      tags: [Ulasan]
+      description: Butuh login. User hanya bisa mengubah ulasan miliknya sendiri.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_ulasan]
+              properties:
+                id_ulasan:
+                  type: integer
+                  example: 1
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 4
+                komentar:
+                  type: string
+                  minLength: 5
+                  maxLength: 100
+                  example: "Lumayan enak"
+                foto_url:
+                  type: string
+                  example: "https://..."
+      responses:
+        '200':
+          description: Ulasan berhasil diubah
+          content:
+            application/json:
+              example: { status: true, message: "Ulasan berhasil diubah", id_ulasan: 1 }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                id_invalid:
+                  value: { status: false, message: "ID ulasan tidak valid" }
+                tidak_ada_data:
+                  value: { status: false, message: "Tidak ada data yang diubah" }
+                rating_invalid:
+                  value: { status: false, message: "Rating harus antara 1 sampai 5" }
+                komentar_min:
+                  value: { status: false, message: "Komentar minimal 5 karakter" }
+                komentar_max:
+                  value: { status: false, message: "Komentar maksimal 100 karakter" }
+                foto_invalid:
+                  value: { status: false, message: "Format URL foto tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengubah ulasan" }
+        '404':
+          description: Ulasan tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Ulasan tidak ditemukan atau bukan milik Anda" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data ulasan" }
+                ubah:
+                  value: { status: false, message: "Gagal mengubah ulasan" }
+    delete:
+      summary: Hapus Ulasan
+      tags: [Ulasan]
+      description: Butuh login. User hanya bisa menghapus ulasan miliknya sendiri.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_ulasan]
+              properties:
+                id_ulasan:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Berhasil dihapus
+          content:
+            application/json:
+              example: { status: true, message: "Ulasan berhasil dihapus" }
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID ulasan tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk menghapus ulasan" }
+        '404':
+          description: Ulasan tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Ulasan tidak ditemukan atau bukan milik Anda" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data ulasan" }
+                hapus:
+                  value: { status: false, message: "Gagal menghapus ulasan" }
+
+  /api/rating.php:
+    get:
+      summary: Statistik Rating
+      tags: [Rating]
+      parameters:
+        - name: id_tempat
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 9
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  rata_rata_rating: 4.5
+                  jumlah_rating: 10
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID tempat kuliner tidak valid" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data rating" }
+    post:
+      summary: Simpan / Perbarui Rating
+      tags: [Rating]
+      description: Butuh login. Satu rating per pengguna per kuliner — kalau sudah ada maka diperbarui otomatis.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_tempat, rating]
+              properties:
+                id_tempat:
+                  type: integer
+                  example: 9
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+      responses:
+        '201':
+          description: Rating baru berhasil disimpan
+          content:
+            application/json:
+              example: { status: true, message: "Rating berhasil disimpan", id_ulasan: 1 }
+        '200':
+          description: Rating diperbarui
+          content:
+            application/json:
+              example: { status: true, message: "Rating berhasil diperbarui", id_ulasan: 1 }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                id_invalid:
+                  value: { status: false, message: "ID tempat kuliner tidak valid" }
+                rating_invalid:
+                  value: { status: false, message: "Rating harus bilangan bulat antara 1 sampai 5" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk memberikan rating" }
+        '404':
+          description: Tempat tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Tempat kuliner tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data rating" }
+                simpan:
+                  value: { status: false, message: "Gagal menyimpan rating" }
+                perbarui:
+                  value: { status: false, message: "Gagal memperbarui rating" }
+    put:
+      summary: Ubah Rating
+      tags: [Rating]
+      description: Butuh login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_ulasan, rating]
+              properties:
+                id_ulasan:
+                  type: integer
+                  example: 1
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 4
+      responses:
+        '200':
+          description: Rating berhasil diubah
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Rating berhasil diubah"
+                id_ulasan: 1
+                rating: 4
+                updated_at: "2026-10-30T10:00:00"
+                statistik:
+                  rata_rata_rating: 4.2
+                  jumlah_rating: 10
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                id_invalid:
+                  value: { status: false, message: "ID rating tidak valid" }
+                rating_invalid:
+                  value: { status: false, message: "Rating harus bilangan bulat antara 1 sampai 5" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk memberikan rating" }
+        '404':
+          description: Rating tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Rating tidak ditemukan atau bukan milik Anda" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data rating" }
+                ubah:
+                  value: { status: false, message: "Gagal mengubah rating" }
+    delete:
+      summary: Hapus Rating
+      tags: [Rating]
+      description: Butuh login. Kalau tidak ada komentar maka baris dihapus. Kalau ada komentar maka rating di-set NULL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_ulasan]
+              properties:
+                id_ulasan:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Rating berhasil dihapus
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Rating berhasil dihapus"
+                statistik:
+                  rata_rata_rating: 4.0
+                  jumlah_rating: 9
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID rating tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk memberikan rating" }
+        '404':
+          description: Rating tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Rating tidak ditemukan atau bukan milik Anda" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data rating" }
+                hapus:
+                  value: { status: false, message: "Gagal menghapus rating" }
+
+  /api/profil.php:
+    get:
+      summary: Ambil Data Profil
+      tags: [Profil]
+      description: Butuh login sebagai user.
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  id_user: 1
+                  nama: Rizki
+                  email: rizki@gmail.com
+                  foto_profil: "..."
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses profil" }
+        '404':
+          description: Profil tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Profil tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data profil" }
+    put:
+      summary: Ubah Nama dan/atau Foto Profil
+      tags: [Profil]
+      description: Butuh login. Email tidak bisa diubah.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama:
+                  type: string
+                  example: Rizki Baru
+                foto_profil:
+                  type: string
+                  example: "https://..."
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Profil berhasil diperbarui"
+                data:
+                  id_user: 1
+                  nama: Rizki Baru
+                  email: rizki@gmail.com
+                  foto_profil: "..."
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                tidak_ada:
+                  value: { status: false, message: "Tidak ada data yang diubah" }
+                nama_min:
+                  value: { status: false, message: "Nama minimal 2 karakter" }
+                nama_max:
+                  value: { status: false, message: "Nama maksimal 100 karakter" }
+                foto_invalid:
+                  value: { status: false, message: "Format URL foto profil tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses profil" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data profil" }
+                update:
+                  value: { status: false, message: "Gagal memperbarui profil" }
+    post:
+      summary: Ubah Kata Sandi
+      tags: [Profil]
+      description: Butuh login. Tidak bisa digunakan untuk akun Google.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password_lama, password_baru, konfirmasi_baru]
+              properties:
+                password_lama:
+                  type: string
+                  example: "12345678"
+                password_baru:
+                  type: string
+                  example: "newpass123"
+                konfirmasi_baru:
+                  type: string
+                  example: "newpass123"
+      responses:
+        '200':
+          description: Kata sandi berhasil diubah
+          content:
+            application/json:
+              example: { status: true, message: "Kata sandi berhasil diubah" }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                kosong:
+                  value: { status: false, message: "Semua field kata sandi wajib diisi" }
+                min_8:
+                  value: { status: false, message: "Kata sandi baru minimal 8 karakter" }
+                konfirmasi:
+                  value: { status: false, message: "Konfirmasi kata sandi tidak cocok" }
+                google:
+                  value: { status: false, message: "Akun Google tidak dapat mengubah kata sandi melalui fitur ini" }
+        '401':
+          description: Password lama salah
+          content:
+            application/json:
+              example: { status: false, message: "Kata sandi lama tidak sesuai" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              examples:
+                cek:
+                  value: { status: false, message: "Gagal memeriksa data pengguna" }
+                ubah:
+                  value: { status: false, message: "Gagal mengubah kata sandi" }
