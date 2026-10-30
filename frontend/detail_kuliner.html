@@ -24,7 +24,8 @@
 
     <main class="page-container">
       <!-- KONTEN UTAMA DETAIL KULINER -->
-      <div class="detail-grid" id="detailContent" style="display: none">
+      <div class="detail-content" id="detailContent" hidden>
+        <div class="detail-grid">
         <!-- KOLOM KIRI: FOTO KULINER -->
         <div class="detail-left-col">
           <div class="food-photo-container" style="position: relative">
@@ -78,121 +79,110 @@
             </div>
             <a href="#" class="btn-location" id="btnMapLink" target="_blank">Menuju Lokasi</a>
           </div>
-      <!-- END DETAIL GRID ATAS -->
-
-      <!-- BARIS BAWAH: INTERAKSI RATING & SKOR RATA-RATA -->
-      <div class="rating-interaction-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; align-items: stretch">
-        <!-- KOTAK KIRI: BERIKAN RATING ANDA (LANGSUNG KLIK BINTANG) -->
-        <div class="rate-us-box" style="border: none; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; width: 100%;">
-          <h3 style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 16px;">Berikan Rating Anda</h3>
-
-          <!-- Bintang Interaktif Langsung dengan ukuran penuh -->
-          <div class="action-row" style="width: 100%; display: flex; justify-content: center; gap: 12px;">
-            <div class="direct-rating-container" id="directStarsContainer" style="display: flex; gap: 12px; align-items: center; justify-content: center;">
-              <span class="direct-star-option" data-value="1" title="1 bintang" style="cursor: pointer; color: #ffbf00; display: inline-flex;">
-                <iconify-icon icon="material-symbols:star-outline" width="42" height="42" stroke-width="1"></iconify-icon>
-              </span>
-              <span class="direct-star-option" data-value="2" title="2 bintang" style="cursor: pointer; color: #ffbf00; display: inline-flex;">
-                <iconify-icon icon="material-symbols:star-outline" width="42" height="42" stroke-width="1"></iconify-icon>
-              </span>
-              <span class="direct-star-option" data-value="3" title="3 bintang" style="cursor: pointer; color: #ffbf00; display: inline-flex;">
-                <iconify-icon icon="material-symbols:star-outline" width="42" height="42" stroke-width="1"></iconify-icon>
-              </span>
-              <span class="direct-star-option" data-value="4" title="4 bintang" style="cursor: pointer; color: #ffbf00; display: inline-flex;">
-                <iconify-icon icon="material-symbols:star-outline" width="42" height="42" stroke-width="1"></iconify-icon>
-              </span>
-              <span class="direct-star-option" data-value="5" title="5 bintang" style="cursor: pointer; color: #ffbf00; display: inline-flex;">
-                <iconify-icon icon="material-symbols:star-outline" width="42" height="42" stroke-width="1"></iconify-icon>
-              </span>
-            </div>
-          </div>
-
-          <!-- Tombol pemicu disembunyikan -->
-          <button id="btnRate" style="display: none"></button>
-          <button id="btnReview" style="display: none"></button>
+        </div>
         </div>
 
-        <!-- KOTAK KANAN: SKOR RATA-RATA (0.0) -->
-        <div class="score-summary-box" style="border: 1px solid #000000; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff">
-          <div id="ratingScoreText" style="font-size: 42px; font-weight: 700; color: #000000; line-height: 1">0.0</div>
-          <div class="stars" id="starsContainer" style="display: flex; gap: 4px; color: #ffbf00; font-size: 24px; margin: 8px 0">
-            <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
-            <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
-            <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
-            <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
-            <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
-          </div>
-          <div id="reviewCountText" style="font-size: 13px; color: #666">0 Rating</div>
-        </div>
-      </div>
-
-      <!-- FORMULIR ULASAN -->
-      <div style="margin-top: 24px">
-        <form class="review-form" id="reviewForm" hidden>
-          <fieldset class="review-rating-fieldset">
-            <legend class="review-form-label">Beri rating <span aria-hidden="true">*</span></legend>
-            <div class="review-rating-inputs" role="radiogroup" aria-label="Pilih rating dari 1 sampai 5">
-              <label class="review-rating-option" title="1 bintang">
-                <input type="radio" name="rating" value="1" required />
-                <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
-                <span class="sr-only">1 bintang</span>
-              </label>
-              <label class="review-rating-option" title="2 bintang">
-                <input type="radio" name="rating" value="2" required />
-                <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
-                <span class="sr-only">2 bintang</span>
-              </label>
-              <label class="review-rating-option" title="3 bintang">
-                <input type="radio" name="rating" value="3" required />
-                <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
-                <span class="sr-only">3 bintang</span>
-              </label>
-              <label class="review-rating-option" title="4 bintang">
-                <input type="radio" name="rating" value="4" required />
-                <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
-                <span class="sr-only">4 bintang</span>
-              </label>
-              <label class="review-rating-option" title="5 bintang">
-                <input type="radio" name="rating" value="5" required />
-                <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
-                <span class="sr-only">5 bintang</span>
-              </label>
+        <section class="rating-summary" aria-label="Ringkasan rating pengguna">
+          <h2 class="rating-summary-title">Rating<br />Pengguna</h2>
+          <div class="rating-summary-score">
+            <strong id="ratingScoreText">0.0</strong>
+            <div class="stars" id="starsContainer" aria-label="Rating rata-rata">
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
+              <iconify-icon icon="material-symbols:star-outline"></iconify-icon>
             </div>
-          </fieldset>
-          <label class="review-form-label" for="reviewComment">Tulis ulasan Anda</label>
-          <textarea id="reviewComment" name="komentar" rows="4" placeholder="Bagaimana pengalaman kuliner Anda?" required></textarea>
-          <div class="review-form-meta">
-            <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
-            <span id="reviewCharacterCount">0/100</span>
+            <span id="reviewCountText">0 Rating</span>
           </div>
-          <input id="reviewPhotoInput" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
-          <div class="review-photo-controls">
-            <button class="review-photo-add" id="addReviewPhoto" type="button" aria-label="Tambah foto ulasan">
-              <iconify-icon icon="material-symbols:add"></iconify-icon>
-            </button>
-            <span>Tambah foto (opsional, maks. 1). Format: JPG, JPEG, PNG, WEBP; maks. 5 MB.</span>
+          <div class="rating-distribution" aria-label="Jumlah ulasan berdasarkan rating">
+            <div class="rating-distribution-row"><span class="rating-bar-track"><span id="ratingBar5"></span></span><span>5</span></div>
+            <div class="rating-distribution-row"><span class="rating-bar-track"><span id="ratingBar4"></span></span><span>4</span></div>
+            <div class="rating-distribution-row"><span class="rating-bar-track"><span id="ratingBar3"></span></span><span>3</span></div>
+            <div class="rating-distribution-row"><span class="rating-bar-track"><span id="ratingBar2"></span></span><span>2</span></div>
+            <div class="rating-distribution-row"><span class="rating-bar-track"><span id="ratingBar1"></span></span><span>1</span></div>
           </div>
-          <div id="reviewPhotoPreview" class="review-photo-preview" hidden>
-            <img id="reviewPhotoImage" alt="Pratinjau foto ulasan" />
-            <button id="removeReviewPhoto" type="button" aria-label="Hapus foto ulasan">&times;</button>
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 12px">
-            <button class="review-submit" id="submitReview" type="submit">Kirim Ulasan</button>
-            <button class="review-cancel" id="cancelReviewEdit" type="button" hidden>Batal</button>
-          </div>
-        </form>
-      </div>
+        </section>
 
       <!-- BAGIAN ULASAN PENGGUNA -->
-      <section class="review-section" style="margin-top: 40px">
-        <h2 class="review-section-title" style="text-align: center; border-bottom: 1px solid #d7dced; padding-bottom: 12px; margin-bottom: 24px">Ulasan pengguna</h2>
+      <section class="review-section">
+        <h2 class="review-section-title">Ulasan pengguna</h2>
         <div id="reviewsContainer">
-          <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif">
-            <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px">Belum ada ulasan</div>
-            <div style="font-weight: 400; font-size: 12px; color: #333">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+          <div class="review-card-empty">
+            <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
+            <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
           </div>
         </div>
       </section>
+
+      <div class="review-composer" id="reviewComposer" hidden>
+      <div class="review-form-toggle-wrap">
+        <button class="review-form-toggle" id="btnReview" type="button" aria-expanded="false" aria-controls="reviewForm">
+          Berikan Ulasan Anda
+          <iconify-icon icon="fluent:comment-edit-20-regular" aria-hidden="true"></iconify-icon>
+        </button>
+      </div>
+
+      <!-- FORMULIR ULASAN -->
+      <form class="review-form" id="reviewForm" hidden>
+        <div class="review-form-grid">
+          <div class="review-form-main">
+            <input id="reviewPhotoInput" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+            <button class="review-photo-add" id="addReviewPhoto" type="button" aria-label="Tambahkan foto ulasan">
+              <iconify-icon icon="material-symbols:photo-camera-outline" aria-hidden="true"></iconify-icon>
+              <span>Tambahkan Foto Ulasan</span>
+            </button>
+            <div id="reviewPhotoPreview" class="review-photo-preview" hidden>
+              <img id="reviewPhotoImage" alt="Pratinjau foto ulasan" />
+              <button id="removeReviewPhoto" type="button" aria-label="Hapus foto ulasan">&times;</button>
+            </div>
+            <label class="sr-only" for="reviewComment">Tulis ulasan di sini</label>
+            <textarea id="reviewComment" name="komentar" rows="2" placeholder="Tulis ulasan di sini" required></textarea>
+            <div class="review-form-meta">
+              <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
+              <span id="reviewCharacterCount">0/100</span>
+            </div>
+          </div>
+          <div class="review-form-options">
+            <fieldset class="review-rating-fieldset">
+              <legend class="review-form-label">Rating Anda <span aria-hidden="true">*</span></legend>
+              <div class="review-rating-inputs" role="radiogroup" aria-label="Pilih rating dari 1 sampai 5">
+                <label class="review-rating-option" title="1 bintang">
+                  <input type="radio" name="rating" value="1" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">1 bintang</span>
+                </label>
+                <label class="review-rating-option" title="2 bintang">
+                  <input type="radio" name="rating" value="2" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">2 bintang</span>
+                </label>
+                <label class="review-rating-option" title="3 bintang">
+                  <input type="radio" name="rating" value="3" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">3 bintang</span>
+                </label>
+                <label class="review-rating-option" title="4 bintang">
+                  <input type="radio" name="rating" value="4" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">4 bintang</span>
+                </label>
+                <label class="review-rating-option" title="5 bintang">
+                  <input type="radio" name="rating" value="5" required />
+                  <iconify-icon icon="material-symbols:star-outline" aria-hidden="true"></iconify-icon>
+                  <span class="sr-only">5 bintang</span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="review-form-actions">
+              <button class="review-submit" id="submitReview" type="submit">Kirim</button>
+              <button class="review-cancel" id="cancelReviewEdit" type="button" hidden>Batal</button>
+            </div>
+          </div>
+        </div>
+      </form>
+      </div>
+      </div>
 
       <!-- KONDISI VALIDASI KULINER GAGAL DIMUAT -->
       <div id="errorState" class="error-state-container" style="display: none">
@@ -224,11 +214,19 @@
         const reviewFormMessage = document.getElementById("reviewFormMessage");
         const submitReview = document.getElementById("submitReview");
         const cancelReviewEdit = document.getElementById("cancelReviewEdit");
+        const reviewFormToggle = document.getElementById("btnReview");
+        const reviewComposer = document.getElementById("reviewComposer");
         let selectedReviewPhoto = null;
         let reviewPhotoPreviewUrl = null;
         let uploadedReviewPhotoUrl = null;
         let photoWasRemoved = false;
         let editingReviewId = null;
+
+        const setReviewFormVisible = (visible) => {
+          reviewForm.hidden = !visible;
+          reviewComposer.classList.toggle("expanded", visible);
+          reviewFormToggle.setAttribute("aria-expanded", String(visible));
+        };
 
         const isLoggedIn = () => {
           try {
@@ -239,6 +237,8 @@
             return false;
           }
         };
+
+        reviewComposer.hidden = !isLoggedIn();
 
         const clearReviewPhoto = () => {
           selectedReviewPhoto = null;
@@ -258,7 +258,7 @@
             window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}`);
             return;
           }
-          reviewForm.hidden = false;
+          setReviewFormVisible(true);
           reviewFormMessage.textContent = "";
           if (focusTarget) focusTarget.focus();
           reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -277,42 +277,10 @@
             icon.setAttribute("icon", selected ? "material-symbols:star" : "material-symbols:star-outline");
           });
 
-          // Update bintang di Kotak Kiri "Berikan Rating Anda"
-          document.querySelectorAll("#directStarsContainer .direct-star-option").forEach((starOption) => {
-            const val = Number(starOption.dataset.value);
-            const icon = starOption.querySelector("iconify-icon");
-            if (val <= selectedRating) {
-              starOption.classList.add("active");
-              icon.setAttribute("icon", "material-symbols:star");
-            } else {
-              starOption.classList.remove("active");
-              icon.setAttribute("icon", "material-symbols:star-outline");
-            }
-          });
         };
 
-        // Event handler klik langsung bintang pada kotak "Berikan Rating Anda"
-        const directStarOptions = document.querySelectorAll("#directStarsContainer .direct-star-option");
-        directStarOptions.forEach((star) => {
-          star.addEventListener("click", () => {
-            const val = Number(star.dataset.value);
-            
-            if (!isLoggedIn()) {
-              window.location.href = loginUrl(`detail_kuliner.html?id=${encodeURIComponent(idTempat)}`);
-              return;
-            }
-
-            const targetRadio = reviewForm.querySelector(`input[name="rating"][value="${val}"]`);
-            if (targetRadio) {
-              targetRadio.checked = true;
-            }
-            updateSelectedRating(val);
-            openReviewForm(reviewComment);
-          });
-        });
-
         if (!idTempat) {
-          if (detailContent) detailContent.style.display = "none";
+          if (detailContent) detailContent.hidden = true;
           if (errorState) errorState.style.display = "flex";
           return;
         }
@@ -324,7 +292,7 @@
           const result = await response.json();
 
           if (!result.status || !result.data) {
-            if (detailContent) detailContent.style.display = "none";
+            if (detailContent) detailContent.hidden = true;
             if (errorState) errorState.style.display = "flex";
             return;
           }
@@ -332,7 +300,7 @@
           const data = result.data;
           let ulasanList = result.ulasan || [];
 
-          if (detailContent) detailContent.style.display = "grid";
+          if (detailContent) detailContent.hidden = false;
           if (errorState) errorState.style.display = "none";
 
           document.getElementById("foodName").textContent = data.nama_kuliner || data.nama_tempat || "Kuliner";
@@ -376,6 +344,7 @@
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `${totalReview} Rating`;
           updateAggregateStars(Number(avgRating));
+          updateRatingDistribution(ulasanList);
 
           const reviewsContainer = document.getElementById("reviewsContainer");
           renderReviews(ulasanList, reviewsContainer);
@@ -392,6 +361,7 @@
             document.getElementById("ratingScoreText").textContent = latestRating;
             document.getElementById("reviewCountText").textContent = `${ulasanList.length} Rating`;
             updateAggregateStars(Number(latestRating));
+            updateRatingDistribution(ulasanList);
             renderReviews(ulasanList, reviewsContainer);
           };
 
@@ -401,6 +371,7 @@
             document.getElementById("ratingScoreText").textContent = average;
             document.getElementById("reviewCountText").textContent = `${ulasanList.length} Rating`;
             updateAggregateStars(Number(average));
+            updateRatingDistribution(ulasanList);
           };
 
           const beginReviewEdit = (reviewId) => {
@@ -422,7 +393,7 @@
             }
 
             editingReviewId = String(review.id_ulasan);
-            reviewForm.hidden = false;
+            setReviewFormVisible(true);
             reviewRatingInputs.forEach((input) => {
               input.checked = Number(input.value) === Number(review.rating);
             });
@@ -500,7 +471,7 @@
             clearReviewPhoto();
             document.getElementById("reviewCharacterCount").textContent = "0/100";
             reviewFormMessage.textContent = "";
-            reviewForm.hidden = true;
+            setReviewFormVisible(false);
             submitReview.textContent = "Kirim Ulasan";
             cancelReviewEdit.hidden = true;
             const detailUrl = new URL(window.location.href);
@@ -511,19 +482,10 @@
           const requestedEditId = urlParams.get("edit_ulasan");
           if (requestedEditId) beginReviewEdit(requestedEditId);
 
-          document.getElementById("btnReview").addEventListener("click", () => {
+          reviewFormToggle.addEventListener("click", () => {
             if (editingReviewId) return;
             if (reviewForm.hidden) openReviewForm(reviewComment);
-            else reviewForm.hidden = true;
-          });
-
-          document.getElementById("btnRate").addEventListener("click", () => {
-            if (editingReviewId) return;
-            if (reviewForm.hidden) openReviewForm(reviewRatingInputs[0]);
-            else {
-              reviewForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              reviewRatingInputs[0].focus();
-            }
+            else setReviewFormVisible(false);
           });
 
           reviewRatingInputs.forEach((input) => {
@@ -629,7 +591,7 @@
               updateSelectedRating(0);
               clearReviewPhoto();
               document.getElementById("reviewCharacterCount").textContent = "0/100";
-              reviewForm.hidden = true;
+              setReviewFormVisible(false);
               submitReview.textContent = "Kirim Ulasan";
               cancelReviewEdit.hidden = true;
 
@@ -663,7 +625,7 @@
               window.alert(refreshFailed ? `${successMessage} Namun daftar ulasan belum diperbarui. Muat ulang halaman.` : successMessage);
             } catch (error) {
               console.error("Gagal mengirim ulasan:", error);
-              reviewForm.hidden = false;
+              setReviewFormVisible(true);
               reviewFormMessage.textContent = error.message || "Ulasan gagal dikirim. Silakan coba lagi.";
             } finally {
               submitReview.disabled = false;
@@ -672,7 +634,7 @@
           });
         } catch (error) {
           console.error("Gagal memuat detail kuliner dari backend:", error);
-          if (detailContent) detailContent.style.display = "none";
+          if (detailContent) detailContent.hidden = true;
           if (errorState) errorState.style.display = "flex";
         }
 
@@ -802,9 +764,9 @@
       function renderReviews(ulasanList, reviewsContainer) {
         if (!ulasanList || !ulasanList.length) {
           reviewsContainer.innerHTML = `
-            <div class="review-card-empty" style="background-color: #d9d9d9; border-radius: 8px; padding: 16px; text-align: center; font-family: 'Inter', sans-serif">
-              <div style="font-weight: 700; font-size: 14px; color: #000; margin-bottom: 4px">Belum ada ulasan</div>
-              <div style="font-weight: 400; font-size: 12px; color: #333">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+            <div class="review-card-empty">
+              <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
+              <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
             </div>
           `;
           return;
@@ -853,6 +815,19 @@
         const roundedRating = Math.round(rating);
         document.querySelectorAll("#starsContainer iconify-icon").forEach((star, index) => {
           star.setAttribute("icon", index < roundedRating ? "material-symbols:star" : "material-symbols:star-outline");
+        });
+      }
+
+      function updateRatingDistribution(reviews) {
+        const counts = [1, 2, 3, 4, 5].reduce((result, rating) => {
+          result[rating] = reviews.filter((review) => Number(review.rating) === rating).length;
+          return result;
+        }, {});
+        const maxCount = Math.max(0, ...Object.values(counts));
+
+        Object.entries(counts).forEach(([rating, count]) => {
+          const bar = document.getElementById(`ratingBar${rating}`);
+          if (bar) bar.style.width = `${maxCount ? (count / maxCount) * 100 : 100}%`;
         });
       }
 

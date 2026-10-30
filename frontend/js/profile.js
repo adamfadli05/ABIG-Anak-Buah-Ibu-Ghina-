@@ -1,14 +1,31 @@
 const PROFILE_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 const CONNECTION_ERROR = "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi.";
 let currentProfile = null;
+let nameUpdateTimeout = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("retryProfile").addEventListener("click", loadProfile);
   document.getElementById("profileForm").addEventListener("submit", saveProfile);
+  document.getElementById("nameEditForm").addEventListener("submit", saveName);
+  document.getElementById("nameEditInput").addEventListener("input", clearNameValidation);
+  document.getElementById("nameEditInput").addEventListener("keydown", handleNameEditKeydown);
   document.getElementById("passwordForm").addEventListener("submit", changePassword);
-  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("currentPassword").addEventListener("input", validateCurrentPassword);
+  document.getElementById("newPassword").addEventListener("input", validateNewPassword);
+  document.getElementById("confirmPassword").addEventListener("input", validateConfirmPassword);
+  document.getElementById("passwordResultAction").addEventListener("click", closePasswordResult);
+  document.querySelectorAll(".password-visibility-toggle").forEach((button) => {
+    button.addEventListener("click", togglePasswordVisibility);
+  });
+  document.getElementById("logoutButton").addEventListener("click", openLogoutConfirmation);
+  document.getElementById("cancelLogoutButton").addEventListener("click", closeLogoutConfirmation);
+  document.getElementById("confirmLogoutButton").addEventListener("click", logout);
+  document.getElementById("finishLogoutButton").addEventListener("click", finishLogout);
+  document.getElementById("logoutModal").addEventListener("click", handleLogoutOverlayClick);
+  document.addEventListener("keydown", handleLogoutDialogKeydown);
   document.getElementById("profilePhoto").addEventListener("input", previewProfilePhoto);
-  document.getElementById("editNameButton").addEventListener("click", openProfileEditor);
+  document.getElementById("editNameButton").addEventListener("click", openNameEditor);
+  document.getElementById("cancelNameEdit").addEventListener("click", closeNameEditor);
   document.getElementById("editPhotoButton").addEventListener("click", togglePhotoMenu);
   document.getElementById("uploadPhotoButton").addEventListener("click", requestPhotoFile);
   document.getElementById("replacePhotoButton").addEventListener("click", requestPhotoFile);
@@ -60,7 +77,6 @@ async function loadProfile() {
 function renderProfile(user) {
   currentProfile = { ...user };
   const name = user.nama || "";
-  document.getElementById("profileName").value = name;
   document.getElementById("displayName").textContent = name;
   document.getElementById("headerName").textContent = name;
   document.getElementById("displayEmail").textContent = user.email || "";
@@ -72,33 +88,18 @@ function renderProfile(user) {
 
 async function saveProfile(event) {
   event.preventDefault();
-  const nameInput = document.getElementById("profileName");
   const photoInput = document.getElementById("profilePhoto");
   const message = document.getElementById("profileFormMessage");
   const button = event.currentTarget.querySelector("button[type='submit']");
-  const name = nameInput.value.trim();
   const photo = photoInput.value.trim();
 
-  if (name.length < 2) {
-    showMessage(message, "Nama minimal 2 karakter.", "error");
-    nameInput.focus();
-    return;
-  }
-  if (name.length > 100) {
-    showMessage(message, "Nama maksimal 100 karakter.", "error");
-    nameInput.focus();
-    return;
-  }
   if (photo && !isValidHttpUrl(photo)) {
     showMessage(message, "Masukkan URL foto dengan format yang valid.", "error");
     photoInput.focus();
     return;
   }
 
-  const updates = {};
-  if (name !== (currentProfile?.nama || "")) updates.nama = name;
-  if (photo !== (currentProfile?.foto_profil || "")) updates.foto_profil = photo;
-  if (Object.keys(updates).length === 0) {
+  if (photo === (currentProfile?.foto_profil || "")) {
     showMessage(message, "Tidak ada perubahan untuk disimpan.", "error");
     return;
   }
@@ -110,7 +111,7 @@ async function saveProfile(event) {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
+      body: JSON.stringify({ foto_profil: photo }),
     });
     const result = await response.json();
     if (!response.ok || !result.status || !result.data) {
@@ -126,42 +127,107 @@ async function saveProfile(event) {
   }
 }
 
+async function saveName(event) {
+  event.preventDefault();
+  const input = document.getElementById("nameEditInput");
+  const message = document.getElementById("nameValidationMessage");
+  const button = event.currentTarget.querySelector("button[type='submit']");
+  const name = input.value.trim();
+  const nameLength = Array.from(name).length;
+
+  if (!/\p{L}/u.test(name)) {
+    showNameValidation(
+      message,
+      "Username harus mengandung minimal satu huruf dan tidak boleh kosong atau hanya berisi spasi."
+    );
+    input.focus();
+    return;
+  }
+  if (nameLength < 2) {
+    showNameValidation(message, "Nama minimal 2 karakter");
+    input.focus();
+    return;
+  }
+  if (nameLength > 100) {
+    showNameValidation(message, "Username maksimal 100 karakter.");
+    input.focus();
+    return;
+  }
+  if (name === (currentProfile?.nama || "")) {
+    closeNameEditor();
+    return;
+  }
+
+  button.disabled = true;
+  clearNameValidation();
+  hideNameUpdateMessage();
+  try {
+    const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nama: name }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.status || !result.data) {
+      throw new Error(result.message || "Gagal memperbarui nama pengguna.");
+    }
+
+    renderProfile(result.data);
+    closeNameEditor();
+    showNameUpdateMessage();
+  } catch (requestError) {
+    showNameValidation(
+      message,
+      isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message || "Gagal memperbarui nama pengguna."
+    );
+    input.focus();
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function changePassword(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const currentPassword = document.getElementById("currentPassword");
   const newPassword = document.getElementById("newPassword");
   const confirmPassword = document.getElementById("confirmPassword");
-  const message = document.getElementById("passwordFormMessage");
+  clearPasswordValidation();
   const button = form.querySelector("button[type='submit']");
 
+  if (!newPassword.value && !confirmPassword.value) {
+    setPasswordFieldError("newPassword", "Belum ada perubahan");
+    setPasswordFieldError("confirmPassword", "Belum ada perubahan");
+    newPassword.focus();
+    return;
+  }
   if (newPassword.value.length < 8) {
-    showMessage(message, "Kata sandi baru minimal 8 karakter.", "error");
+    setPasswordFieldError("newPassword", "Kata sandi baru minimal 8 karakter.");
     newPassword.focus();
     return;
   }
   if (newPassword.value !== confirmPassword.value) {
-    showMessage(message, "Konfirmasi kata sandi tidak sesuai.", "error");
+    setPasswordFieldError("confirmPassword", "Konfirmasi sandi tidak cocok.");
     confirmPassword.focus();
     return;
   }
   if (!currentPassword.value) {
-    showMessage(message, "Kata sandi saat ini wajib diisi.", "error");
+    setPasswordFieldError("currentPassword", "Kata sandi saat ini wajib diisi.");
     currentPassword.focus();
     return;
   }
 
   button.disabled = true;
-  message.hidden = true;
   try {
-    const response = await fetch(`${PROFILE_API_BASE}/api/ubah_password.php`, {
-      method: "PUT",
+    const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
+      method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        kata_sandi_saat_ini: currentPassword.value,
-        kata_sandi_baru: newPassword.value,
-        konfirmasi_kata_sandi: confirmPassword.value,
+        password_lama: currentPassword.value,
+        password_baru: newPassword.value,
+        konfirmasi_baru: confirmPassword.value,
       }),
     });
     const result = await response.json();
@@ -170,17 +236,24 @@ async function changePassword(event) {
     }
 
     form.reset();
-    showMessage(message, result.message || "Kata sandi berhasil diubah.", "success");
+    clearPasswordValidation();
+    showPasswordResult(true, "");
   } catch (requestError) {
-    showMessage(message, isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message, "error");
+    showPasswordResult(
+      false,
+      isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message || "Silakan periksa data dan coba lagi."
+    );
   } finally {
     button.disabled = false;
   }
 }
 
 async function logout() {
-  const button = document.getElementById("logoutButton");
+  const button = document.getElementById("confirmLogoutButton");
+  const error = document.getElementById("logoutErrorMessage");
   button.disabled = true;
+  document.getElementById("cancelLogoutButton").disabled = true;
+  error.hidden = true;
   try {
     const response = await fetch(`${PROFILE_API_BASE}/logout.php`, {
       method: "GET",
@@ -189,10 +262,52 @@ async function logout() {
     });
     if (!response.ok) throw new Error("Gagal mengakhiri sesi. Silakan coba lagi.");
     localStorage.clear();
-    window.location.replace("login.html");
+    document.getElementById("logoutConfirmDialog").hidden = true;
+    document.getElementById("logoutSuccessDialog").hidden = false;
+    document.getElementById("finishLogoutButton").focus();
   } catch (requestError) {
+    error.textContent = isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message;
+    error.hidden = false;
     button.disabled = false;
-    window.alert(isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message);
+    document.getElementById("cancelLogoutButton").disabled = false;
+    button.focus();
+  }
+}
+
+function openLogoutConfirmation() {
+  const modal = document.getElementById("logoutModal");
+  document.getElementById("logoutConfirmDialog").hidden = false;
+  document.getElementById("logoutSuccessDialog").hidden = true;
+  document.getElementById("logoutErrorMessage").hidden = true;
+  modal.hidden = false;
+  document.getElementById("cancelLogoutButton").focus();
+}
+
+function closeLogoutConfirmation() {
+  document.getElementById("logoutModal").hidden = true;
+  document.getElementById("logoutErrorMessage").hidden = true;
+  document.getElementById("logoutButton").focus();
+}
+
+function finishLogout() {
+  window.location.replace("login.html");
+}
+
+function handleLogoutOverlayClick(event) {
+  if (event.target === event.currentTarget && !document.getElementById("confirmLogoutButton").disabled) {
+    closeLogoutConfirmation();
+  }
+}
+
+function handleLogoutDialogKeydown(event) {
+  const passwordModal = document.getElementById("passwordResultModal");
+  if (event.key === "Escape" && !passwordModal.hidden) {
+    closePasswordResult();
+    return;
+  }
+  if (event.key === "Escape" && !document.getElementById("logoutModal").hidden) {
+    const successDialog = document.getElementById("logoutSuccessDialog");
+    if (successDialog.hidden) closeLogoutConfirmation();
   }
 }
 
@@ -203,7 +318,7 @@ function previewProfilePhoto() {
 function openProfileEditor() {
   const form = document.getElementById("profileForm");
   form.hidden = false;
-  document.getElementById("profileName").focus();
+  document.getElementById("profilePhoto").focus();
 }
 
 function closeProfileEditor() {
@@ -212,11 +327,61 @@ function closeProfileEditor() {
   document.getElementById("profileFormMessage").hidden = true;
 }
 
+function openNameEditor() {
+  const form = document.getElementById("nameEditForm");
+  const input = document.getElementById("nameEditInput");
+  hideNameUpdateMessage();
+  clearNameValidation();
+  input.value = currentProfile?.nama || "";
+  document.getElementById("nameDisplayRow").hidden = true;
+  form.hidden = false;
+  input.focus();
+  input.select();
+}
+
+function closeNameEditor() {
+  document.getElementById("nameEditForm").hidden = true;
+  document.getElementById("nameDisplayRow").hidden = false;
+  clearNameValidation();
+}
+
+function handleNameEditKeydown(event) {
+  if (event.key === "Escape") closeNameEditor();
+}
+
+function clearNameValidation() {
+  const input = document.getElementById("nameEditInput");
+  const message = document.getElementById("nameValidationMessage");
+  input.removeAttribute("aria-invalid");
+  message.hidden = true;
+  message.textContent = "";
+}
+
+function showNameValidation(message, text) {
+  const input = document.getElementById("nameEditInput");
+  message.textContent = text;
+  message.hidden = false;
+  input.setAttribute("aria-invalid", "true");
+}
+
+function showNameUpdateMessage() {
+  const message = document.getElementById("nameUpdateMessage");
+  clearTimeout(nameUpdateTimeout);
+  message.hidden = false;
+  nameUpdateTimeout = setTimeout(hideNameUpdateMessage, 4000);
+}
+
+function hideNameUpdateMessage() {
+  clearTimeout(nameUpdateTimeout);
+  document.getElementById("nameUpdateMessage").hidden = true;
+}
+
 function togglePasswordEditor() {
   const form = document.getElementById("passwordForm");
   const button = document.getElementById("togglePasswordButton");
   form.hidden = !form.hidden;
   button.setAttribute("aria-expanded", String(!form.hidden));
+  button.hidden = !form.hidden;
   if (!form.hidden) document.getElementById("currentPassword").focus();
 }
 
@@ -224,8 +389,101 @@ function closePasswordEditor() {
   const form = document.getElementById("passwordForm");
   form.hidden = true;
   form.reset();
-  document.getElementById("passwordFormMessage").hidden = true;
-  document.getElementById("togglePasswordButton").setAttribute("aria-expanded", "false");
+  clearPasswordValidation();
+  const button = document.getElementById("togglePasswordButton");
+  button.hidden = false;
+  button.setAttribute("aria-expanded", "false");
+  button.focus();
+}
+
+function validateCurrentPassword() {
+  const input = document.getElementById("currentPassword");
+  if (!input.getAttribute("aria-invalid")) return;
+  if (input.value) clearPasswordFieldError("currentPassword");
+}
+
+function validateNewPassword() {
+  const input = document.getElementById("newPassword");
+  if (input.getAttribute("aria-invalid")) {
+    const error = document.getElementById("newPasswordError").textContent;
+    if (error === "Belum ada perubahan" && input.value) {
+      clearPasswordFieldError("newPassword");
+    } else if (error === "Kata sandi baru minimal 8 karakter." && input.value.length >= 8) {
+      clearPasswordFieldError("newPassword");
+    }
+  }
+  const confirmInput = document.getElementById("confirmPassword");
+  if (confirmInput.getAttribute("aria-invalid") && document.getElementById("confirmPasswordError").textContent === "Belum ada perubahan" && input.value) {
+    clearPasswordFieldError("confirmPassword");
+  }
+  if (confirmInput.getAttribute("aria-invalid") && confirmInput.value === input.value) {
+    clearPasswordFieldError("confirmPassword");
+  }
+}
+
+function validateConfirmPassword() {
+  const input = document.getElementById("confirmPassword");
+  if (!input.getAttribute("aria-invalid")) return;
+  const error = document.getElementById("confirmPasswordError").textContent;
+  if (error === "Belum ada perubahan" && input.value) {
+    clearPasswordFieldError("confirmPassword");
+  } else if (input.value === document.getElementById("newPassword").value) {
+    clearPasswordFieldError("confirmPassword");
+  }
+}
+
+function setPasswordFieldError(field, text) {
+  const input = document.getElementById(field);
+  const error = document.getElementById(`${field}Error`);
+  input.setAttribute("aria-invalid", "true");
+  error.textContent = text;
+  error.hidden = false;
+}
+
+function clearPasswordFieldError(field) {
+  const input = document.getElementById(field);
+  const error = document.getElementById(`${field}Error`);
+  input.removeAttribute("aria-invalid");
+  error.textContent = "";
+  error.hidden = true;
+}
+
+function clearPasswordValidation() {
+  ["currentPassword", "newPassword", "confirmPassword"].forEach(clearPasswordFieldError);
+}
+
+function showPasswordResult(success, detail) {
+  const modal = document.getElementById("passwordResultModal");
+  const dialog = document.getElementById("passwordResultDialog");
+  const icon = document.getElementById("passwordResultIcon");
+  const title = document.getElementById("passwordResultTitle");
+  const message = document.getElementById("passwordResultMessage");
+  dialog.classList.toggle("is-error", !success);
+  icon.className = `fa-solid ${success ? "fa-circle-check" : "fa-circle-xmark"} password-result-icon`;
+  title.textContent = success ? "Perubahan berhasil disimpan" : "Perubahan gagal disimpan";
+  message.textContent = detail;
+  message.hidden = !detail;
+  document.getElementById("passwordResultAction").textContent = success ? "Oke" : "Coba lagi";
+  modal.dataset.success = String(success);
+  modal.hidden = false;
+  document.getElementById("passwordResultAction").focus();
+}
+
+function closePasswordResult() {
+  const modal = document.getElementById("passwordResultModal");
+  const wasSuccessful = modal.dataset.success === "true";
+  modal.hidden = true;
+  if (wasSuccessful) closePasswordEditor();
+  else document.querySelector(".password-save-button").focus();
+}
+
+function togglePasswordVisibility(event) {
+  const button = event.currentTarget;
+  const input = button.parentElement.querySelector("input");
+  const showPassword = input.type === "password";
+  input.type = showPassword ? "text" : "password";
+  button.setAttribute("aria-label", `${showPassword ? "Sembunyikan" : "Tampilkan"} ${input.labels[0].textContent.toLowerCase()}`);
+  button.innerHTML = `<i class="fa-regular ${showPassword ? "fa-eye" : "fa-eye-slash"}" aria-hidden="true"></i>`;
 }
 
 function togglePhotoMenu() {

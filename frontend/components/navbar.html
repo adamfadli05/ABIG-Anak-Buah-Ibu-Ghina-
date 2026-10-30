@@ -13,33 +13,13 @@
     </div>
 
     <!-- Menu untuk User yang Sudah Login -->
-    <div class="nav-dropdown-wrapper" id="userNavLinks" style="position: relative; display: flex; align-items: center; gap: 8px; z-index: 9999">
-      <div class="nav-dropdown-horizontal" id="navDropdownMenu" style="z-index: 10000; display: flex; align-items: center; gap: 8px">
-        <!-- 1. Ikon Ulasan -->
-        <a href="reviews.html" class="nav-icon-link" id="reviewButton" title="Ulasan Kuliner" aria-label="Ulasan Kuliner">
-          <iconify-icon icon="fluent:notepad-edit-20-filled" width="22" height="22"></iconify-icon>
-        </a>
-
-        <!-- 2. Ikon Tersimpan -->
-        <a href="saved.html" class="nav-icon-link" id="savedButton" title="Kuliner Tersimpan" aria-label="Kuliner Tersimpan">
-          <iconify-icon icon="boxicons:bookmark-filled" width="22" height="22"></iconify-icon>
-        </a>
-
-        <!-- 3. Ikon / Foto Profil -->
-        <a href="profile.html" class="nav-icon-link" id="profileButton" title="Profil Pengguna" aria-label="Profil Pengguna">
-          <iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>
-        </a>
-
-        <!-- 4. Ikon Logout -->
-        <a href="#" class="nav-icon-link" id="btnLogout" title="Keluar" aria-label="Keluar" style="display: none">
-          <iconify-icon icon="basil:logout-solid" width="24" height="24" style="transform: scaleX(-1)"></iconify-icon>
-        </a>
-      </div>
-
-      <!-- Tombol Filter Toggle -->
-      <button type="button" class="nav-icon-btn" id="navMenuToggle" aria-label="Buka menu" style="position: relative; z-index: 10000; cursor: pointer; background: transparent; border: none; padding: 6px; display: flex; align-items: center">
-        <iconify-icon icon="hugeicons:filter-horizontal" width="26" height="26" style="color: #ffffff; pointer-events: none"></iconify-icon>
-      </button>
+    <div id="userNavLinks" style="display: none; align-items: center; gap: 14px; color: #ffffff; font-family: 'Inter', sans-serif;">
+      <a href="index.html" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 400;">Beranda</a>
+      <span aria-hidden="true" style="height: 50px; border-left: 2px solid #ffffff;"></span>
+      <span id="navUserName" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px;"></span>
+      <a href="profile.html" id="profileButton" title="Profil Pengguna" aria-label="Profil Pengguna" style="width: 36px; height: 36px; border-radius: 50%; background: #ffffff; color: #001b7d; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0;">
+        <iconify-icon icon="famicons:person" width="24" height="24"></iconify-icon>
+      </a>
     </div>
   </nav>
 </header>

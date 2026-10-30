@@ -68,43 +68,48 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch((error) => console.error("Gagal memuat navbar:", error));
   }
 
+  function getAuthState() {
+    const rawUser = localStorage.getItem("user");
+    const rawRole = localStorage.getItem("role");
+    let user = null;
+
+    if (rawUser && rawUser !== "null" && rawUser !== "undefined") {
+      try {
+        const parsedUser = JSON.parse(rawUser);
+        if (parsedUser && typeof parsedUser === "object") user = parsedUser;
+      } catch (error) {
+        console.error("[Auth System] Data pengguna tidak valid.", error);
+      }
+    }
+
+    const role = rawRole && rawRole !== "null" && rawRole !== "undefined" ? rawRole : "";
+    return { user, role, isLoggedIn: Boolean(user || role) };
+  }
+
   // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL LOGOUT
   window.initNavbarState = function () {
-    const userData = localStorage.getItem("user");
-    const userRole = localStorage.getItem("role");
-
-    const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
+    const { user, role, isLoggedIn } = getAuthState();
     console.info("[Auth System] Navbar status", {
       loggedIn: isLoggedIn,
-      role: userRole || "guest",
+      role: role || "guest",
     });
 
     const guestNavLinks = document.getElementById("guestNavLinks");
     const userNavLinks = document.getElementById("userNavLinks");
     const profileButton = document.getElementById("profileButton");
-    const btnLogout = document.getElementById("btnLogout");
+    const navUserName = document.getElementById("navUserName");
 
     if (isLoggedIn) {
-      // Jika SUDAH LOGIN: Tampilkan ikon-ikon menu, sembunyikan tombol Beranda & Masuk
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "none", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
-
-      if (profileButton) {
-        profileButton.title = "Profil";
-        profileButton.innerHTML = `<iconify-icon icon="famicons:person" width="22" height="22"></iconify-icon>`;
-      }
-
-      if (btnLogout) {
-        btnLogout.style.setProperty("display", "inline-flex", "important");
-      }
+      if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Pengguna";
+      if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
     } else {
-      // Jika BELUM LOGIN: Tampilkan tulisan "Beranda" & tombol "Masuk", sembunyikan dropdown ikon
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
     }
 
-    // Log status sistem auth ke console untuk debugging
-    if (userData) {
+    if (user) {
       console.info("[Auth System] Status: User Terautentikasi");
     } else {
       console.log("[Auth System] Status: Belum ada sesi login (Guest).");
@@ -120,9 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const savedButton = event.target.closest("#savedButton");
     const reviewButton = event.target.closest("#reviewButton");
 
-    const userData = localStorage.getItem("user");
-    const userRole = localStorage.getItem("role");
-    const isLoggedIn = (!!userData && userData !== "null" && userData !== "undefined") || !!userRole;
+    const { isLoggedIn } = getAuthState();
 
     // Toggle Dropdown Menu
     if (navMenuToggle) {
@@ -149,10 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
     if (savedButton) {
-      const checkUser = localStorage.getItem("user");
-      const checkRole = localStorage.getItem("role");
-      const isLoggedIn = (checkUser && checkUser !== "null" && checkUser !== "undefined") || (checkRole && checkRole !== "null");
-
       if (!isLoggedIn) {
         // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
         event.preventDefault();
