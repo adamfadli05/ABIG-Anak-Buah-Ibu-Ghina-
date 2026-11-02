@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Pengguna | Mangan Yukkk</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/profile.css?v=5" />
+  <link rel="stylesheet" href="css/profile.css?v=7" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
@@ -59,7 +59,7 @@
               Hapus foto
             </button>
           </div>
-          <input id="photoFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+          <input id="photoFileInput" type="file" hidden />
           <p id="sidebarName" class="sidebar-name"></p>
           <a class="profile-nav-link" href="saved.html"><i class="fa-solid fa-bookmark" aria-hidden="true"></i> Kuliner
             Tersimpan</a>
@@ -92,23 +92,8 @@
             </form>
             <p class="profile-detail-line">Email : <span id="displayEmail"></span></p>
           </div>
-          <p id="photoActionMessage" class="form-message photo-action-message" role="status" aria-live="polite" hidden>
+          <p id="photoActionMessage" class="photo-action-message" role="status" aria-live="polite" hidden>
           </p>
-
-          <form id="profileForm" class="profile-form profile-edit-panel" hidden novalidate>
-            <div class="edit-form-heading"><strong>Edit foto profil</strong><button id="cancelProfileEdit"
-                class="icon-close-button" type="button" aria-label="Tutup edit foto profil"><i
-                  class="fa-solid fa-xmark"></i></button></div>
-            <label class="field-label" for="profilePhoto">Foto profil (URL)</label>
-            <input id="profilePhoto" name="foto_profil" type="url" inputmode="url"
-              placeholder="https://contoh.com/foto.jpg" />
-            <p class="field-hint">Gunakan tautan gambar yang dapat diakses publik.</p>
-            <p id="profileFormMessage" class="form-message" role="status" aria-live="polite" hidden></p>
-            <div class="form-actions">
-              <button class="primary-button" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-                Simpan perubahan</button>
-            </div>
-          </form>
 
           <button id="togglePasswordButton" class="password-toggle-button" type="button" aria-expanded="false"
             aria-controls="passwordForm"><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Kelola Kata Sandi
@@ -128,8 +113,9 @@
                     </svg>
                     <input id="currentPassword" name="current_password" type="password" autocomplete="current-password"
                       placeholder="Masukkan kata sandi lama Anda" required aria-describedby="currentPasswordError" />
-                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi lama"><i
-                        class="fa-regular fa-eye-slash" aria-hidden="true"></i></button>
+                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi lama">
+                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                    </button>
                   </div>
                   <span id="currentPasswordError" class="password-field-error" role="alert" hidden></span>
                 </div>
@@ -141,8 +127,9 @@
                     <input id="newPassword" name="new_password" type="password" autocomplete="new-password"
                       minlength="8" placeholder="Masukan kata sandi baru anda" required
                       aria-describedby="passwordHint newPasswordError" />
-                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi baru"><i
-                        class="fa-regular fa-eye-slash" aria-hidden="true"></i></button>
+                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi baru">
+                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                    </button>
                   </div>
                   <span id="passwordHint" class="password-field-hint">Minimal 8 karakter</span>
                   <span id="newPasswordError" class="password-field-error" role="alert" hidden></span>
@@ -156,8 +143,9 @@
                       placeholder="Masukan ulang kata sandi baru anda" required
                       aria-describedby="confirmPasswordError" />
                     <button class="password-visibility-toggle" type="button"
-                      aria-label="Tampilkan konfirmasi kata sandi"><i class="fa-regular fa-eye-slash"
-                        aria-hidden="true"></i></button>
+                      aria-label="Tampilkan konfirmasi kata sandi">
+                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                    </button>
                   </div>
                   <span id="confirmPasswordError" class="password-field-error" role="alert" hidden></span>
                 </div>
@@ -209,7 +197,7 @@
     </section>
   </div>
   <script src="js/navbar.js"></script>
-  <script src="js/profile.js?v=4"></script>
+  <script src="js/profile.js?v=8"></script>
 </body>
 
 </html>

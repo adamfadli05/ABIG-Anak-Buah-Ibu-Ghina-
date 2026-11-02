@@ -228,7 +228,7 @@ iconify-icon {
   height: 10px;
   overflow: hidden;
   border-radius: 10px;
-  background: rgb(255 255 255 / 45%);
+  background: #d9d9d9;
 }
 
 .rating-bar-track > span {
@@ -236,7 +236,7 @@ iconify-icon {
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: #fff;
+  background: var(--accent);
   transition: width 0.2s ease;
 }
 
@@ -478,6 +478,130 @@ iconify-icon {
 
 .review-feedback button:focus-visible {
   outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.review-delete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 28%);
+  pointer-events: auto;
+}
+
+.review-delete-overlay[hidden],
+.review-delete-result[hidden] {
+  display: none !important;
+}
+
+.review-delete-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(280px, 100%);
+  min-height: 112px;
+  padding: 18px 22px 14px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 14%);
+}
+
+.review-delete-message {
+  margin: 8px 0 20px;
+  color: var(--primary);
+  font-size: 15px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.review-delete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.review-delete-actions button {
+  position: relative;
+  z-index: 1;
+  min-width: 62px;
+  min-height: 28px;
+  padding: 5px 12px;
+  border: 0;
+  font: inherit;
+  font-size: 11px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.review-delete-cancel {
+  background: #d9d9d9;
+  color: var(--primary);
+}
+
+.review-delete-confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+.review-delete-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.review-delete-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.review-delete-result > iconify-icon {
+  margin-bottom: 8px;
+  color: #28a745;
+  font-size: 20px;
+}
+
+.review-delete-result > iconify-icon.is-error {
+  color: #ed3028;
+}
+
+.review-delete-result .review-delete-message {
+  margin: 0;
+  font-size: 13px;
+}
+
+.review-delete-detail {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.review-delete-detail[hidden] {
+  display: none;
+}
+
+.review-delete-result-action {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 11px;
+  text-decoration: underline;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.review-delete-dialog button:focus-visible {
+  outline: 2px solid rgb(0 27 125 / 45%);
   outline-offset: 2px;
 }
 
