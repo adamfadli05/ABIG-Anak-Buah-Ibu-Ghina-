@@ -11,44 +11,46 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <style>
       .reviews-page {
-        max-width: 1000px;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 116px 24px 48px;
+        padding: 112px 28px 48px;
       }
 
       .reviews-title {
-        margin: 0 0 24px;
-        color: #001b7d;
-        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 22px;
+        color: #171717;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .reviews-title iconify-icon {
+        font-size: 17px;
       }
 
       .reviews-list {
         display: grid;
+        justify-items: start;
         gap: 16px;
       }
 
       .reviews-list[hidden],
-      .reviews-state[hidden] {
+      .reviews-state[hidden],
+      .reviews-title[hidden] {
         display: none;
       }
 
       .review-card {
-        display: grid;
-        grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
-        gap: 18px;
-        padding: 16px;
-        border: 1px solid #d9dce5;
-        border-radius: 12px;
+        width: min(100%, 650px);
+        padding: 16px 18px;
+        border: 1px solid #d1d1d1;
+        border-radius: 20px;
         background: #fff;
-        box-shadow: 0 3px 12px rgb(0 27 125 / 8%);
-      }
-
-      .review-food-photo {
-        width: 100%;
-        height: 150px;
-        border-radius: 8px;
-        object-fit: cover;
-        background: #eee;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
       }
 
       .review-card-content {
@@ -58,81 +60,154 @@
       .review-card-heading {
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .review-author {
+        display: flex;
         align-items: flex-start;
-        gap: 12px;
+        min-width: 0;
+        gap: 10px;
       }
 
-      .review-card-heading h2 {
-        margin: 0;
-        color: #001b7d;
-        font-size: 18px;
+      .review-avatar {
+        display: grid;
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 50%;
+        background: #001b7d;
+        color: #fff;
       }
 
-      .review-date {
-        flex: 0 0 auto;
-        color: #6c6c73;
-        font-size: 12px;
+      .review-avatar iconify-icon {
+        font-size: 21px;
       }
 
-      .review-place {
-        margin: 5px 0 12px;
-        color: #6c6c73;
+      .review-author-details {
+        min-width: 0;
+      }
+
+      .review-author-name {
+        display: block;
+        margin: 0 0 2px;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .review-rating-date {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
       .review-rating {
-        margin: 0 0 8px;
-        color: #a06a00;
+        color: #f2a900;
+        font-size: 14px;
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+
+      .review-date {
+        color: #454545;
+        font-size: 9px;
+      }
+
+      .review-place {
+        display: none;
       }
 
       .review-comment {
-        margin: 0;
+        margin: 9px 0 10px;
         overflow-wrap: anywhere;
-        line-height: 1.55;
+        color: #333;
+        font-size: 11px;
+        line-height: 1.5;
         white-space: pre-wrap;
       }
 
       .review-photo {
         display: block;
-        max-width: min(100%, 300px);
-        max-height: 240px;
-        margin-top: 12px;
-        border-radius: 8px;
+        width: 54px;
+        height: 44px;
+        margin: 0 0 10px;
+        border-radius: 7px;
         object-fit: cover;
       }
 
-      .review-card-footer {
+      .review-food-link {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 12px;
-        margin-top: 14px;
+        min-height: 60px;
+        gap: 10px;
+        padding: 6px 10px;
+        border: 1px solid #c9c9c9;
+        border-radius: 7px;
+        color: inherit;
+        text-decoration: none;
       }
 
-      .review-detail-link {
-        color: #001b7d;
-        font-weight: 600;
-        text-decoration: underline;
+      .review-food-photo {
+        flex: 0 0 52px;
+        width: 52px;
+        height: 46px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #eee;
+      }
+
+      .review-food-details {
+        min-width: 0;
+      }
+
+      .review-food-name {
+        display: block;
+        margin-bottom: 4px;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .review-food-address {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #555;
+        font-size: 10px;
+      }
+
+      .review-food-address iconify-icon {
+        flex: 0 0 auto;
+        color: #888;
+        font-size: 14px;
       }
 
       .review-owner-actions {
         display: inline-flex;
-        gap: 10px;
-        color: #001b7d;
+        flex: 0 0 auto;
+        gap: 8px;
       }
 
       .review-action {
         display: inline-grid;
         place-items: center;
         border: 0;
-        padding: 4px;
-        background: transparent;
-        color: inherit;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 50%;
+        background: #001b7d;
+        color: #fff;
         cursor: pointer;
         text-decoration: none;
       }
 
       .review-action iconify-icon {
-        font-size: 21px;
+        font-size: 18px;
       }
 
       .review-action:disabled {
@@ -141,15 +216,46 @@
       }
 
       .reviews-state {
-        padding: 28px 16px;
-        border: 1px solid #d9dce5;
-        border-radius: 12px;
+        padding: 8px 16px;
         text-align: center;
-        background: #fff;
       }
 
-      .reviews-state p {
-        margin: 0 0 12px;
+      .reviews-empty-icon {
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 0 auto 10px;
+        color: #929292;
+        font-size: 32px;
+      }
+
+      .reviews-error-icon {
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 0 auto 12px;
+        color: #929292;
+        font-size: 32px;
+      }
+
+      .reviews-error-title {
+        margin: 0 0 5px;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .reviews-empty-title {
+        margin: 0 0 7px;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .reviews-empty-copy {
+        margin: 0;
+        color: #111;
+        font-size: 11px;
       }
 
       .reviews-retry {
@@ -158,6 +264,7 @@
         background: none;
         color: #001b7d;
         font: inherit;
+        font-size: 10px;
         text-decoration: underline;
         cursor: pointer;
       }
@@ -168,18 +275,28 @@
         }
 
         .review-card {
-          grid-template-columns: 1fr;
-          gap: 12px;
-          padding: 12px;
-        }
-
-        .review-food-photo {
-          height: 180px;
+          padding: 13px;
         }
 
         .review-card-heading {
-          flex-direction: column;
-          gap: 4px;
+          gap: 6px;
+        }
+
+        .review-owner-actions {
+          gap: 5px;
+        }
+
+        .review-action {
+          width: 31px;
+          height: 31px;
+        }
+
+        .review-food-name {
+          font-size: 12px;
+        }
+
+        .review-food-address {
+          font-size: 9px;
         }
       }
     </style>
@@ -187,15 +304,17 @@
   <body>
     <div id="navbar-container"></div>
     <main class="reviews-page">
-      <h1 class="reviews-title">Ulasan Saya</h1>
+      <h1 id="reviewsTitle" class="reviews-title">Riwayat Ulasan Anda <iconify-icon icon="codicon:code-review" aria-hidden="true"></iconify-icon></h1>
       <div id="reviewsLoading" class="reviews-state" role="status">Memuat ulasan...</div>
       <div id="reviewsEmpty" class="reviews-state" hidden>
-        <p>Anda belum memiliki ulasan.</p>
-        <a class="review-detail-link" href="index.html">Jelajahi kuliner</a>
+        <iconify-icon class="reviews-empty-icon" icon="fluent:comment-error-16-regular" aria-hidden="true"></iconify-icon>
+        <h2 class="reviews-empty-title">Belum Ada Ulasan</h2>
+        <p class="reviews-empty-copy">YUKKK, bagikan pengalamanmu setelah mencoba kuliner favoritmu!</p>
       </div>
       <div id="reviewsError" class="reviews-state" role="alert" hidden>
-        <p>Gagal memuat daftar ulasan.</p>
-        <button id="retryReviews" class="reviews-retry" type="button">Coba lagi</button>
+        <iconify-icon class="reviews-error-icon" icon="fluent:comment-dismiss-24-regular" aria-hidden="true"></iconify-icon>
+        <h2 class="reviews-error-title">Gagal memuat halaman</h2>
+        <button id="retryReviews" class="reviews-retry" type="button">Silahkan coba lagi</button>
       </div>
       <div id="reviewsList" class="reviews-list" hidden></div>
     </main>
@@ -210,11 +329,13 @@
       });
 
       async function loadReviews() {
+        const title = document.getElementById("reviewsTitle");
         const loading = document.getElementById("reviewsLoading");
         const empty = document.getElementById("reviewsEmpty");
         const error = document.getElementById("reviewsError");
         const list = document.getElementById("reviewsList");
 
+        title.hidden = false;
         loading.hidden = false;
         empty.hidden = true;
         error.hidden = true;
@@ -250,6 +371,7 @@
         } catch (requestError) {
           console.error("Gagal memuat daftar ulasan:", requestError);
           loading.hidden = true;
+          title.hidden = true;
           error.hidden = false;
         }
       }
@@ -262,30 +384,43 @@
           const reviewPhoto = resolveReviewPhoto(review.foto_url);
           const rating = Number(review.rating);
           const reviewDate = formatReviewDate(review.created_at);
+          const reviewStars = rating >= 1 && rating <= 5 ? "★".repeat(rating) : "";
+          const address = review.alamat || review.nama_tempat || "";
 
           return `
             <article class="review-card">
-              <img class="review-food-photo" src="${escapeHTML(foodPhoto)}" alt="${escapeHTML(foodName)}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
               <div class="review-card-content">
                 <div class="review-card-heading">
-                  <h2>${escapeHTML(foodName)}</h2>
-                  <time class="review-date">${escapeHTML(reviewDate)}</time>
-                </div>
-                <p class="review-place">${escapeHTML(review.nama_tempat || review.alamat || "")}</p>
-                ${rating >= 1 && rating <= 5 ? `<p class="review-rating">⭐ ${rating} / 5</p>` : ""}
-                <p class="review-comment">${escapeHTML(review.review_text || "")}</p>
-                ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" loading="lazy" />` : ""}
-                <div class="review-card-footer">
-                  <a class="review-detail-link" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}">Lihat kuliner</a>
+                  <div class="review-author">
+                    <span class="review-avatar" aria-hidden="true">
+                      <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
+                    </span>
+                    <div class="review-author-details">
+                      <strong class="review-author-name">${escapeHTML(review.nama_user || "Pengguna")}</strong>
+                      <div class="review-rating-date">
+                        ${reviewStars ? `<span class="review-rating" aria-label="Rating ${rating} dari 5">${reviewStars}</span>` : ""}
+                        <time class="review-date">${escapeHTML(reviewDate)}</time>
+                      </div>
+                    </div>
+                  </div>
                   <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
                     <a class="review-action" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}&edit_ulasan=${encodeURIComponent(review.id_ulasan)}" aria-label="Ubah ulasan">
-                      <iconify-icon icon="material-symbols:edit-outline" aria-hidden="true"></iconify-icon>
+                      <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
                     </a>
                     <button class="review-action" type="button" data-delete-review="${escapeHTML(review.id_ulasan)}" aria-label="Hapus ulasan">
-                      <iconify-icon icon="material-symbols:delete-outline" aria-hidden="true"></iconify-icon>
+                      <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
                     </button>
                   </div>
                 </div>
+                ${review.review_text ? `<p class="review-comment">${escapeHTML(review.review_text)}</p>` : ""}
+                ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" loading="lazy" />` : ""}
+                <a class="review-food-link" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}">
+                  <img class="review-food-photo" src="${escapeHTML(foodPhoto)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+                  <span class="review-food-details">
+                    <strong class="review-food-name">${escapeHTML(foodName)}</strong>
+                    <span class="review-food-address"><iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>${escapeHTML(address)}</span>
+                  </span>
+                </a>
               </div>
             </article>
           `;
@@ -339,8 +474,22 @@
 
       function formatReviewDate(value) {
         if (!value) return "";
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("id-ID");
+        const dateValue = String(value).trim();
+        const isoDate = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoDate) return `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}`;
+
+        const localizedDate = dateValue.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+        if (localizedDate) {
+          return `${localizedDate[1].padStart(2, "0")}/${localizedDate[2].padStart(2, "0")}/${localizedDate[3]}`;
+        }
+
+        const date = new Date(dateValue);
+        if (Number.isNaN(date.getTime())) return "";
+        return new Intl.DateTimeFormat("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(date);
       }
 
       function escapeHTML(value) {
