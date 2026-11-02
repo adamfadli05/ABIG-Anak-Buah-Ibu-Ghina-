@@ -142,6 +142,23 @@
         -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
       }
+      .recommendations-section {
+        margin: 20px 0 28px;
+      }
+      .recommendations-title {
+        margin: 0 0 14px;
+        color: #001b7d;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .recommendations-status {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+      }
+      #recommendationsGrid[hidden] {
+        display: none !important;
+      }
     </style>
 
     <!-- Google Fonts -->
@@ -191,6 +208,12 @@
         </div>
       </section>
 
+      <section class="recommendations-section" aria-labelledby="recommendationsTitle">
+        <h2 class="recommendations-title" id="recommendationsTitle">Rekomendasi Kuliner</h2>
+        <p class="recommendations-status" id="recommendationsStatus" role="status" aria-live="polite">Memuat rekomendasi...</p>
+        <div class="food-grid" id="recommendationsGrid" hidden></div>
+      </section>
+
       <!-- Daftar Kuliner -->
       <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner">
         <div id="loadingIndicator" style="display: none; text-align: center; padding: 20px">Loading...</div>
@@ -201,7 +224,7 @@
     </main>
 
     <!-- File JavaScript External -->
-    <script src="js/navbar.js"></script>
+    <script src="js/navbar.js?v=session-api"></script>
 
     <script>
       const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
@@ -424,33 +447,31 @@
         if (emptyMessage) emptyMessage.style.display = "none";
         foodGrid.style.display = "flex";
 
-        foodGrid.innerHTML = window.allKuliner
-          .map((item) => {
-            const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");
-            const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
-            const address = escapeHTML(item.alamat || "Alamat belum tersedia");
+        foodGrid.innerHTML = window.allKuliner.map(renderFoodCard).join("");
+      }
 
-            const numericPrice = Number(item.harga);
-            const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
-            const photo = getSafePhoto(item.foto);
-            
-            // Rating dinamis sesuai data ulasan pengguna
-            const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
+      function renderFoodCard(item) {
+        const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");
+        const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
+        const address = escapeHTML(item.alamat || "Alamat belum tersedia");
+        const numericPrice = Number(item.harga);
+        const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
+        const photo = getSafePhoto(item.foto || item.foto_tempat || item.foto_kuliner);
+        const ratingNum = Number(item.rata_rata_rating || item.rating || 0).toFixed(1);
+        const dataQuery = new URLSearchParams({
+          id: item.id_tempat || item.id_kuliner || "",
+          nama: item.nama_kuliner || item.nama || item.nama_tempat || "Kuliner",
+          deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
+          foto: photo,
+          harga: item.harga || "0",
+          alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
+          jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
+          lat: item.latitude || "",
+          lng: item.longitude || "",
+          no_telepon: item.no_telepon || "",
+        }).toString();
 
-            const dataQuery = new URLSearchParams({
-              id: item.id_tempat || item.id_kuliner || "",
-              nama: item.nama_kuliner || item.nama_tempat || "Kuliner",
-              deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
-              foto: photo,
-              harga: item.harga || "0",
-              alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
-              jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
-              lat: item.latitude || "",
-              lng: item.longitude || "",
-              no_telepon: item.no_telepon || "",
-            }).toString();
-
-            return `
+        return `
             <a href="detail_kuliner.html?${dataQuery}" class="food-card" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column;">
               <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
               <h3 class="food-name">${name}</h3>
@@ -467,8 +488,32 @@
               </div>
             </a>
           `;
-          })
-          .join("");
+      }
+
+      async function loadRecommendations() {
+        const status = document.getElementById("recommendationsStatus");
+        const grid = document.getElementById("recommendationsGrid");
+        try {
+          const response = await fetch(`${BASE_URL}/api/rekomendasi.php`);
+          if (!response.ok) throw new Error(`Gagal memuat rekomendasi (HTTP ${response.status}).`);
+
+          const result = await response.json();
+          if (!result.status || !Array.isArray(result.data)) {
+            throw new Error(result.message || "Format data rekomendasi tidak sesuai.");
+          }
+
+          if (result.data.length === 0) {
+            status.textContent = "Belum ada rekomendasi kuliner.";
+            return;
+          }
+
+          grid.innerHTML = result.data.map(renderFoodCard).join("");
+          grid.hidden = false;
+          status.hidden = true;
+        } catch (error) {
+          console.error("Gagal memuat rekomendasi kuliner:", error);
+          status.textContent = "Rekomendasi belum dapat dimuat. Silakan coba lagi nanti.";
+        }
       }
 
       // 4. LOAD KATEGORI DINAMIS DARI API kategori.php[cite: 8]
@@ -729,6 +774,7 @@
 
         loadKategori();
         loadKuliner();
+        loadRecommendations();
         checkGoogleLoginSession();
       });
     </script>
