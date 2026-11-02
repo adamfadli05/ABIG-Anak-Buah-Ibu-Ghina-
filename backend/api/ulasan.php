@@ -3,10 +3,7 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+setCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -113,11 +110,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 u.komentar  AS review_text,
                 u.foto_url,
                 u.tanggal   AS created_at,
+                us.nama     AS nama_user,
+                us.foto_profil,
                 k.nama_kuliner,
                 tk.nama_tempat,
                 tk.alamat,
                 tk.foto     AS photo_url
             FROM ulasan u
+            JOIN users us ON u.id_user = us.id_user
             JOIN tempat_kuliner tk ON u.id_tempat = tk.id_tempat
             JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
             WHERE u.id_user = $1
