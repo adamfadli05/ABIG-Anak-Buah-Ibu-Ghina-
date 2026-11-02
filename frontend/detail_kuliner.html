@@ -415,7 +415,12 @@
         }
 
         try {
-          const response = await fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`);
+          // Fetch data detail kuliner dan data rating secara paralel dari rating.php
+          const [response, ratingResponse] = await Promise.all([
+            fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
+            fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+          ]);
+
           if (!response.ok) throw new Error("Gagal mengambil data dari server");
 
           const result = await response.json();
@@ -424,6 +429,14 @@
             if (detailContent) detailContent.hidden = true;
             if (errorState) errorState.style.display = "flex";
             return;
+          }
+
+          let ratingData = null;
+          if (ratingResponse && ratingResponse.ok) {
+            const ratingJson = await ratingResponse.json();
+            if (ratingJson.status && ratingJson.data) {
+              ratingData = ratingJson.data;
+            }
           }
 
           const data = result.data;
@@ -467,8 +480,9 @@
             document.getElementById("btnMapLink").href = `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`;
           }
 
-          const avgRating = Number(data.rata_rata_rating || 0).toFixed(1);
-          const totalReview = data.jumlah_ulasan || ulasanList.length;
+          // Ambil rating bersumber dari rating.php jika tersedia, fallback ke data detail_kuliner.php
+          const avgRating = Number(ratingData ? ratingData.rata_rata_rating : (data.rata_rata_rating || 0)).toFixed(1);
+          const totalReview = ratingData ? ratingData.jumlah_rating : (data.jumlah_ulasan || ulasanList.length);
 
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `${totalReview} Rating`;
@@ -479,16 +493,28 @@
           renderReviews(ulasanList, reviewsContainer);
 
           const refreshReviewData = async () => {
-            const [detailResponse, reviewsResponse] = await Promise.all([fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`), fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`)]);
+            const [detailResponse, reviewsResponse, ratingRes] = await Promise.all([
+              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`), 
+              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
+              fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+            ]);
             const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
             if (!detailResponse.ok || !refreshedDetail.status || !reviewsResponse.ok || !refreshedReviews.status) {
               throw new Error("Gagal memperbarui daftar ulasan.");
             }
 
+            let refreshedRatingData = null;
+            if (ratingRes && ratingRes.ok) {
+              const rJson = await ratingRes.json();
+              if (rJson.status && rJson.data) refreshedRatingData = rJson.data;
+            }
+
             ulasanList = refreshedReviews.data || [];
-            const latestRating = Number(refreshedDetail.data.rata_rata_rating || 0).toFixed(1);
+            const latestRating = Number(refreshedRatingData ? refreshedRatingData.rata_rata_rating : (refreshedDetail.data.rata_rata_rating || 0)).toFixed(1);
+            const latestCount = refreshedRatingData ? refreshedRatingData.jumlah_rating : ulasanList.length;
+
             document.getElementById("ratingScoreText").textContent = latestRating;
-            document.getElementById("reviewCountText").textContent = `${ulasanList.length} Rating`;
+            document.getElementById("reviewCountText").textContent = `${latestCount} Rating`;
             updateAggregateStars(Number(latestRating));
             updateRatingDistribution(ulasanList);
             renderReviews(ulasanList, reviewsContainer);
