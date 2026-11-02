@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const AUTH_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
   const navbarContainer = document.getElementById("navbar-container");
 
   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
@@ -64,8 +65,36 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((html) => {
         navbarContainer.innerHTML = html;
         window.initNavbarState();
+        return syncNavbarSession();
       })
+      .then(() => window.initNavbarState())
       .catch((error) => console.error("Gagal memuat navbar:", error));
+  }
+
+  async function syncNavbarSession() {
+    try {
+      const response = await fetch(`${AUTH_API_BASE}/api/me.php`, {
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        return;
+      }
+
+      if (!response.ok) throw new Error(`Gagal memeriksa sesi (HTTP ${response.status}).`);
+
+      const result = await response.json();
+      if (!result.status || !result.data || !result.role) {
+        throw new Error(result.message || "Respons sesi tidak valid.");
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data));
+      localStorage.setItem("role", result.role);
+    } catch (error) {
+      console.error("Gagal memeriksa sesi navbar:", error);
+    }
   }
 
   function getAuthState() {
