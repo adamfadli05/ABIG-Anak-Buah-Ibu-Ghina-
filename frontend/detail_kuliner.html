@@ -6,7 +6,7 @@
     <title>Detail Kuliner | Mangan Yukkk</title>
 
     <!-- CSS Eksternal -->
-    <link rel="stylesheet" href="css/detail_kuliner.css?v=review-actions-click" />
+    <link rel="stylesheet" href="css/detail_kuliner.css?v=review-delete-modal-clicks" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -169,12 +169,12 @@
                   </div>
                 </div>
                 <label class="sr-only" for="reviewComment">Tulis ulasan di sini</label>
-                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="100"></textarea>
+                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="200"></textarea>
               </div>
               <div class="review-form-meta">
                 <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
-                <span class="review-character-hint">Karakter ulasan maksimal 100</span>
-                <span id="reviewCharacterCount" class="sr-only">0/100</span>
+                <span class="review-character-hint">Karakter ulasan maksimal 200</span>
+                <span id="reviewCharacterCount" class="sr-only">0/200</span>
               </div>
             </div>
             <div class="review-form-actions">
@@ -200,13 +200,31 @@
       </div>
     </main>
 
+    <div id="reviewDeleteModal" class="review-delete-overlay" hidden>
+      <section class="review-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="reviewDeleteTitle">
+        <div id="reviewDeleteConfirm">
+          <p id="reviewDeleteTitle" class="review-delete-message">Apakah anda yakin ingin menghapus ulasan ?</p>
+          <div class="review-delete-actions">
+            <button id="reviewDeleteCancel" class="review-delete-cancel" type="button">Batal</button>
+            <button id="reviewDeleteConfirmButton" class="review-delete-confirm" type="button">Hapus</button>
+          </div>
+        </div>
+        <div id="reviewDeleteResult" class="review-delete-result" hidden>
+          <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          <p id="reviewDeleteResultMessage" class="review-delete-message"></p>
+          <p id="reviewDeleteResultDetail" class="review-delete-detail" hidden></p>
+          <button id="reviewDeleteResultAction" class="review-delete-result-action" type="button">Oke</button>
+        </div>
+      </section>
+    </div>
+
     <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
     <script src="js/navbar.js"></script>
     <script>
       const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
       const loginUrl = (returnTo) => `login.html?returnTo=${encodeURIComponent(returnTo)}`;
 
-      document.addEventListener("DOMContentLoaded", async () => {
+      (async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const idTempat = urlParams.get("id") || urlParams.get("id_tempat");
 
@@ -229,7 +247,15 @@
         const reviewFeedbackIcon = document.getElementById("reviewFeedbackIcon");
         const reviewFeedbackText = document.getElementById("reviewFeedbackText");
         const reviewFeedbackRetry = document.getElementById("reviewFeedbackRetry");
+        const reviewDeleteModal = document.getElementById("reviewDeleteModal");
+        const reviewDeleteConfirm = document.getElementById("reviewDeleteConfirm");
+        const reviewDeleteResult = document.getElementById("reviewDeleteResult");
+        const reviewDeleteConfirmButton = document.getElementById("reviewDeleteConfirmButton");
+        const reviewDeleteCancel = document.getElementById("reviewDeleteCancel");
+        const reviewDeleteResultAction = document.getElementById("reviewDeleteResultAction");
         let retryReviewAction = null;
+        let pendingReviewDelete = null;
+        let deleteReview = null;
         let selectedReviewPhoto = null;
         let reviewPhotoPreviewUrl = null;
         let uploadedReviewPhotoUrl = null;
@@ -309,6 +335,63 @@
           hideReviewFeedback();
           if (retryAction) retryAction();
         });
+        reviewDeleteCancel.addEventListener("click", closeReviewDeleteModal);
+        reviewDeleteResultAction.addEventListener("click", () => {
+          if (reviewDeleteResultAction.dataset.retry === "true" && pendingReviewDelete) {
+            runReviewDelete();
+            return;
+          }
+          closeReviewDeleteModal();
+        });
+        reviewDeleteConfirmButton.addEventListener("click", runReviewDelete);
+        reviewDeleteModal.addEventListener("click", (event) => {
+          if (event.target === reviewDeleteModal && !reviewDeleteConfirmButton.disabled) closeReviewDeleteModal();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !reviewDeleteModal.hidden && !reviewDeleteConfirmButton.disabled) {
+            closeReviewDeleteModal();
+          }
+        });
+
+        function openReviewDeleteModal(reviewId, action) {
+          pendingReviewDelete = { reviewId, action };
+          reviewDeleteConfirm.hidden = false;
+          reviewDeleteResult.hidden = true;
+          reviewDeleteResultAction.dataset.retry = "false";
+          reviewDeleteModal.hidden = false;
+          reviewDeleteCancel.focus();
+        }
+
+        function closeReviewDeleteModal() {
+          reviewDeleteModal.hidden = true;
+          reviewDeleteConfirmButton.disabled = false;
+          reviewDeleteCancel.disabled = false;
+          if (pendingReviewDelete?.action?.isConnected) pendingReviewDelete.action.focus();
+          pendingReviewDelete = null;
+        }
+
+        function showReviewDeleteResult(success, message, detail = "") {
+          reviewDeleteConfirm.hidden = true;
+          reviewDeleteResult.hidden = false;
+          document.getElementById("reviewDeleteResultIcon").setAttribute(
+            "icon",
+            success ? "material-symbols:check-circle" : "material-symbols:error-outline"
+          );
+          document.getElementById("reviewDeleteResultIcon").classList.toggle("is-error", !success);
+          document.getElementById("reviewDeleteResultMessage").textContent = message;
+          const resultDetail = document.getElementById("reviewDeleteResultDetail");
+          resultDetail.textContent = detail;
+          resultDetail.hidden = !detail;
+          reviewDeleteResultAction.textContent = success ? "Oke" : "Coba lagi";
+          reviewDeleteResultAction.dataset.retry = String(!success);
+          reviewDeleteResultAction.disabled = false;
+          reviewDeleteResultAction.focus();
+        }
+
+        async function runReviewDelete() {
+          if (!pendingReviewDelete || !deleteReview) return;
+          await deleteReview(pendingReviewDelete.reviewId, pendingReviewDelete.action);
+        }
 
         // Fungsi memperbarui tampilan bintang
         const updateSelectedRating = (ratingVal) => {
@@ -446,7 +529,7 @@
             });
             updateSelectedRating();
             reviewComment.value = review.komentar || review.review_text || "";
-            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/100`;
+            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/200`;
             reviewFormMessage.textContent = "";
             selectedReviewPhoto = null;
             uploadedReviewPhotoUrl = null;
@@ -480,12 +563,16 @@
               beginReviewEdit(reviewId);
               return;
             }
-            if (action.dataset.reviewAction !== "delete" || !window.confirm("Yakin ingin menghapus ulasan ini?")) return;
+            if (action.dataset.reviewAction !== "delete") return;
             hideReviewFeedback();
-            await deleteReview(reviewId, action);
+            openReviewDeleteModal(reviewId, action);
           });
 
-          const deleteReview = async (reviewId, action) => {
+          deleteReview = async (reviewId, action) => {
+            reviewDeleteConfirm.hidden = false;
+            reviewDeleteResult.hidden = true;
+            reviewDeleteConfirmButton.disabled = true;
+            reviewDeleteCancel.disabled = true;
             action.disabled = true;
             try {
               const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
@@ -513,15 +600,19 @@
                 console.error("Ulasan terhapus, tetapi daftar gagal diperbarui:", error);
                 refreshFailed = true;
               }
-              showReviewFeedback(
+              showReviewDeleteResult(
+                true,
                 refreshFailed
                   ? "Ulasan berhasil dihapus, tetapi daftar belum diperbarui. Muat ulang halaman."
                   : "Ulasan berhasil dihapus."
               );
             } catch (error) {
               console.error("Gagal menghapus ulasan:", error);
-              showReviewFeedback("Ulasan gagal dihapus, silakan coba lagi.", () => deleteReview(reviewId, action), true);
+              showReviewDeleteResult(false, "Ulasan gagal dihapus", error.message || "Silakan coba lagi.");
               action.disabled = false;
+            } finally {
+              reviewDeleteConfirmButton.disabled = false;
+              reviewDeleteCancel.disabled = false;
             }
           };
 
@@ -530,7 +621,7 @@
             reviewForm.reset();
             updateSelectedRating(0);
             clearReviewPhoto();
-            document.getElementById("reviewCharacterCount").textContent = "0/100";
+            document.getElementById("reviewCharacterCount").textContent = "0/200";
             reviewFormMessage.textContent = "";
             setReviewFormVisible(false);
             submitReview.textContent = "Kirim Ulasan";
@@ -552,8 +643,8 @@
 
           reviewComment.addEventListener("input", () => {
             const characters = Array.from(reviewComment.value);
-            if (characters.length > 100) reviewComment.value = characters.slice(0, 100).join("");
-            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/100`;
+            if (characters.length > 200) reviewComment.value = characters.slice(0, 200).join("");
+            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/200`;
             reviewFormMessage.textContent = "";
           });
 
@@ -600,8 +691,8 @@
               reviewComment.focus();
               return;
             }
-            if (characterCount > 100) {
-              reviewFormMessage.textContent = "Ulasan maksimal 100 karakter.";
+            if (characterCount > 200) {
+              reviewFormMessage.textContent = "Ulasan maksimal 200 karakter.";
               reviewComment.focus();
               return;
             }
@@ -654,7 +745,7 @@
               editingReviewId = null;
               updateSelectedRating(0);
               clearReviewPhoto();
-              document.getElementById("reviewCharacterCount").textContent = "0/100";
+              document.getElementById("reviewCharacterCount").textContent = "0/200";
               setReviewFormVisible(false);
               submitReview.textContent = "Kirim Ulasan";
               cancelReviewEdit.hidden = true;
@@ -827,7 +918,7 @@
             bookmarkToast.classList.remove("show");
           }, 3000);
         }
-      });
+      })();
 
       function renderReviews(ulasanList, reviewsContainer) {
         if (!ulasanList || !ulasanList.length) {
@@ -930,7 +1021,7 @@
 
         Object.entries(counts).forEach(([rating, count]) => {
           const bar = document.getElementById(`ratingBar${rating}`);
-          if (bar) bar.style.width = `${maxCount ? (count / maxCount) * 100 : 100}%`;
+          if (bar) bar.style.width = `${maxCount ? (count / maxCount) * 100 : 0}%`;
         });
       }
 

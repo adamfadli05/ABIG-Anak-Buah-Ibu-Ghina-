@@ -480,7 +480,20 @@
 
 .photo-action-message {
 	margin: 8px 0 0;
+	color: var(--profile-muted);
 	font-size: 10px;
+}
+
+.photo-action-message[data-kind="error"] {
+	color: var(--profile-error);
+}
+
+.photo-action-message[data-kind="success"] {
+	color: var(--profile-success);
+}
+
+.photo-action-message[hidden] {
+	display: none;
 }
 
 .sidebar-name {
@@ -1419,6 +1432,10 @@
 	color: #fff;
 	font-size: 14px;
 	cursor: pointer;
+}
+
+.password-visibility-toggle iconify-icon {
+	font-size: 16px;
 }
 
 .password-field-row:first-child .password-visibility-toggle {

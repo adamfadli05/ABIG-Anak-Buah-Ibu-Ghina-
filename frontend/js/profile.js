@@ -1,5 +1,5 @@
 const PROFILE_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-const OFFLINE_ERROR = "Perangkat tidak terhubung ke internet. Periksa jaringan Anda dan coba lagi.";
+const OFFLINE_ERROR = "Periksa koneksi internet anda.";
 const SERVER_CONNECTION_ERROR = "Server profil tidak dapat dihubungi. Pastikan Apache dan backend berjalan, lalu coba lagi.";
 let currentProfile = null;
 let nameUpdateTimeout = null;
@@ -8,7 +8,6 @@ let isProfilePhotoUploading = false;
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("retryProfile").addEventListener("click", loadProfile);
   document.getElementById("retryConnectionButton").addEventListener("click", loadProfile);
-  document.getElementById("profileForm").addEventListener("submit", saveProfile);
   document.getElementById("nameEditForm").addEventListener("submit", saveName);
   document.getElementById("nameEditInput").addEventListener("input", clearNameValidation);
   document.getElementById("nameEditInput").addEventListener("keydown", handleNameEditKeydown);
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("finishLogoutButton").addEventListener("click", finishLogout);
   document.getElementById("logoutModal").addEventListener("click", handleLogoutOverlayClick);
   document.addEventListener("keydown", handleLogoutDialogKeydown);
-  document.getElementById("profilePhoto").addEventListener("input", previewProfilePhoto);
   document.getElementById("editNameButton").addEventListener("click", openNameEditor);
   document.getElementById("cancelNameEdit").addEventListener("click", closeNameEditor);
   document.getElementById("editPhotoButton").addEventListener("click", togglePhotoMenu);
@@ -34,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("replacePhotoButton").addEventListener("click", requestPhotoFile);
   document.getElementById("removePhotoButton").addEventListener("click", removeProfilePhoto);
   document.getElementById("photoFileInput").addEventListener("change", handlePhotoFileSelection);
-  document.getElementById("cancelProfileEdit").addEventListener("click", closeProfileEditor);
   document.getElementById("togglePasswordButton").addEventListener("click", togglePasswordEditor);
   document.getElementById("cancelPasswordEdit").addEventListener("click", closePasswordEditor);
   document.addEventListener("click", closePhotoMenuOnOutsideClick);
@@ -119,52 +116,9 @@ function renderProfile(user) {
   const navUserName = document.getElementById("navUserName");
   if (navUserName) navUserName.textContent = name;
   document.getElementById("displayEmail").textContent = user.email || "";
-  document.getElementById("profilePhoto").value = user.foto_profil || "";
   document.getElementById("sidebarName").textContent = name;
   setProfilePhoto(user.foto_profil || "");
   localStorage.setItem("user", JSON.stringify(user));
-}
-
-async function saveProfile(event) {
-  event.preventDefault();
-  if (isProfilePhotoUploading) return;
-  const photoInput = document.getElementById("profilePhoto");
-  const message = document.getElementById("profileFormMessage");
-  const button = event.currentTarget.querySelector("button[type='submit']");
-  const photo = photoInput.value.trim();
-
-  if (photo && !isValidHttpUrl(photo)) {
-    showMessage(message, "Masukkan URL foto dengan format yang valid.", "error");
-    photoInput.focus();
-    return;
-  }
-
-  if (photo === (currentProfile?.foto_profil || "")) {
-    showMessage(message, "Tidak ada perubahan untuk disimpan.", "error");
-    return;
-  }
-
-  button.disabled = true;
-  message.hidden = true;
-  try {
-    const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ foto_profil: photo }),
-    });
-    const result = await response.json();
-    if (!response.ok || !result.status || !result.data) {
-      throw new Error(result.message || "Gagal memperbarui profil.");
-    }
-
-    renderProfile(result.data);
-    showMessage(message, result.message || "Profil berhasil diperbarui.", "success");
-  } catch (requestError) {
-    showMessage(message, getRequestErrorMessage(requestError, "Gagal memperbarui profil."), "error");
-  } finally {
-    button.disabled = false;
-  }
 }
 
 async function saveName(event) {
@@ -273,10 +227,12 @@ async function changePassword(event) {
     showChangeResult(true, "");
   } catch (requestError) {
     const detail = getRequestErrorMessage(requestError, "Silakan periksa data dan coba lagi.");
-    showChangeResult(
-      false,
-      detail === "Kata sandi lama tidak sesuai" ? "" : detail
-    );
+    if (detail === "Kata sandi lama tidak sesuai") {
+      setPasswordFieldError("currentPassword", "Kata sandi saat ini tidak sesuai.");
+      currentPassword.focus();
+      return;
+    }
+    showChangeResult(false, detail);
   } finally {
     button.disabled = false;
   }
@@ -343,22 +299,6 @@ function handleLogoutDialogKeydown(event) {
     const successDialog = document.getElementById("logoutSuccessDialog");
     if (successDialog.hidden) closeLogoutConfirmation();
   }
-}
-
-function previewProfilePhoto() {
-  setProfilePhoto(document.getElementById("profilePhoto").value.trim());
-}
-
-function openProfileEditor() {
-  const form = document.getElementById("profileForm");
-  form.hidden = false;
-  document.getElementById("profilePhoto").focus();
-}
-
-function closeProfileEditor() {
-  const form = document.getElementById("profileForm");
-  form.hidden = true;
-  document.getElementById("profileFormMessage").hidden = true;
 }
 
 function openNameEditor() {
@@ -523,7 +463,7 @@ function togglePasswordVisibility(event) {
   const showPassword = input.type === "password";
   input.type = showPassword ? "text" : "password";
   button.setAttribute("aria-label", `${showPassword ? "Sembunyikan" : "Tampilkan"} ${input.labels[0].textContent.toLowerCase()}`);
-  button.innerHTML = `<i class="fa-regular ${showPassword ? "fa-eye" : "fa-eye-slash"}" aria-hidden="true"></i>`;
+  button.querySelector("iconify-icon").setAttribute("icon", showPassword ? "codicon:eye" : "codicon:eye-closed");
 }
 
 function togglePhotoMenu() {
@@ -549,54 +489,53 @@ function requestPhotoFile() {
 
 async function handlePhotoFileSelection(event) {
   const input = event.currentTarget;
+  if (isProfilePhotoUploading) return;
   const file = input.files[0];
   if (!file) return;
   input.value = "";
-  openProfileEditor();
-  const message = document.getElementById("profileFormMessage");
-  const saveButton = document.querySelector("#profileForm button[type='submit']");
+  const message = document.getElementById("photoActionMessage");
   const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-
-  if (!extensionByType[file.type]) {
-    showMessage(message, "Pilih foto berformat JPG, PNG, atau WEBP.", "error");
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    showMessage(message, "Ukuran foto maksimal 5 MB.", "error");
-    return;
-  }
-
-  const supabaseConfig = window.SUPABASE_CONFIG;
-  if (!window.supabase) {
-    showMessage(message, "Layanan unggah foto gagal dimuat. Periksa koneksi internet, lalu muat ulang halaman.", "error");
-    return;
-  }
-  if (!supabaseConfig?.url || !supabaseConfig.anonKey || !supabaseConfig.profilePhotoBucket) {
-    showMessage(message, "Konfigurasi Supabase atau nama bucket foto profil belum tersedia. Muat ulang halaman dan periksa konfigurasi.", "error");
-    return;
-  }
-
   isProfilePhotoUploading = true;
-  saveButton.disabled = true;
-  showMessage(message, "Sedang mengunggah foto...", "success");
+  document.getElementById("editPhotoButton").disabled = true;
+  document.getElementById("removePhotoButton").disabled = true;
+  message.hidden = true;
   try {
+    const supabaseConfig = window.SUPABASE_CONFIG;
+    if (!window.supabase) {
+      throw new Error("Layanan unggah foto gagal dimuat. Periksa koneksi internet, lalu muat ulang halaman.");
+    }
+    if (!supabaseConfig?.url || !supabaseConfig.anonKey || !supabaseConfig.profilePhotoBucket) {
+      throw new Error("Konfigurasi Supabase atau nama bucket foto profil belum tersedia. Muat ulang halaman dan periksa konfigurasi.");
+    }
+
     const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
-    const photoPath = `profil/${currentProfile?.id_user || "pengguna"}/${crypto.randomUUID()}.${extensionByType[file.type]}`;
+    const photoPath = `profil/${currentProfile?.id_user || "pengguna"}/${crypto.randomUUID()}.${extensionByType[file.type] || "img"}`;
     const { error: uploadError } = await supabaseClient.storage
       .from(supabaseConfig.profilePhotoBucket)
       .upload(photoPath, file, { contentType: file.type, upsert: false });
     if (uploadError) throw new Error(uploadError.message);
 
     const photoUrl = supabaseClient.storage.from(supabaseConfig.profilePhotoBucket).getPublicUrl(photoPath).data.publicUrl;
-    document.getElementById("profilePhoto").value = photoUrl;
-    previewProfilePhoto();
-    showMessage(message, "Foto berhasil diunggah. Tekan Simpan perubahan untuk menerapkan foto profil.", "success");
+    const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ foto_profil: photoUrl }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.status || !result.data) {
+      throw new Error(result.message || "Gagal memperbarui foto profil.");
+    }
+
+    renderProfile(result.data);
+    message.hidden = true;
   } catch (uploadError) {
-    console.error("[Profile] Gagal mengunggah foto profil:", uploadError);
+    console.error("[Profile] Gagal mengganti foto profil:", uploadError);
     showMessage(message, getRequestErrorMessage(uploadError, "Foto gagal diunggah. Silakan coba lagi."), "error");
   } finally {
     isProfilePhotoUploading = false;
-    saveButton.disabled = false;
+    document.getElementById("editPhotoButton").disabled = false;
+    document.getElementById("removePhotoButton").disabled = false;
   }
 }
 
@@ -636,7 +575,7 @@ function setProfilePhoto(photoUrl) {
     image.hidden = true;
     fallback.hidden = false;
   };
-  if (!photoUrl || !isValidHttpUrl(photoUrl)) {
+  if (!photoUrl) {
     image.removeAttribute("src");
     image.hidden = true;
     fallback.hidden = false;
@@ -645,15 +584,6 @@ function setProfilePhoto(photoUrl) {
   image.src = photoUrl;
   image.hidden = false;
   fallback.hidden = true;
-}
-
-function isValidHttpUrl(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function getRequestErrorMessage(error, fallback) {

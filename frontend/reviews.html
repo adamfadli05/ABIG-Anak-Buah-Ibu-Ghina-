@@ -11,30 +11,29 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <style>
       .reviews-page {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 112px 28px 48px;
+        width: 100%;
+        padding: 112px 8px 48px;
       }
 
       .reviews-title {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 0 0 22px;
+        margin: 0 0 18px;
         color: #171717;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 500;
         text-decoration: underline;
         text-underline-offset: 3px;
       }
 
       .reviews-title iconify-icon {
-        font-size: 17px;
+        font-size: 18px;
       }
 
       .reviews-list {
         display: grid;
-        justify-items: start;
+        justify-items: stretch;
         gap: 16px;
       }
 
@@ -45,8 +44,8 @@
       }
 
       .review-card {
-        width: min(100%, 650px);
-        padding: 16px 18px;
+        width: 100%;
+        padding: 16px 22px;
         border: 1px solid #d1d1d1;
         border-radius: 20px;
         background: #fff;
@@ -94,7 +93,7 @@
         display: block;
         margin: 0 0 2px;
         color: #111;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
       }
 
@@ -132,7 +131,7 @@
 
       .review-photo {
         display: block;
-        width: 54px;
+        width: 52px;
         height: 44px;
         margin: 0 0 10px;
         border-radius: 7px;
@@ -196,8 +195,8 @@
         display: inline-grid;
         place-items: center;
         border: 0;
-        width: 34px;
-        height: 34px;
+        width: 28px;
+        height: 28px;
         padding: 0;
         border-radius: 50%;
         background: #001b7d;
@@ -207,7 +206,7 @@
       }
 
       .review-action iconify-icon {
-        font-size: 18px;
+        font-size: 16px;
       }
 
       .review-action:disabled {
@@ -269,13 +268,137 @@
         cursor: pointer;
       }
 
+      .review-delete-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgb(0 0 0 / 28%);
+        pointer-events: auto;
+      }
+
+      .review-delete-overlay[hidden],
+      .review-delete-result[hidden] {
+        display: none !important;
+      }
+
+      .review-delete-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(280px, 100%);
+        min-height: 112px;
+        padding: 18px 22px 14px;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgb(0 0 0 / 14%);
+      }
+
+      .review-delete-message {
+        margin: 8px 0 20px;
+        color: #001b7d;
+        font-size: 15px;
+        line-height: 1.2;
+        text-align: center;
+      }
+
+      .review-delete-actions {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+      }
+
+      .review-delete-actions button {
+        position: relative;
+        z-index: 1;
+        min-width: 62px;
+        min-height: 28px;
+        padding: 5px 12px;
+        border: 0;
+        font: inherit;
+        font-size: 11px;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .review-delete-cancel {
+        background: #d9d9d9;
+        color: #001b7d;
+      }
+
+      .review-delete-confirm {
+        background: #001b7d;
+        color: #fff;
+      }
+
+      .review-delete-actions button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      .review-delete-result {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .review-delete-result > iconify-icon {
+        margin-bottom: 8px;
+        color: #28a745;
+        font-size: 20px;
+      }
+
+      .review-delete-result > iconify-icon.is-error {
+        color: #ed3028;
+      }
+
+      .review-delete-result .review-delete-message {
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .review-delete-detail {
+        margin: 8px 0 0;
+        color: #6c6c73;
+        font-size: 11px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .review-delete-detail[hidden] {
+        display: none;
+      }
+
+      .review-delete-result-action {
+        position: relative;
+        z-index: 1;
+        align-self: flex-end;
+        margin-top: 16px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #001b7d;
+        font: inherit;
+        font-size: 11px;
+        text-decoration: underline;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .review-delete-dialog button:focus-visible {
+        outline: 2px solid rgb(0 27 125 / 45%);
+        outline-offset: 2px;
+      }
+
       @media (max-width: 600px) {
         .reviews-page {
-          padding: 104px 16px 32px;
+          padding: 104px 8px 32px;
         }
 
         .review-card {
-          padding: 13px;
+          padding: 13px 14px;
         }
 
         .review-card-heading {
@@ -287,8 +410,8 @@
         }
 
         .review-action {
-          width: 31px;
-          height: 31px;
+          width: 28px;
+          height: 28px;
         }
 
         .review-food-name {
@@ -314,31 +437,72 @@
       <div id="reviewsError" class="reviews-state" role="alert" hidden>
         <iconify-icon class="reviews-error-icon" icon="fluent:comment-dismiss-24-regular" aria-hidden="true"></iconify-icon>
         <h2 class="reviews-error-title">Gagal memuat halaman</h2>
+        <p id="reviewsErrorMessage" class="reviews-empty-copy"></p>
         <button id="retryReviews" class="reviews-retry" type="button">Silahkan coba lagi</button>
       </div>
       <div id="reviewsList" class="reviews-list" hidden></div>
     </main>
+    <div id="reviewDeleteModal" class="review-delete-overlay" hidden>
+      <section class="review-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="reviewDeleteTitle">
+        <div id="reviewDeleteConfirm">
+          <p id="reviewDeleteTitle" class="review-delete-message">Apakah anda yakin ingin menghapus ulasan ?</p>
+          <div class="review-delete-actions">
+            <button id="reviewDeleteCancel" class="review-delete-cancel" type="button">Batal</button>
+            <button id="reviewDeleteConfirmButton" class="review-delete-confirm" type="button">Hapus</button>
+          </div>
+        </div>
+        <div id="reviewDeleteResult" class="review-delete-result" hidden>
+          <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          <p id="reviewDeleteResultMessage" class="review-delete-message"></p>
+          <p id="reviewDeleteResultDetail" class="review-delete-detail" hidden></p>
+          <button id="reviewDeleteResultAction" class="review-delete-result-action" type="button">Oke</button>
+        </div>
+      </section>
+    </div>
     <script src="js/navbar.js"></script>
     <script>
       const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+      let pendingReviewDelete = null;
 
-      document.addEventListener("DOMContentLoaded", () => {
+      (() => {
         document.getElementById("retryReviews").addEventListener("click", loadReviews);
         document.getElementById("reviewsList").addEventListener("click", handleReviewAction);
+        document.getElementById("reviewDeleteCancel").addEventListener("click", closeReviewDeleteModal);
+        document.getElementById("reviewDeleteConfirmButton").addEventListener("click", deleteReview);
+        document.getElementById("reviewDeleteResultAction").addEventListener("click", () => {
+          if (document.getElementById("reviewDeleteResultAction").dataset.retry === "true" && pendingReviewDelete) {
+            deleteReview();
+            return;
+          }
+          closeReviewDeleteModal();
+        });
+        document.getElementById("reviewDeleteModal").addEventListener("click", (event) => {
+          if (event.target === event.currentTarget && !document.getElementById("reviewDeleteConfirmButton").disabled) {
+            closeReviewDeleteModal();
+          }
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !document.getElementById("reviewDeleteModal").hidden
+            && !document.getElementById("reviewDeleteConfirmButton").disabled) {
+            closeReviewDeleteModal();
+          }
+        });
         loadReviews();
-      });
+      })();
 
       async function loadReviews() {
         const title = document.getElementById("reviewsTitle");
         const loading = document.getElementById("reviewsLoading");
         const empty = document.getElementById("reviewsEmpty");
         const error = document.getElementById("reviewsError");
+        const errorMessage = document.getElementById("reviewsErrorMessage");
         const list = document.getElementById("reviewsList");
 
         title.hidden = false;
         loading.hidden = false;
         empty.hidden = true;
         error.hidden = true;
+        errorMessage.textContent = "";
         list.hidden = true;
         list.replaceChildren();
 
@@ -354,7 +518,21 @@
             return;
           }
 
-          const result = await response.json();
+          const responseText = await response.text();
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error("API ulasan mengembalikan respons bukan JSON:", responseText);
+            const serverMessage = responseText
+              .replace(/<br\s*\/?>/gi, " ")
+              .replace(/<[^>]*>/g, " ")
+              .replace(/&nbsp;/gi, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 300);
+            throw new Error(serverMessage || `Respons server tidak valid (HTTP ${response.status}).`);
+          }
           if (!response.ok || !result.status) {
             throw new Error(result.message || "Gagal memuat daftar ulasan.");
           }
@@ -372,6 +550,7 @@
           console.error("Gagal memuat daftar ulasan:", requestError);
           loading.hidden = true;
           title.hidden = true;
+          errorMessage.textContent = requestError.message || "Periksa koneksi dan coba lagi.";
           error.hidden = false;
         }
       }
@@ -431,9 +610,47 @@
         const button = event.target.closest("[data-delete-review]");
         if (!button) return;
 
-        if (!window.confirm("Yakin ingin menghapus ulasan ini?")) return;
-        button.disabled = true;
+        pendingReviewDelete = button;
+        document.getElementById("reviewDeleteConfirm").hidden = false;
+        document.getElementById("reviewDeleteResult").hidden = true;
+        document.getElementById("reviewDeleteResultAction").dataset.retry = "false";
+        document.getElementById("reviewDeleteModal").hidden = false;
+        document.getElementById("reviewDeleteCancel").focus();
+      }
 
+      function closeReviewDeleteModal() {
+        document.getElementById("reviewDeleteModal").hidden = true;
+        document.getElementById("reviewDeleteConfirmButton").disabled = false;
+        document.getElementById("reviewDeleteCancel").disabled = false;
+        if (pendingReviewDelete?.isConnected) pendingReviewDelete.focus();
+        pendingReviewDelete = null;
+      }
+
+      function showReviewDeleteResult(success, message, detail = "") {
+        document.getElementById("reviewDeleteConfirm").hidden = true;
+        document.getElementById("reviewDeleteResult").hidden = false;
+        const icon = document.getElementById("reviewDeleteResultIcon");
+        icon.setAttribute("icon", success ? "material-symbols:check-circle" : "material-symbols:error-outline");
+        icon.classList.toggle("is-error", !success);
+        document.getElementById("reviewDeleteResultMessage").textContent = message;
+        const detailElement = document.getElementById("reviewDeleteResultDetail");
+        detailElement.textContent = detail;
+        detailElement.hidden = !detail;
+        const action = document.getElementById("reviewDeleteResultAction");
+        action.textContent = success ? "Oke" : "Coba lagi";
+        action.dataset.retry = String(!success);
+        action.disabled = false;
+        action.focus();
+      }
+
+      async function deleteReview() {
+        if (!pendingReviewDelete) return;
+        const button = pendingReviewDelete;
+        document.getElementById("reviewDeleteConfirm").hidden = false;
+        document.getElementById("reviewDeleteResult").hidden = true;
+        document.getElementById("reviewDeleteConfirmButton").disabled = true;
+        document.getElementById("reviewDeleteCancel").disabled = true;
+        button.disabled = true;
         try {
           const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
             method: "DELETE",
@@ -451,12 +668,20 @@
             throw new Error(result.message || "Ulasan gagal dihapus.");
           }
 
-          await loadReviews();
-          window.alert("Ulasan berhasil dihapus.");
+          button.closest(".review-card")?.remove();
+          if (!document.querySelector("#reviewsList .review-card")) {
+            document.getElementById("reviewsList").hidden = true;
+            document.getElementById("reviewsEmpty").hidden = false;
+          }
+          pendingReviewDelete = null;
+          showReviewDeleteResult(true, "Ulasan berhasil dihapus");
         } catch (error) {
           console.error("Gagal menghapus ulasan:", error);
-          window.alert(error.message || "Ulasan gagal dihapus. Silakan coba lagi.");
+          showReviewDeleteResult(false, "Ulasan gagal dihapus", error.message || "Silakan coba lagi.");
           button.disabled = false;
+        } finally {
+          document.getElementById("reviewDeleteConfirmButton").disabled = false;
+          document.getElementById("reviewDeleteCancel").disabled = false;
         }
       }
 
