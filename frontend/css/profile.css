@@ -61,10 +61,10 @@
 	width: 88px;
 	height: 88px;
 	margin: 0 auto 10px;
-	overflow: hidden;
-	border: 3px solid #e8ebf3;
+	overflow: visible;
+	border: 0;
 	border-radius: 50%;
-	background: #eef1f7;
+	background: #d9d9d9;
 }
 
 .profile-avatar,
@@ -280,12 +280,12 @@
 }
 
 .profile-shell {
-	width: min(100%, 1440px);
-	min-height: 1024px;
+	width: calc(100% - 32px);
+	min-height: calc(100vh - 16px);
 	margin: 0 auto 28px;
 	overflow: hidden;
 	border: 1px solid #000;
-	border-radius: 40px;
+	border-radius: 20px;
 	background: #fff;
 }
 
@@ -376,7 +376,8 @@
 	margin: 0 auto 15px;
 	overflow: visible;
 	border: 0;
-	background: #ddd;
+	border-radius: 50%;
+	background: #d9d9d9;
 }
 
 .profile-avatar {
@@ -394,32 +395,49 @@
 
 .avatar-edit-button {
 	position: absolute;
-	right: -1px;
-	bottom: -1px;
-	width: 22px;
-	height: 22px;
+	right: -2px;
+	bottom: -2px;
+	width: 26px;
+	height: 26px;
 	display: grid;
 	place-items: center;
 	border: 0;
-	z-index: 1;
+	border-radius: 50%;
+	z-index: 2;
 	background: #fff;
 	color: var(--profile-blue);
-	font-size: 13px;
+	padding: 0;
 	cursor: pointer;
+	transition: background 0.2s, transform 0.2s;
+}
+
+.avatar-edit-button:hover {
+	background: #f0f3fa;
+	transform: scale(1.05);
+}
+
+.avatar-edit-button svg,
+.avatar-edit-icon {
+	width: 60%;
+	height: 60%;
+	display: block;
+	color: var(--profile-blue);
 }
 
 .photo-menu {
 	position: absolute;
 	top: 96px;
 	left: 50%;
-	z-index: 20;
-	width: 86px;
-	padding: 5px 4px;
+	z-index: 30;
+	width: 170px;
+	padding: 14px 12px;
 	transform: translateX(-50%);
-	border: 1px solid var(--profile-blue);
-	border-radius: 11px;
+	border: 2px solid var(--profile-blue);
+	border-radius: 24px;
 	background: #fff;
-	box-shadow: 0 2px 6px rgb(0 0 0 / 12%);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
 
 .photo-menu[hidden] {
@@ -428,32 +446,36 @@
 
 .photo-menu button {
 	width: 100%;
-	min-height: 20px;
+	min-height: 28px;
 	display: flex;
 	align-items: center;
-	gap: 5px;
-	padding: 3px 4px;
+	gap: 8px;
+	padding: 5px 8px;
 	border: 0;
-	border-radius: 3px;
+	border-radius: 8px;
 	background: transparent;
-	color: #242631;
-	font: inherit;
-	font-size: 7px;
+	color: #1e1e1e;
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 500;
 	text-align: left;
 	white-space: nowrap;
 	cursor: pointer;
+	transition: background 0.15s ease;
 }
 
 .photo-menu button:hover,
 .photo-menu button:focus-visible {
-	background: #eef1fa;
+	background: #f0f3fa;
 	outline: none;
 }
 
-.photo-menu button i {
-	width: 10px;
+.photo-menu-icon {
+	width: 16px;
+	height: 16px;
 	color: var(--profile-blue);
-	text-align: center;
+	flex-shrink: 0;
+	display: block;
 }
 
 .photo-action-message {
@@ -648,184 +670,6 @@
 	font-size: 11px;
 }
 
-.page-caption {
-	margin-top: 70px;
-	margin-bottom: 20px;
-	font-size: 25px;
-}
-
-.profile-navbar {
-	min-height: 150px;
-	padding: 18px 48px 18px 76px;
-}
-
-.profile-brand img {
-	width: 210px;
-	height: 84px;
-}
-
-.profile-top-links {
-	gap: 40px;
-	min-height: 90px;
-}
-
-.profile-top-links a,
-.header-name {
-	font-size: 22px;
-}
-
-.header-name {
-	min-height: 90px;
-	padding-left: 38px;
-}
-
-.header-avatar {
-	width: 78px;
-	height: 78px;
-	font-size: 44px;
-}
-
-.profile-page {
-	padding: 34px 42px 68px 0;
-}
-
-.profile-layout {
-	grid-template-columns: 27.5% minmax(0, 1fr);
-	gap: 0;
-}
-
-.profile-sidebar {
-	padding-top: 18px;
-}
-
-.profile-avatar-wrap {
-	width: 200px;
-	height: 200px;
-	margin-bottom: 38px;
-}
-
-.profile-avatar-fallback {
-	font-size: 72px;
-}
-
-.avatar-edit-button {
-	right: -6px;
-	bottom: -4px;
-	width: 48px;
-	height: 48px;
-	font-size: 28px;
-}
-
-.photo-menu {
-	top: 230px;
-	width: 200px;
-	padding: 10px;
-	border-radius: 16px;
-}
-
-.photo-menu button {
-	min-height: 42px;
-	gap: 12px;
-	padding: 7px 8px;
-	font-size: 16px;
-}
-
-.photo-menu button i {
-	width: 20px;
-}
-
-.sidebar-name {
-	margin-bottom: 30px;
-	font-size: 24px;
-}
-
-.profile-nav-link {
-	width: 66%;
-	min-height: 62px;
-	gap: 14px;
-	margin: 0 auto 32px;
-	padding: 14px 20px;
-	font-size: 18px;
-}
-
-.profile-nav-link i {
-	width: 24px;
-}
-
-.profile-summary {
-	min-height: 290px;
-	padding: 68px 40px 36px;
-}
-
-.profile-summary h1 {
-	margin-bottom: 34px;
-	font-size: 34px;
-}
-
-.profile-detail-line {
-	gap: 12px;
-	margin-bottom: 28px;
-	font-size: 24px;
-}
-
-.inline-edit-button {
-	font-size: 20px;
-}
-
-.profile-form {
-	margin-top: 20px;
-	padding: 24px;
-}
-
-.edit-form-heading {
-	margin-bottom: 20px;
-	font-size: 20px;
-}
-
-.field-label {
-	margin-bottom: 10px;
-	font-size: 16px;
-}
-
-.profile-form input {
-	min-height: 48px;
-	margin-bottom: 20px;
-	font-size: 16px;
-}
-
-.field-hint {
-	font-size: 14px;
-}
-
-.form-message,
-.profile-notice {
-	font-size: 16px;
-}
-
-.form-actions .primary-button {
-	min-height: 50px;
-	font-size: 16px;
-}
-
-.password-toggle-button {
-	min-height: 72px;
-	gap: 12px;
-	margin-top: 44px;
-	font-size: 26px;
-}
-
-.profile-logout-row {
-	margin-top: 38px;
-}
-
-.logout-button {
-	min-width: 190px;
-	min-height: 48px;
-	gap: 12px;
-	padding: 8px 18px;
-	font-size: 20px;
-}
-
 @media (min-width: 641px) and (max-width: 1000px) {
 	.page-caption {
 		margin-top: 50px;
@@ -879,27 +723,46 @@
 		width: 140px;
 		height: 140px;
 		margin-bottom: 28px;
+		border-radius: 50%;
+		background: #d9d9d9;
 	}
 
 	.profile-avatar-fallback {
-		font-size: 50px;
+		font-size: 52px;
 	}
 
 	.avatar-edit-button {
-		width: 36px;
-		height: 36px;
-		font-size: 21px;
+		right: -2px;
+		bottom: -2px;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+	}
+
+	.avatar-edit-button svg,
+	.avatar-edit-icon {
+		width: 25px;
+		height: 25px;
 	}
 
 	.photo-menu {
-		top: 162px;
-		width: 160px;
-		padding: 8px;
+		top: 165px;
+		width: 200px;
+		padding: 16px 14px;
+		border-radius: 28px;
+		gap: 12px;
 	}
 
 	.photo-menu button {
-		min-height: 34px;
-		font-size: 12px;
+		min-height: 36px;
+		gap: 10px;
+		padding: 6px 8px;
+		font-size: 14px;
+	}
+
+	.photo-menu-icon {
+		width: 21px;
+		height: 21px;
 	}
 
 	.sidebar-name {
@@ -1032,6 +895,8 @@
 		grid-column: 1;
 		grid-row: 1 / span 3;
 		margin: 0;
+		border-radius: 50%;
+		background: #d9d9d9;
 	}
 
 	.profile-avatar-fallback {
@@ -1039,28 +904,38 @@
 	}
 
 	.avatar-edit-button {
-		right: -3px;
-		bottom: -3px;
-		width: 22px;
-		height: 22px;
-		font-size: 13px;
+		right: -2px;
+		bottom: -2px;
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+	}
+
+	.avatar-edit-button svg,
+	.avatar-edit-icon {
+		width: 14px;
+		height: 14px;
 	}
 
 	.photo-menu {
-		width: 110px;
-		padding: 5px 4px;
-		border-radius: 11px;
+		top: 82px;
+		left: 55px;
+		width: 155px;
+		padding: 12px 10px;
+		border-radius: 20px;
+		gap: 8px;
 	}
 
 	.photo-menu button {
-		min-height: 24px;
-		gap: 5px;
-		padding: 3px 4px;
-		font-size: 9px;
+		min-height: 26px;
+		gap: 7px;
+		padding: 4px 6px;
+		font-size: 11px;
 	}
 
-	.photo-menu button i {
-		width: 10px;
+	.photo-menu-icon {
+		width: 15px;
+		height: 15px;
 	}
 
 	.sidebar-name {
@@ -1130,6 +1005,26 @@
 
 	.form-actions .primary-button {
 		width: 100%;
+	}
+}
+
+.profile-page {
+	width: min(1440px, 100%);
+	min-height: calc(100vh - 84px);
+	margin: 84px auto 24px;
+	padding: 28px clamp(18px, 3vw, 40px) 36px;
+	border: 1px solid #d5d5d5;
+	border-top: 0;
+	border-radius: 0 0 24px 24px;
+	background: #fff;
+}
+
+@media (max-width: 640px) {
+	.profile-page {
+		min-height: calc(100vh - 72px);
+		margin-top: 72px;
+		padding: 20px 14px 28px;
+		border-radius: 0 0 16px 16px;
 	}
 }
 
@@ -1612,6 +1507,62 @@
 	font-size: 16px;
 	text-decoration: underline;
 	cursor: pointer;
+}
+
+.connection-error-overlay {
+	background: rgb(217 217 217 / 70%);
+}
+
+.connection-error-dialog {
+	width: min(390px, 100%);
+	display: flex;
+	min-height: 214px;
+	flex-direction: column;
+	align-items: center;
+	padding: 24px 24px 18px;
+}
+
+.connection-error-icon {
+	width: 32px;
+	height: 32px;
+	margin: 0 0 22px;
+	color: #111;
+	font-size: 32px;
+}
+
+.connection-error-title {
+	margin: 0 0 8px;
+	color: var(--profile-blue);
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 1.2;
+	text-align: center;
+}
+
+.connection-error-message {
+	margin: 0;
+	color: var(--profile-blue);
+	font-size: 12px;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.connection-retry-button {
+	align-self: flex-end;
+	margin-top: auto;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--profile-blue);
+	font: inherit;
+	font-size: 16px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.logout-dialog .password-result-action:focus-visible {
+	outline: none;
+	text-decoration-thickness: 2px;
 }
 
 .password-cancel-button,
