@@ -1,10 +1,13 @@
 const PROFILE_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-const CONNECTION_ERROR = "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi.";
+const OFFLINE_ERROR = "Perangkat tidak terhubung ke internet. Periksa jaringan Anda dan coba lagi.";
+const SERVER_CONNECTION_ERROR = "Server profil tidak dapat dihubungi. Pastikan Apache dan backend berjalan, lalu coba lagi.";
 let currentProfile = null;
 let nameUpdateTimeout = null;
+let isProfilePhotoUploading = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("retryProfile").addEventListener("click", loadProfile);
+  document.getElementById("retryConnectionButton").addEventListener("click", loadProfile);
   document.getElementById("profileForm").addEventListener("submit", saveProfile);
   document.getElementById("nameEditForm").addEventListener("submit", saveName);
   document.getElementById("nameEditInput").addEventListener("input", clearNameValidation);
@@ -13,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("currentPassword").addEventListener("input", validateCurrentPassword);
   document.getElementById("newPassword").addEventListener("input", validateNewPassword);
   document.getElementById("confirmPassword").addEventListener("input", validateConfirmPassword);
-  document.getElementById("passwordResultAction").addEventListener("click", closePasswordResult);
+  document.getElementById("passwordResultAction").addEventListener("click", closeChangeResult);
   document.querySelectorAll(".password-visibility-toggle").forEach((button) => {
     button.addEventListener("click", togglePasswordVisibility);
   });
@@ -42,9 +45,14 @@ async function loadProfile() {
   const loading = document.getElementById("profileLoading");
   const error = document.getElementById("profileError");
   const content = document.getElementById("profileContent");
-  loading.hidden = false;
+  const cachedProfile = getCachedProfile();
+  if (!currentProfile && cachedProfile) {
+    renderProfile(cachedProfile);
+    content.hidden = false;
+  }
+  loading.hidden = Boolean(currentProfile);
   error.hidden = true;
-  content.hidden = true;
+  if (!currentProfile) content.hidden = true;
 
   try {
     const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
@@ -63,22 +71,53 @@ async function loadProfile() {
     }
 
     renderProfile(result.data);
+    document.getElementById("connectionErrorModal").hidden = true;
     loading.hidden = true;
     content.hidden = false;
   } catch (requestError) {
     loading.hidden = true;
-    error.hidden = false;
-    document.getElementById("profileErrorText").textContent = isNetworkError(requestError)
-      ? CONNECTION_ERROR
-      : requestError.message || "Gagal memuat profil.";
+    const errorMessage = getRequestErrorMessage(requestError, "Gagal memuat profil.");
+    if (!currentProfile) {
+      error.hidden = false;
+      document.getElementById("profileErrorText").textContent = errorMessage;
+    }
+    if (!navigator.onLine || requestError instanceof TypeError) {
+      showConnectionError(errorMessage);
+    } else if (!currentProfile) {
+      error.hidden = false;
+    }
   }
+}
+
+function getCachedProfile() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    return user && typeof user === "object" && user.id_user ? user : null;
+  } catch (error) {
+    console.error("[Profile] Data profil tersimpan tidak valid:", error);
+    return null;
+  }
+}
+
+function showConnectionError(message) {
+  const modal = document.getElementById("connectionErrorModal");
+  const title = document.getElementById("connectionErrorTitle");
+  const detail = document.getElementById("connectionErrorMessage");
+  const isOffline = !navigator.onLine;
+  title.textContent = isOffline ? "Tidak ada koneksi internet" : "Tidak dapat terhubung ke server";
+  detail.textContent = isOffline
+    ? "Periksa koneksi internet Anda dan coba lagi."
+    : message;
+  modal.hidden = false;
+  document.getElementById("retryConnectionButton").focus();
 }
 
 function renderProfile(user) {
   currentProfile = { ...user };
   const name = user.nama || "";
   document.getElementById("displayName").textContent = name;
-  document.getElementById("headerName").textContent = name;
+  const navUserName = document.getElementById("navUserName");
+  if (navUserName) navUserName.textContent = name;
   document.getElementById("displayEmail").textContent = user.email || "";
   document.getElementById("profilePhoto").value = user.foto_profil || "";
   document.getElementById("sidebarName").textContent = name;
@@ -88,6 +127,7 @@ function renderProfile(user) {
 
 async function saveProfile(event) {
   event.preventDefault();
+  if (isProfilePhotoUploading) return;
   const photoInput = document.getElementById("profilePhoto");
   const message = document.getElementById("profileFormMessage");
   const button = event.currentTarget.querySelector("button[type='submit']");
@@ -121,7 +161,7 @@ async function saveProfile(event) {
     renderProfile(result.data);
     showMessage(message, result.message || "Profil berhasil diperbarui.", "success");
   } catch (requestError) {
-    showMessage(message, isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message, "error");
+    showMessage(message, getRequestErrorMessage(requestError, "Gagal memperbarui profil."), "error");
   } finally {
     button.disabled = false;
   }
@@ -136,20 +176,12 @@ async function saveName(event) {
   const nameLength = Array.from(name).length;
 
   if (!/\p{L}/u.test(name)) {
-    showNameValidation(
-      message,
-      "Username harus mengandung minimal satu huruf dan tidak boleh kosong atau hanya berisi spasi."
-    );
+    showNameValidation(message, "Nama pengguna tidak valid");
     input.focus();
     return;
   }
-  if (nameLength < 2) {
-    showNameValidation(message, "Nama minimal 2 karakter");
-    input.focus();
-    return;
-  }
-  if (nameLength > 100) {
-    showNameValidation(message, "Username maksimal 100 karakter.");
+  if (nameLength < 2 || nameLength > 100) {
+    showNameValidation(message, "Nama pengguna tidak valid");
     input.focus();
     return;
   }
@@ -177,11 +209,12 @@ async function saveName(event) {
     closeNameEditor();
     showNameUpdateMessage();
   } catch (requestError) {
-    showNameValidation(
-      message,
-      isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message || "Gagal memperbarui nama pengguna."
+    console.error("[Profile] Gagal memperbarui nama pengguna:", requestError);
+    showChangeResult(
+      false,
+      getRequestErrorMessage(requestError, "Gagal memperbarui nama pengguna. Silakan coba lagi."),
+      true
     );
-    input.focus();
   } finally {
     button.disabled = false;
   }
@@ -237,11 +270,12 @@ async function changePassword(event) {
 
     form.reset();
     clearPasswordValidation();
-    showPasswordResult(true, "");
+    showChangeResult(true, "");
   } catch (requestError) {
-    showPasswordResult(
+    const detail = getRequestErrorMessage(requestError, "Silakan periksa data dan coba lagi.");
+    showChangeResult(
       false,
-      isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message || "Silakan periksa data dan coba lagi."
+      detail === "Kata sandi lama tidak sesuai" ? "" : detail
     );
   } finally {
     button.disabled = false;
@@ -266,7 +300,7 @@ async function logout() {
     document.getElementById("logoutSuccessDialog").hidden = false;
     document.getElementById("finishLogoutButton").focus();
   } catch (requestError) {
-    error.textContent = isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message;
+    error.textContent = getRequestErrorMessage(requestError, "Gagal mengakhiri sesi.");
     error.hidden = false;
     button.disabled = false;
     document.getElementById("cancelLogoutButton").disabled = false;
@@ -302,7 +336,7 @@ function handleLogoutOverlayClick(event) {
 function handleLogoutDialogKeydown(event) {
   const passwordModal = document.getElementById("passwordResultModal");
   if (event.key === "Escape" && !passwordModal.hidden) {
-    closePasswordResult();
+    closeChangeResult();
     return;
   }
   if (event.key === "Escape" && !document.getElementById("logoutModal").hidden) {
@@ -438,6 +472,7 @@ function setPasswordFieldError(field, text) {
   input.setAttribute("aria-invalid", "true");
   error.textContent = text;
   error.hidden = false;
+  if (field === "newPassword") document.getElementById("passwordHint").hidden = true;
 }
 
 function clearPasswordFieldError(field) {
@@ -446,13 +481,14 @@ function clearPasswordFieldError(field) {
   input.removeAttribute("aria-invalid");
   error.textContent = "";
   error.hidden = true;
+  if (field === "newPassword") document.getElementById("passwordHint").hidden = false;
 }
 
 function clearPasswordValidation() {
   ["currentPassword", "newPassword", "confirmPassword"].forEach(clearPasswordFieldError);
 }
 
-function showPasswordResult(success, detail) {
+function showChangeResult(success, detail, returnToNameEditor = false) {
   const modal = document.getElementById("passwordResultModal");
   const dialog = document.getElementById("passwordResultDialog");
   const icon = document.getElementById("passwordResultIcon");
@@ -460,20 +496,24 @@ function showPasswordResult(success, detail) {
   const message = document.getElementById("passwordResultMessage");
   dialog.classList.toggle("is-error", !success);
   icon.className = `fa-solid ${success ? "fa-circle-check" : "fa-circle-xmark"} password-result-icon`;
-  title.textContent = success ? "Perubahan berhasil disimpan" : "Perubahan gagal disimpan";
+  title.textContent = success ? "Perubahan berhasil disimpan" : "Perubahan gagal di simpan";
   message.textContent = detail;
   message.hidden = !detail;
   document.getElementById("passwordResultAction").textContent = success ? "Oke" : "Coba lagi";
   modal.dataset.success = String(success);
+  modal.dataset.returnToNameEditor = String(returnToNameEditor);
   modal.hidden = false;
   document.getElementById("passwordResultAction").focus();
 }
 
-function closePasswordResult() {
+function closeChangeResult() {
   const modal = document.getElementById("passwordResultModal");
   const wasSuccessful = modal.dataset.success === "true";
+  const returnToNameEditor = modal.dataset.returnToNameEditor === "true";
   modal.hidden = true;
+  delete modal.dataset.returnToNameEditor;
   if (wasSuccessful) closePasswordEditor();
+  else if (returnToNameEditor) document.getElementById("nameEditInput").focus();
   else document.querySelector(".password-save-button").focus();
 }
 
@@ -507,16 +547,57 @@ function requestPhotoFile() {
   document.getElementById("photoFileInput").click();
 }
 
-function handlePhotoFileSelection(event) {
-  if (!event.currentTarget.files.length) return;
-  event.currentTarget.value = "";
+async function handlePhotoFileSelection(event) {
+  const input = event.currentTarget;
+  const file = input.files[0];
+  if (!file) return;
+  input.value = "";
   openProfileEditor();
-  showMessage(
-    document.getElementById("profileFormMessage"),
-    "Backend belum mendukung unggah file foto. Untuk sementara, masukkan URL foto.",
-    "error"
-  );
-  document.getElementById("profilePhoto").focus();
+  const message = document.getElementById("profileFormMessage");
+  const saveButton = document.querySelector("#profileForm button[type='submit']");
+  const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+  if (!extensionByType[file.type]) {
+    showMessage(message, "Pilih foto berformat JPG, PNG, atau WEBP.", "error");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showMessage(message, "Ukuran foto maksimal 5 MB.", "error");
+    return;
+  }
+
+  const supabaseConfig = window.SUPABASE_CONFIG;
+  if (!window.supabase) {
+    showMessage(message, "Layanan unggah foto gagal dimuat. Periksa koneksi internet, lalu muat ulang halaman.", "error");
+    return;
+  }
+  if (!supabaseConfig?.url || !supabaseConfig.anonKey || !supabaseConfig.profilePhotoBucket) {
+    showMessage(message, "Konfigurasi Supabase atau nama bucket foto profil belum tersedia. Muat ulang halaman dan periksa konfigurasi.", "error");
+    return;
+  }
+
+  isProfilePhotoUploading = true;
+  saveButton.disabled = true;
+  showMessage(message, "Sedang mengunggah foto...", "success");
+  try {
+    const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+    const photoPath = `profil/${currentProfile?.id_user || "pengguna"}/${crypto.randomUUID()}.${extensionByType[file.type]}`;
+    const { error: uploadError } = await supabaseClient.storage
+      .from(supabaseConfig.profilePhotoBucket)
+      .upload(photoPath, file, { contentType: file.type, upsert: false });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const photoUrl = supabaseClient.storage.from(supabaseConfig.profilePhotoBucket).getPublicUrl(photoPath).data.publicUrl;
+    document.getElementById("profilePhoto").value = photoUrl;
+    previewProfilePhoto();
+    showMessage(message, "Foto berhasil diunggah. Tekan Simpan perubahan untuk menerapkan foto profil.", "success");
+  } catch (uploadError) {
+    console.error("[Profile] Gagal mengunggah foto profil:", uploadError);
+    showMessage(message, getRequestErrorMessage(uploadError, "Foto gagal diunggah. Silakan coba lagi."), "error");
+  } finally {
+    isProfilePhotoUploading = false;
+    saveButton.disabled = false;
+  }
 }
 
 async function removeProfilePhoto() {
@@ -542,7 +623,7 @@ async function removeProfilePhoto() {
     renderProfile(result.data);
     showMessage(message, "Foto profil berhasil dihapus.", "success");
   } catch (requestError) {
-    showMessage(message, isNetworkError(requestError) ? CONNECTION_ERROR : requestError.message, "error");
+    showMessage(message, getRequestErrorMessage(requestError, "Gagal menghapus foto profil."), "error");
   } finally {
     button.disabled = false;
   }
@@ -575,8 +656,10 @@ function isValidHttpUrl(value) {
   }
 }
 
-function isNetworkError(error) {
-  return error instanceof TypeError || !navigator.onLine;
+function getRequestErrorMessage(error, fallback) {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return OFFLINE_ERROR;
+  if (error instanceof TypeError) return SERVER_CONNECTION_ERROR;
+  return error?.message || fallback;
 }
 
 function showMessage(element, text, kind) {
