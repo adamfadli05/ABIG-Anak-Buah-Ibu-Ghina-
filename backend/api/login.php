@@ -31,6 +31,43 @@ if (empty($email) || empty($password)) {
     exit;
 }
 
+// Cek Admin
+
+$result = pg_query_params(
+    $conn,
+    'SELECT * FROM admin WHERE email = $1',
+    [$email]
+);
+
+if (!$result) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal memeriksa akun admin"]);
+    exit;
+}
+
+$admin = pg_fetch_assoc($result);
+
+if ($admin && password_verify($password, $admin['password'])) {
+    session_regenerate_id(true);
+    $_SESSION['role']     = 'admin';
+    $_SESSION['id_admin'] = $admin['id_admin'];
+    $_SESSION['nama']     = $admin['nama'];
+    $_SESSION['email']    = $admin['email'];
+
+    http_response_code(200);
+    echo json_encode([
+        "status" => true,
+        "message" => "Admin berhasil masuk.",
+        "role" => "admin",
+        "data" => [
+            "id_admin" => $admin['id_admin'],
+            "nama" => $admin['nama'],
+            "email" => $admin['email']
+        ]
+    ]);
+    exit;
+}
+
 // Cek User
 
 $result = pg_query_params(
