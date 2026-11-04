@@ -5,12 +5,12 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Admin | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/admin.css" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <script src="js/admin.js" defer></script>
+    <script src="js/Dashboard_Admin.js" defer></script>
   </head>
   <body>
     <main id="authState" class="page-state" role="status" aria-live="polite">
@@ -20,31 +20,28 @@
 
     <div id="adminApp" class="admin-app" hidden>
       <aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
-        <a class="brand" href="admin.html" aria-label="Dashboard Mangan Yukkk">
+        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
           <img src="assets/logo.png" alt="" />
-          <span>Mangan Yukkk</span>
         </a>
 
-        <p class="sidebar-label">MENU UTAMA</p>
         <nav class="sidebar-nav">
-          <a class="nav-link active" href="admin.html" aria-current="page">
-            <iconify-icon icon="lucide:layout-dashboard" aria-hidden="true"></iconify-icon>
+          <a class="nav-link active" href="Dashboard_Admin.html" aria-current="page">
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
             <span>Dashboard</span>
           </a>
           <a class="nav-link" href="#kuliner" data-coming-soon="Daftar Kuliner">
-            <iconify-icon icon="lucide:utensils" aria-hidden="true"></iconify-icon>
-            <span>Daftar Kuliner</span>
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <span>Kuliner</span>
           </a>
           <a class="nav-link" href="#kategori" data-coming-soon="Kategori">
-            <iconify-icon icon="lucide:tags" aria-hidden="true"></iconify-icon>
+            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
             <span>Kategori</span>
           </a>
           <a class="nav-link" href="#pengguna" data-coming-soon="Daftar Pengguna">
-            <iconify-icon icon="lucide:users" aria-hidden="true"></iconify-icon>
-            <span>Daftar Pengguna</span>
+            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+            <span>Pengguna</span>
           </a>
         </nav>
-        <p class="sidebar-note">Menu lain akan tersedia pada pengembangan berikutnya.</p>
       </aside>
 
       <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
@@ -54,26 +51,18 @@
           <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
             <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
           </button>
-          <div class="topbar-account">
-            <span id="adminName">Admin</span>
-            <span class="admin-badge">Admin</span>
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Dashboard</strong>
+              <span id="adminName">Admin</span>
+            </span>
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
         <div class="dashboard-content">
-          <div class="page-heading">
-            <p class="eyebrow">MANGAN YUKKK</p>
-            <h1>Dashboard</h1>
-            <p class="page-description">Ringkasan data yang tersimpan di website.</p>
-          </div>
-
           <section class="summary-section" aria-labelledby="summaryTitle">
-            <div class="section-heading">
-              <div>
-                <h2 id="summaryTitle">Ringkasan Data</h2>
-                <p>Informasi terbaru website Mangan Yukkk.</p>
-              </div>
-            </div>
+            <h2 id="summaryTitle" class="sr-only">Ringkasan</h2>
 
             <div id="summaryLoading" class="notice" role="status" aria-live="polite">Memuat ringkasan dashboard...</div>
             <div id="summaryError" class="notice notice-error" role="alert" hidden>
@@ -83,27 +72,28 @@
 
             <div id="summaryCards" class="summary-grid" aria-busy="true" hidden>
               <article class="summary-card">
-                <div class="summary-card-icon icon-blue"><iconify-icon icon="lucide:utensils" aria-hidden="true"></iconify-icon></div>
-                <p class="summary-label">Jumlah Kuliner</p>
+                <div class="summary-card-icon icon-blue"><iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon></div>
+                <p class="summary-label">Total Kuliner</p>
                 <p id="totalCulinary" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-orange"><iconify-icon icon="lucide:tags" aria-hidden="true"></iconify-icon></div>
-                <p class="summary-label">Jumlah Kategori</p>
+                <div class="summary-card-icon icon-blue"><iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon></div>
+                <p class="summary-label">Kategori</p>
                 <p id="totalCategories" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-green"><iconify-icon icon="lucide:users" aria-hidden="true"></iconify-icon></div>
-                <p class="summary-label">Jumlah Pengguna</p>
+                <div class="summary-card-icon icon-blue"><iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon></div>
+                <p class="summary-label">Total Pengguna</p>
                 <p id="totalUsers" class="summary-value">0</p>
-              </article>
-              <article class="summary-card">
-                <div class="summary-card-icon icon-purple"><iconify-icon icon="lucide:message-square" aria-hidden="true"></iconify-icon></div>
-                <p class="summary-label">Jumlah Ulasan</p>
-                <p id="totalReviews" class="summary-value">0</p>
               </article>
             </div>
             <p id="navigationMessage" class="navigation-message" role="status" aria-live="polite" hidden></p>
+          </section>
+
+          <section class="culinary-section" aria-labelledby="culinaryTitle">
+            <h2 id="culinaryTitle" class="sr-only">Daftar Kuliner</h2>
+            <div id="culinaryCards" class="culinary-grid" hidden></div>
+            <p id="culinaryEmpty" class="culinary-empty" role="status" hidden>Belum ada data kuliner.</p>
           </section>
         </div>
       </section>
