@@ -233,11 +233,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             exit;
         }
-        if ($panjang > 100) {
+        if ($panjang > 200) {
             http_response_code(400);
             echo json_encode([
                 "status"  => false,
-                "message" => "Komentar maksimal 100 karakter"
+                "message" => "Komentar maksimal 200 karakter"
             ]);
             exit;
         }
@@ -369,9 +369,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             echo json_encode(["status" => false, "message" => "Komentar minimal 5 karakter"]);
             exit;
         }
-        if ($panjang > 100) {
+        if ($panjang > 200) {
             http_response_code(400);
-            echo json_encode(["status" => false, "message" => "Komentar maksimal 100 karakter"]);
+            echo json_encode(["status" => false, "message" => "Komentar maksimal 200 karakter"]);
             exit;
         }
     }
