@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Kelola Kategori Kuliner</title>
+  <link rel="stylesheet" href="kategori_kuliner_admin.css" />
+  <!-- Iconify Icon Library -->
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+</head>
+<body>
+
+  <!-- Sidebar Navigasi -->
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <nav>
+      <ul>
+        <li>
+          <a class="nav-link" href="daftar_kuliner_admin.html">
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <span>Daftar Kuliner</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link active" href="kategori_kuliner_admin.html">
+            <iconify-icon icon="dashicons:category" aria-hidden="true"></iconify-icon>
+            <span>Kategori Kuliner</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#">
+            <iconify-icon icon="dashicons:testimonial" aria-hidden="true"></iconify-icon>
+            <span>Ulasan Pengguna</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link" href="#">
+            <iconify-icon icon="dashicons:admin-generic" aria-hidden="true"></iconify-icon>
+            <span>Pengaturan</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main class="main-content">
+    <header class="top-header">
+      <h1>Kelola Kategori Kuliner</h1>
+      <button id="btn-tambah" class="btn btn-primary">+ Tambah Kategori</button>
+    </header>
+
+    <!-- Toolbar Pencarian -->
+    <section class="toolbar">
+      <input type="text" id="search-input" placeholder="Cari nama atau deskripsi kategori..." />
+    </section>
+
+    <!-- Tabel Kategori Kuliner -->
+    <section class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Icon / Label</th>
+            <th>Nama Kategori</th>
+            <th>Deskripsi</th>
+            <th>Jumlah Item</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="kategori-table-body">
+          <!-- Data dimuat dinamis dari JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal Form Tambah/Edit Kategori -->
+  <div id="kategori-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" id="btn-close-modal">&times;</span>
+      <h2 id="modal-title">Tambah Kategori Baru</h2>
+      
+      <form id="kategori-form">
+        <input type="hidden" id="kategori-id" />
+        
+        <div class="form-group">
+          <label for="nama-kategori">Nama Kategori</label>
+          <input type="text" id="nama-kategori" placeholder="misal: Makanan Berat" required />
+        </div>
+
+        <div class="form-group">
+          <label for="icon-kategori">Icon (Iconify Name)</label>
+          <input type="text" id="icon-kategori" placeholder="misal: mdi:food-fork-drink" required />
+          <small class="help-text">Gunakan ikon dari Iconify (contoh: dashicons:food, mdi:coffee)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="deskripsi-kategori">Deskripsi Singkat</label>
+          <textarea id="deskripsi-kategori" rows="3" placeholder="Deskripsi singkat mengenai kategori..." required></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-batal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="kategori_kuliner_admin.js"></script>
+</body>
+</html>

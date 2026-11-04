@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Kelola Daftar Kuliner</title>
+  <link rel="stylesheet" href="daftar kuliner admin.css" />
+</head>
+<body>
+
+  <!-- Sidebar Navigasi -->
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <nav>
+      <ul>
+        <li><a href="#" class="active">Daftar Kuliner</a></li>
+        <li><a href="#">Kategori</a></li>
+        <li><a href="#">Ulasan Pengguna</a></li>
+        <li><a href="#">Pengaturan</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Konten Utama -->
+  <main class="main-content">
+    <header class="top-header">
+      <h1>Kelola Data Kuliner</h1>
+      <button id="btn-tambah" class="btn btn-primary">+ Tambah Kuliner</button>
+    </header>
+
+    <!-- Toolbar Filter & Pencarian -->
+    <section class="toolbar">
+      <input type="text" id="search-input" placeholder="Cari nama kuliner..." />
+      <select id="filter-kategori">
+        <option value="semua">Semua Kategori</option>
+        <option value="Makanan">Makanan</option>
+        <option value="Minuman">Minuman</option>
+        <option value="Cemilan">Cemilan</option>
+      </select>
+    </section>
+
+    <!-- Tabel Daftar Kuliner -->
+    <section class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Foto</th>
+            <th>Nama Kuliner</th>
+            <th>Kategori</th>
+            <th>Harga</th>
+            <th>Rating</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="kuliner-table-body">
+          <!-- Data akan dimuat melalui JavaScript -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal Form Tambah/Edit Kuliner -->
+  <div id="kuliner-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" id="btn-close-modal">&times;</span>
+      <h2 id="modal-title">Tambah Kuliner Baru</h2>
+      
+      <form id="kuliner-form">
+        <input type="hidden" id="kuliner-id" />
+        
+        <div class="form-group">
+          <label for="nama">Nama Kuliner</label>
+          <input type="text" id="nama" required />
+        </div>
+
+        <div class="form-group">
+          <label for="kategori">Kategori</label>
+          <select id="kategori" required>
+            <option value="Makanan">Makanan</option>
+            <option value="Minuman">Minuman</option>
+            <option value="Cemilan">Cemilan</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="harga">Harga (Rp)</label>
+          <input type="number" id="harga" required />
+        </div>
+
+        <div class="form-group">
+          <label for="gambar">URL Gambar</label>
+          <input type="url" id="gambar" placeholder="https://via.placeholder.com/150" required />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-batal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="daftar kuliner admin.js"></script>
+</body>
+</html>
