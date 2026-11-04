@@ -153,7 +153,7 @@ if ($admin) {
     $_SESSION['nama'] = $admin['nama'];
     $_SESSION['email'] = $admin['email'];
 
-    header('Location: ' . FRONTEND_URL . '/admin.html');
+    header('Location: ' . FRONTEND_URL . '/Dashboard_Admin.html');
     exit;
 }
 
