@@ -22,25 +22,61 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Total kuliner
-$total_kuliner = pg_fetch_assoc(pg_query($conn, 'SELECT COUNT(*) AS total FROM kuliner'));
+$res_kuliner = pg_query($conn, 'SELECT COUNT(*) AS total FROM kuliner');
+if (!$res_kuliner) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner"]);
+    exit;
+}
+$total_kuliner = pg_fetch_assoc($res_kuliner);
 
 // Total tempat kuliner
-$total_tempat = pg_fetch_assoc(pg_query($conn, 'SELECT COUNT(*) AS total FROM tempat_kuliner'));
+$res_tempat = pg_query($conn, 'SELECT COUNT(*) AS total FROM tempat_kuliner');
+if (!$res_tempat) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data tempat kuliner"]);
+    exit;
+}
+$total_tempat = pg_fetch_assoc($res_tempat);
 
 // Total user
-$total_user = pg_fetch_assoc(pg_query($conn, 'SELECT COUNT(*) AS total FROM users'));
+$res_user = pg_query($conn, 'SELECT COUNT(*) AS total FROM users');
+if (!$res_user) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data pengguna"]);
+    exit;
+}
+$total_user = pg_fetch_assoc($res_user);
 
 // Total ulasan
-$total_ulasan = pg_fetch_assoc(pg_query($conn, 'SELECT COUNT(*) AS total FROM ulasan'));
+$res_ulasan = pg_query($conn, 'SELECT COUNT(*) AS total FROM ulasan');
+if (!$res_ulasan) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data ulasan"]);
+    exit;
+}
+$total_ulasan = pg_fetch_assoc($res_ulasan);
 
 // Rata-rata rating
-$rata_rating = pg_fetch_assoc(pg_query($conn, 'SELECT COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS rata_rata FROM ulasan WHERE rating IS NOT NULL'));
+$res_rating = pg_query($conn, 'SELECT COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS rata_rata FROM ulasan WHERE rating IS NOT NULL');
+if (!$res_rating) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data rating"]);
+    exit;
+}
+$rata_rating = pg_fetch_assoc($res_rating);
 
 // Total kategori
-$total_kategori = pg_fetch_assoc(pg_query($conn, 'SELECT COUNT(*) AS total FROM kategori'));
+$res_kategori = pg_query($conn, 'SELECT COUNT(*) AS total FROM kategori');
+if (!$res_kategori) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data kategori"]);
+    exit;
+}
+$total_kategori = pg_fetch_assoc($res_kategori);
 
 // Kuliner paling banyak diulas
-$kuliner_populer = pg_fetch_assoc(pg_query($conn,
+$res_populer = pg_query($conn,
     "SELECT k.nama_kuliner, COUNT(u.id_ulasan) AS jumlah_ulasan
      FROM kuliner k
      JOIN tempat_kuliner tk ON tk.id_kuliner = k.id_kuliner
@@ -48,7 +84,13 @@ $kuliner_populer = pg_fetch_assoc(pg_query($conn,
      GROUP BY k.id_kuliner, k.nama_kuliner
      ORDER BY jumlah_ulasan DESC
      LIMIT 1"
-));
+);
+if (!$res_populer) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner populer"]);
+    exit;
+}
+$kuliner_populer = pg_fetch_assoc($res_populer);
 
 // 5 ulasan terbaru
 $ulasan_terbaru_result = pg_query($conn,
@@ -61,12 +103,15 @@ $ulasan_terbaru_result = pg_query($conn,
      ORDER BY u.tanggal DESC
      LIMIT 5"
 );
+if (!$ulasan_terbaru_result) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data ulasan terbaru"]);
+    exit;
+}
 
 $ulasan_terbaru = [];
-if ($ulasan_terbaru_result) {
-    while ($row = pg_fetch_assoc($ulasan_terbaru_result)) {
-        $ulasan_terbaru[] = $row;
-    }
+while ($row = pg_fetch_assoc($ulasan_terbaru_result)) {
+    $ulasan_terbaru[] = $row;
 }
 
 // 5 user terbaru
@@ -76,12 +121,15 @@ $user_terbaru_result = pg_query($conn,
      ORDER BY id_user DESC
      LIMIT 5"
 );
+if (!$user_terbaru_result) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data pengguna terbaru"]);
+    exit;
+}
 
 $user_terbaru = [];
-if ($user_terbaru_result) {
-    while ($row = pg_fetch_assoc($user_terbaru_result)) {
-        $user_terbaru[] = $row;
-    }
+while ($row = pg_fetch_assoc($user_terbaru_result)) {
+    $user_terbaru[] = $row;
 }
 
 http_response_code(200);
