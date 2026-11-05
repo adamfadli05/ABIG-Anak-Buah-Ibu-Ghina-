@@ -43,6 +43,10 @@
             <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
             <span>Pengguna</span>
           </a>
+          <button id="adminLogoutButton" class="nav-link logout-link" type="button">
+            <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
+            <span>Keluar</span>
+          </button>
         </nav>
       </aside>
 
@@ -67,8 +71,10 @@
             <h2 id="summaryTitle" class="sr-only">Ringkasan</h2>
 
             <div id="summaryLoading" class="notice" role="status" aria-live="polite">Memuat ringkasan dashboard...</div>
-            <div id="summaryError" class="notice notice-error" role="alert" hidden>
-              <p id="summaryErrorMessage">Ringkasan dashboard gagal dimuat.</p>
+            <div id="summaryError" class="dashboard-error-state" role="alert" hidden>
+              <iconify-icon id="summaryErrorIcon" class="error-state-icon" icon="lucide:wifi-off" aria-hidden="true"></iconify-icon>
+              <h1 id="summaryErrorTitle">Dashboard gagal dimuat</h1>
+              <p id="summaryErrorMessage">Periksa koneksi dan coba lagi.</p>
               <button id="summaryRetryButton" class="button button-secondary" type="button">Coba lagi</button>
             </div>
 
@@ -98,6 +104,25 @@
             <p id="culinaryEmpty" class="culinary-empty" role="status" hidden>Belum ada data kuliner.</p>
           </section>
         </div>
+      </section>
+    </div>
+
+    <div id="logoutConfirmModal" class="modal-overlay" hidden>
+      <section class="logout-dialog logout-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+        <p id="logoutConfirmTitle" class="logout-dialog-message">Apakah Anda yakin ingin keluar?</p>
+        <p id="logoutErrorMessage" class="logout-error-message" role="alert" hidden></p>
+        <div class="logout-dialog-actions">
+          <button id="cancelLogoutButton" class="button button-cancel" type="button">Batal</button>
+          <button id="confirmLogoutButton" class="button button-secondary" type="button">Oke</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="logoutSuccessModal" class="modal-overlay" hidden>
+      <section class="logout-dialog logout-success-dialog" role="alertdialog" aria-modal="true" aria-labelledby="logoutSuccessMessage">
+        <iconify-icon class="logout-success-icon" icon="lucide:circle-check" aria-hidden="true"></iconify-icon>
+        <p id="logoutSuccessMessage" class="logout-dialog-message">Anda berhasil keluar</p>
+        <button id="finishLogoutButton" class="logout-success-button" type="button">Oke</button>
       </section>
     </div>
   </body>
