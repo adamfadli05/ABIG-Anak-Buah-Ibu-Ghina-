@@ -1,14 +1,5 @@
 <?php
-/**
- * API Kelola Kategori Admin — Task 35.3
- *
- * GET  /api/admin/kategori.php          — daftar semua kategori + total kuliner
- * GET  /api/admin/kategori.php?id=...   — detail kategori berdasarkan id_kategori
- * POST /api/admin/kategori.php          — tambah kategori baru
- *
- * PUT & DELETE akan dikerjakan besok.
- */
-
+<?php
 require_once __DIR__ . '/../../env.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/middleware.php';
