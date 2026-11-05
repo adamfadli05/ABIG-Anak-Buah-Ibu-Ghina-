@@ -2,11 +2,11 @@
 
 /**
  * Middleware validasi role admin.
- * Di-include di setiap endpoint admin sebelum logic utama.
- * Langsung return 401 atau 403 kalau tidak valid.
  */
 function requireAdmin(): void
 {
+    require_once __DIR__ . '/../../env.php';
+    configureSession();
     session_start();
 
     header('Content-Type: application/json');

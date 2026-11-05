@@ -1,6 +1,19 @@
-const PROFILE_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+const PROFILE_API_BASE = window.PROFILE_API_BASE || window.BASE_URL || window.location.origin;
 const OFFLINE_ERROR = "Periksa koneksi internet anda.";
 const SERVER_CONNECTION_ERROR = "Server profil tidak dapat dihubungi. Pastikan Apache dan backend berjalan, lalu coba lagi.";
+
+// Fallback UUID generator — crypto.randomUUID() hanya tersedia di HTTPS/localhost
+function generateUUID() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 let currentProfile = null;
 let nameUpdateTimeout = null;
 let isProfilePhotoUploading = false;
@@ -31,6 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("uploadPhotoButton").addEventListener("click", requestPhotoFile);
   document.getElementById("replacePhotoButton").addEventListener("click", requestPhotoFile);
   document.getElementById("removePhotoButton").addEventListener("click", removeProfilePhoto);
+  document.getElementById("cancelRemovePhotoButton").addEventListener("click", closeRemovePhotoModal);
+  document.getElementById("confirmRemovePhotoButton").addEventListener("click", confirmRemovePhoto);
+  document.getElementById("finishRemovePhotoButton").addEventListener("click", closeRemovePhotoModal);
   document.getElementById("photoFileInput").addEventListener("change", handlePhotoFileSelection);
   document.getElementById("togglePasswordButton").addEventListener("click", togglePasswordEditor);
   document.getElementById("cancelPasswordEdit").addEventListener("click", closePasswordEditor);
@@ -244,24 +260,24 @@ async function logout() {
   button.disabled = true;
   document.getElementById("cancelLogoutButton").disabled = true;
   error.hidden = true;
+
+  // Clear localStorage dulu — logout di sisi client selalu berhasil
+  localStorage.clear();
+
+  // Coba destroy session di backend (best-effort, tidak block logout)
   try {
-    const response = await fetch(`${PROFILE_API_BASE}/logout.php`, {
+    await fetch(`${PROFILE_API_BASE}/logout.php`, {
       method: "GET",
       credentials: "include",
-      redirect: "follow",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
     });
-    if (!response.ok) throw new Error("Gagal mengakhiri sesi. Silakan coba lagi.");
-    localStorage.clear();
-    document.getElementById("logoutConfirmDialog").hidden = true;
-    document.getElementById("logoutSuccessDialog").hidden = false;
-    document.getElementById("finishLogoutButton").focus();
-  } catch (requestError) {
-    error.textContent = getRequestErrorMessage(requestError, "Gagal mengakhiri sesi.");
-    error.hidden = false;
-    button.disabled = false;
-    document.getElementById("cancelLogoutButton").disabled = false;
-    button.focus();
+  } catch (_) {
+    // Abaikan error jaringan — session di server akan expired sendiri
   }
+
+  document.getElementById("logoutConfirmDialog").hidden = true;
+  document.getElementById("logoutSuccessDialog").hidden = false;
+  document.getElementById("finishLogoutButton").focus();
 }
 
 function openLogoutConfirmation() {
@@ -509,7 +525,7 @@ async function handlePhotoFileSelection(event) {
     }
 
     const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
-    const photoPath = `profil/${currentProfile?.id_user || "pengguna"}/${crypto.randomUUID()}.${extensionByType[file.type] || "img"}`;
+    const photoPath = `profil/${currentProfile?.id_user || "pengguna"}/${generateUUID()}.${extensionByType[file.type] || "img"}`;
     const { error: uploadError } = await supabaseClient.storage
       .from(supabaseConfig.profilePhotoBucket)
       .upload(photoPath, file, { contentType: file.type, upsert: false });
@@ -541,18 +557,35 @@ async function handlePhotoFileSelection(event) {
 
 async function removeProfilePhoto() {
   closePhotoMenu();
-  if (!window.confirm("Apakah Anda yakin ingin menghapus foto profil?")) return;
+  // Tampilkan modal konfirmasi
+  const modal = document.getElementById("removePhotoModal");
+  document.getElementById("removePhotoConfirmDialog").hidden = false;
+  document.getElementById("removePhotoResultDialog").hidden = true;
+  modal.hidden = false;
+  document.getElementById("cancelRemovePhotoButton").focus();
+}
 
-  const button = document.getElementById("removePhotoButton");
-  const message = document.getElementById("photoActionMessage");
-  button.disabled = true;
-  message.hidden = true;
+function closeRemovePhotoModal() {
+  document.getElementById("removePhotoModal").hidden = true;
+  document.getElementById("removePhotoConfirmDialog").hidden = true;
+  document.getElementById("removePhotoResultDialog").hidden = true;
+}
+
+async function confirmRemovePhoto() {
+  const confirmBtn = document.getElementById("confirmRemovePhotoButton");
+  const cancelBtn = document.getElementById("cancelRemovePhotoButton");
+  confirmBtn.disabled = true;
+  cancelBtn.disabled = true;
+
   try {
+    const button = document.getElementById("removePhotoButton");
+    button.disabled = true;
+
     const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ foto_profil: "" }),
+      body: JSON.stringify({ foto_profil: null }),
     });
     const result = await response.json();
     if (!response.ok || !result.status || !result.data) {
@@ -560,11 +593,39 @@ async function removeProfilePhoto() {
     }
 
     renderProfile(result.data);
-    showMessage(message, "Foto profil berhasil dihapus.", "success");
-  } catch (requestError) {
-    showMessage(message, getRequestErrorMessage(requestError, "Gagal menghapus foto profil."), "error");
-  } finally {
+
+    // Tampilkan dialog sukses
+    const icon = document.getElementById("removePhotoResultIcon");
+    const msg = document.getElementById("removePhotoResultMessage");
+    const sub = document.getElementById("removePhotoResultSub");
+    icon.className = "fa-solid fa-circle-check logout-success-icon";
+    icon.style.color = "";
+    msg.textContent = "Foto profil berhasil dihapus";
+    sub.hidden = true;
+    document.getElementById("removePhotoConfirmDialog").hidden = true;
+    document.getElementById("removePhotoResultDialog").hidden = false;
+    document.getElementById("finishRemovePhotoButton").focus();
     button.disabled = false;
+
+  } catch (err) {
+    // Tampilkan dialog gagal
+    const icon = document.getElementById("removePhotoResultIcon");
+    const msg = document.getElementById("removePhotoResultMessage");
+    const sub = document.getElementById("removePhotoResultSub");
+    icon.className = "fa-solid fa-circle-xmark logout-success-icon";
+    icon.style.color = "#e53e3e";
+    msg.textContent = "Foto profil gagal dihapus";
+    sub.textContent = getRequestErrorMessage(err, "Silakan coba lagi.");
+    sub.style.marginTop = "8px";
+    sub.style.display = "block";
+    sub.hidden = false;
+    document.getElementById("removePhotoConfirmDialog").hidden = true;
+    document.getElementById("removePhotoResultDialog").hidden = false;
+    document.getElementById("finishRemovePhotoButton").focus();
+    document.getElementById("removePhotoButton").disabled = false;
+  } finally {
+    confirmBtn.disabled = false;
+    cancelBtn.disabled = false;
   }
 }
 

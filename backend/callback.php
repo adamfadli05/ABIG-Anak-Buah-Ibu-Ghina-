@@ -1,10 +1,11 @@
 <?php
-session_start();
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/env.php';
+configureSession();
+session_start();
 require_once __DIR__ . '/config/database.php';
 
-define('FRONTEND_URL', getenv('FRONTEND_URL') ?: 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/frontend');
+define('FRONTEND_URL', getenv('FRONTEND_URL') ?: 'http://localhost');
 define('ERROR_URL', FRONTEND_URL . '/login.html?google=failed');
 
 $client = new Google\Client();
@@ -26,7 +27,7 @@ if (!$configData) {
 }
 $client->setAuthConfig($configData);
 $client->setRedirectUri(
-    getenv('BACKEND_URL') ? getenv('BACKEND_URL') . '/callback.php' : 'http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/callback.php'
+    getenv('BACKEND_URL') ? getenv('BACKEND_URL') . '/callback.php' : 'http://localhost/callback.php'
 );
 $client->addScope(['openid', 'email', 'profile']);
 
@@ -153,7 +154,7 @@ if ($admin) {
     $_SESSION['nama'] = $admin['nama'];
     $_SESSION['email'] = $admin['email'];
 
-    header('Location: ' . FRONTEND_URL . '/Dashboard_Admin.html');
+    header('Location: ' . FRONTEND_URL . '/admin.html');
     exit;
 }
 

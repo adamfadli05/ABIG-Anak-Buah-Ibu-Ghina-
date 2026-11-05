@@ -1,6 +1,7 @@
 <?php
-session_start();
 require_once __DIR__ . '/../env.php';
+configureSession();
+session_start();
 require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
@@ -233,11 +234,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             exit;
         }
-        if ($panjang > 200) {
+        if ($panjang > 100) {
             http_response_code(400);
             echo json_encode([
                 "status"  => false,
-                "message" => "Komentar maksimal 200 karakter"
+                "message" => "Komentar maksimal 100 karakter"
             ]);
             exit;
         }
@@ -369,9 +370,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             echo json_encode(["status" => false, "message" => "Komentar minimal 5 karakter"]);
             exit;
         }
-        if ($panjang > 200) {
+        if ($panjang > 100) {
             http_response_code(400);
-            echo json_encode(["status" => false, "message" => "Komentar maksimal 200 karakter"]);
+            echo json_encode(["status" => false, "message" => "Komentar maksimal 100 karakter"]);
             exit;
         }
     }

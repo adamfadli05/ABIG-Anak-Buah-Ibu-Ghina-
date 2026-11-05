@@ -162,8 +162,9 @@
       </div>
     </div>
 
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <script>
-      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
       const loginForm = document.getElementById("loginForm");
 
       const responseModal = document.getElementById("responseModal");
@@ -368,8 +369,7 @@
         }
       });
       // Saat form login di-submit
- // Saat form login di-submit
- async function handleLogin(event) {
+      async function handleLogin(event) {
         event.preventDefault();
 
         const payload = { email: emailInput.value, password: passwordInput.value };
@@ -389,14 +389,12 @@
           // 2. Log response API dari PHP ke Console
           console.log("[API Response] Balasan dari backend:", result);
 
-          if (result.status === "success" || result.status === true) {
-            const role = result.role || (result.data && result.data.role) || "user";
+          if (result.status === "success") {
             localStorage.setItem("user", JSON.stringify(result.data));
-            localStorage.setItem("role", role);
 
-            // Jeda sedikit atau alert sebelum mengalihkan halaman sesuai role
+            // Kasih jeda sedikit atau alert biar log di Console sempat dibaca sebelum pindah halaman
             alert("Login Berhasil!");
-            window.location.href = getLoginRedirect(role); // Mengarahkan ke admin.html jika role admin
+            window.location.href = "index.html";
           } else {
             alert(result.message || "Login gagal!");
           }

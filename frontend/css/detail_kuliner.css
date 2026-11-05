@@ -233,11 +233,11 @@ iconify-icon {
 
 .rating-bar-track > span {
   display: block;
-  width: 100%;
+  width: 0%;
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
-  transition: width 0.2s ease;
+  transition: width 0.3s ease;
 }
 
 .review-section {
@@ -656,10 +656,21 @@ iconify-icon {
 .review-rating-fieldset {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   border: 0;
   padding: 0;
   margin: 0;
+}
+
+#reviewRatingMessage {
+  flex-basis: 100%;
+  order: 3;
+  font-size: 13px;
+  color: #b42318;
+  margin-top: -4px;
+  padding-left: calc(var(--rating-label-width, 80px));
+  min-height: 16px;
 }
 
 .review-form-label {

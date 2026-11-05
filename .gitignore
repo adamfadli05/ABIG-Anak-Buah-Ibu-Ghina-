@@ -1,3 +1,15 @@
+# Environment Variables (jangan di-push ke repo!)
+.env
+backend/.env
+
+# Postman local workspace files
+postman/
+.postman/
+backend/mangan-yukkk.postman_collection.json
+
+# File env yang di-generate otomatis oleh Docker entrypoint saat runtime
+# (bukan file statis — di-overwrite tiap container start)
+# frontend/js/env.js TIDAK di-ignore karena serve sebagai default lokal
 # Dependency directories
 backend/vendor/
 

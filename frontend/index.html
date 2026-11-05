@@ -208,12 +208,6 @@
         </div>
       </section>
 
-      <section class="recommendations-section" aria-labelledby="recommendationsTitle">
-        <h2 class="recommendations-title" id="recommendationsTitle">Rekomendasi Kuliner</h2>
-        <p class="recommendations-status" id="recommendationsStatus" role="status" aria-live="polite">Memuat rekomendasi...</p>
-        <div class="food-grid" id="recommendationsGrid" hidden></div>
-      </section>
-
       <!-- Daftar Kuliner -->
       <section class="food-grid" id="foodGrid" aria-label="Daftar kuliner">
         <div id="loadingIndicator" style="display: none; text-align: center; padding: 20px">Loading...</div>
@@ -224,10 +218,11 @@
     </main>
 
     <!-- File JavaScript External -->
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/navbar.js?v=session-api"></script>
 
     <script>
-      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
 
       window.map = null;
       window.markers = [];
@@ -348,7 +343,10 @@
       }
 
    // 2. LOAD KULINER CARD
+   let _kulinerLoading = false;
    async function loadKuliner() {
+        if (_kulinerLoading) return;
+        _kulinerLoading = true;
         const foodGrid = document.getElementById("foodGrid");
         const loadingIndicator = document.getElementById("loadingIndicator");
         const emptyMessage = document.getElementById("emptyMessage");
@@ -419,9 +417,9 @@
         } finally {
           if (foodGrid) foodGrid.setAttribute("aria-busy", "false");
           if (loadingIndicator) loadingIndicator.style.display = "none";
+          _kulinerLoading = false;
         }
       }
-      // 3. FUNGSI RENDER KULINER
       function renderKuliner() {
         const foodGrid = document.getElementById("foodGrid");
         const emptyMessage = document.getElementById("emptyMessage");
@@ -774,7 +772,6 @@
 
         loadKategori();
         loadKuliner();
-        loadRecommendations();
         checkGoogleLoginSession();
       });
     </script>
@@ -800,7 +797,7 @@
     </script>
 
     <!-- 2. Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMf_5rwK4D5TswcEAqEEGTc-YfeQsVoTA&callback=initMap" onerror="showMapError()" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHTH_5addYM6qrSlMYvbb-38WBQDe6_ms&callback=initMap" onerror="showMapError()" async defer></script>
 
     <!-- 3. Styling Fallback Error Box -->
     <style>

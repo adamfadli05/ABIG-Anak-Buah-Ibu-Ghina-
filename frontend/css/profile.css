@@ -1194,7 +1194,7 @@
 
 .logout-dialog {
 	position: relative;
-	width: min(278px, 100%);
+	width: min(360px, 100%);
 	min-height: 170px;
 	padding: 26px 26px 20px;
 	border: 0;
@@ -1266,6 +1266,13 @@
 .logout-success-dialog .logout-dialog-message {
 	margin: 0;
 	white-space: nowrap;
+}
+
+.logout-success-dialog .logout-error-message {
+	margin-top: 8px;
+	font-size: 13px;
+	text-align: center;
+	color: #e53e3e;
 }
 
 .logout-success-button {
