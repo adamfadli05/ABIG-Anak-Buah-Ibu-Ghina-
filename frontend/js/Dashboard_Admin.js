@@ -1,5 +1,5 @@
 (() => {
-  const API_BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
   const adminApp = document.getElementById("adminApp");
   const authState = document.getElementById("authState");
   const authMessage = document.getElementById("authMessage");
@@ -159,29 +159,35 @@
     summaryRetryButton.disabled = true;
 
     try {
-      const [culinaryResult, categoriesResult] = await Promise.all([
-        getJson(`${API_BASE_URL}/api/tempat_kuliner.php`),
-        getJson(`${API_BASE_URL}/api/kategori.php`),
-      ]);
-      if (!culinaryResult.status || !categoriesResult.status || !Array.isArray(culinaryResult.data) || !Array.isArray(categoriesResult.data)) {
-        throw new Error("Data dashboard dari server tidak valid.");
+      // Pakai satu endpoint dashboard yang return semua data sekaligus
+      const dashResult = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
+      if (!dashResult.status || !dashResult.data) {
+        throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
       }
 
-      const culinary = culinaryResult.data.slice(0, 3);
-      const details = await Promise.all(culinary.map((item) => getJson(
-        `${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`
-      )));
+      const data = dashResult.data;
+
+      document.getElementById("totalCulinary").textContent = numberFormatter.format(data.total_kuliner ?? 0);
+      document.getElementById("totalCategories").textContent = numberFormatter.format(data.total_kategori ?? 0);
+      document.getElementById("totalUsers").textContent = numberFormatter.format(data.total_user ?? 0);
+
+      // Ambil data kuliner untuk card grid
+      const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
+      if (!culinaryResult.status || !Array.isArray(culinaryResult.data)) {
+        throw new Error("Data kuliner dari server tidak valid.");
+      }
+
+      // Ambil rating dari detail kuliner secara paralel
+      const culinary = culinaryResult.data;
+      const details = await Promise.all(culinary.map((item) =>
+        getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)
+      ));
       const culinaryWithRatings = culinary.map((item, index) => {
         const detail = details[index];
-        if (!detail.status || !detail.data) {
-          throw new Error(detail.message || "Rating kuliner gagal dimuat.");
-        }
-        return { ...item, rata_rata_rating: detail.data.rata_rata_rating };
+        const rating = detail?.status && detail?.data ? detail.data.rata_rata_rating : 0;
+        return { ...item, rata_rata_rating: rating };
       });
 
-      document.getElementById("totalCulinary").textContent = numberFormatter.format(culinaryResult.data.length);
-      document.getElementById("totalCategories").textContent = numberFormatter.format(categoriesResult.data.length);
-      document.getElementById("totalUsers").textContent = "—";
       renderCulinaryCards(culinaryWithRatings);
 
       summaryCards.hidden = false;

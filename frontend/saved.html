@@ -270,10 +270,10 @@
     </main>
 
     <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/navbar.js?v=session-api"></script>
     <script>
-      const BASE_URL = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
-
       document.addEventListener("DOMContentLoaded", () => {
         loadSavedFoods();
 
@@ -331,8 +331,8 @@
 
         savedGrid.innerHTML = items
           .map((item) => {
-            // Menyamakan sumber foto agar mengambil foto kuliner/makanan terlebih dahulu seperti di index.html
-            const rawPhoto = item.foto_kuliner || item.foto_makanan || item.foto || "";
+            // foto_makanan = tk.foto (foto makanan per tempat, unik), fallback ke foto_kuliner
+            const rawPhoto = item.foto_makanan || item.foto_kuliner || item.foto || "";
             const photo = getSafePhoto(rawPhoto);
 
             const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");

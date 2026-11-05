@@ -178,6 +178,25 @@
       <button id="finishLogoutButton" class="logout-success-button" type="button">Oke</button>
     </section>
   </div>
+
+  <!-- Modal Hapus Foto Profil -->
+  <div id="removePhotoModal" class="logout-modal-overlay" hidden>
+    <section id="removePhotoConfirmDialog" class="logout-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="removePhotoConfirmMessage" hidden>
+      <p id="removePhotoConfirmMessage" class="logout-dialog-message">Apakah anda yakin<br />ingin menghapus foto profil ?</p>
+      <div class="logout-dialog-actions">
+        <button id="cancelRemovePhotoButton" class="logout-cancel-button" type="button">Batal</button>
+        <button id="confirmRemovePhotoButton" class="logout-confirm-button" type="button">OKE</button>
+      </div>
+    </section>
+    <section id="removePhotoResultDialog" class="logout-dialog logout-success-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="removePhotoResultMessage" hidden>
+      <i id="removePhotoResultIcon" class="fa-solid fa-circle-check logout-success-icon" aria-hidden="true"></i>
+      <p id="removePhotoResultMessage" class="logout-dialog-message">Foto profil berhasil dihapus</p>
+      <p id="removePhotoResultSub" class="logout-error-message" role="alert" hidden></p>
+      <button id="finishRemovePhotoButton" class="logout-success-button" type="button">Oke</button>
+    </section>
+  </div>
   <div id="passwordResultModal" class="logout-modal-overlay" hidden>
     <section id="passwordResultDialog" class="logout-dialog password-result-dialog" role="alertdialog" aria-modal="true"
       aria-labelledby="passwordResultTitle" aria-describedby="passwordResultMessage">
@@ -196,6 +215,8 @@
       <button id="retryConnectionButton" class="connection-retry-button" type="button">Coba lagi</button>
     </section>
   </div>
+  <script src="js/env.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/navbar.js?v=session-api"></script>
   <script src="js/profile.js?v=8"></script>
 </body>

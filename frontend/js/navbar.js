@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const AUTH_API_BASE = "http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend";
+  const AUTH_API_BASE = window.AUTH_API_BASE || window.BASE_URL || window.location.origin;
   const navbarContainer = document.getElementById("navbar-container");
 
   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
@@ -266,9 +266,10 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.removeItem("role");
     localStorage.clear();
 
-    fetch("http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/logout.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    fetch(AUTH_API_BASE + "/logout.php", {
+      method: "GET",
+      credentials: "include",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
     })
       .catch((err) => console.error("Logout backend error:", err))
       .finally(() => {

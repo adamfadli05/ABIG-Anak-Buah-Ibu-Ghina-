@@ -1,6 +1,7 @@
 <?php
-session_start();
 require_once __DIR__ . '/../env.php';
+configureSession();
+session_start();
 require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
@@ -74,10 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
     $body      = json_decode(file_get_contents("php://input"), true);
     $nama      = isset($body['nama'])       ? trim($body['nama'])       : null;
-    $foto_profil = isset($body['foto_profil']) ? trim($body['foto_profil']) : null;
+
+    // foto_profil bisa berupa: string URL (update), "" atau null (hapus), tidak ada key (tidak diubah)
+    $hapus_foto   = array_key_exists('foto_profil', $body) && ($body['foto_profil'] === null || $body['foto_profil'] === '');
+    $foto_profil  = array_key_exists('foto_profil', $body) ? (($body['foto_profil'] === null || $body['foto_profil'] === '') ? null : trim($body['foto_profil'])) : 'TIDAK_DIUBAH';
 
     // Validasi minimal satu field diisi
-    if (($nama === null || $nama === '') && $foto_profil === null) {
+    if (($nama === null || $nama === '') && $foto_profil === 'TIDAK_DIUBAH') {
         http_response_code(400);
         echo json_encode([
             "status"  => false,
@@ -106,8 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         }
     }
 
-    // Validasi foto_profil jika diisi — harus URL valid
-    if ($foto_profil !== null && $foto_profil !== '') {
+    // Validasi foto_profil jika diisi — harus URL valid (skip jika hapus atau tidak diubah)
+    if ($foto_profil !== 'TIDAK_DIUBAH' && $foto_profil !== null && $foto_profil !== '') {
         if (!filter_var($foto_profil, FILTER_VALIDATE_URL)) {
             http_response_code(400);
             echo json_encode([
@@ -136,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
     $data_lama   = pg_fetch_assoc($cek);
     $nama_baru   = ($nama !== null && $nama !== '') ? $nama : $data_lama['nama'];
-    $foto_baru   = ($foto_profil !== null) ? ($foto_profil !== '' ? $foto_profil : null) : $data_lama['foto_profil'];
+    $foto_baru   = ($foto_profil === 'TIDAK_DIUBAH') ? $data_lama['foto_profil'] : $foto_profil;
 
     // Update profil — email tidak bisa diubah lewat endpoint ini
     $result = pg_query_params(
