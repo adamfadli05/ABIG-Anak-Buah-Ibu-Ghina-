@@ -6,6 +6,8 @@
   const authRetryButton = document.getElementById("authRetryButton");
   const summaryLoading = document.getElementById("summaryLoading");
   const summaryError = document.getElementById("summaryError");
+  const summaryErrorTitle = document.getElementById("summaryErrorTitle");
+  const summaryErrorIcon = document.getElementById("summaryErrorIcon");
   const summaryErrorMessage = document.getElementById("summaryErrorMessage");
   const summaryRetryButton = document.getElementById("summaryRetryButton");
   const summaryCards = document.getElementById("summaryCards");
@@ -14,10 +16,15 @@
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
   const navigationMessage = document.getElementById("navigationMessage");
+  const adminLogoutButton = document.getElementById("adminLogoutButton");
+  const logoutConfirmModal = document.getElementById("logoutConfirmModal");
+  const logoutSuccessModal = document.getElementById("logoutSuccessModal");
+  const logoutErrorMessage = document.getElementById("logoutErrorMessage");
+  const confirmLogoutButton = document.getElementById("confirmLogoutButton");
   const numberFormatter = new Intl.NumberFormat("id-ID");
 
-  async function getJson(url) {
-    const response = await fetch(url, { credentials: "include" });
+  async function getJson(url, options = {}) {
+    const response = await fetch(url, { ...options, credentials: "include" });
     let result;
 
     try {
@@ -195,10 +202,54 @@
       summaryLoading.hidden = true;
     } catch (error) {
       summaryLoading.hidden = true;
-      summaryErrorMessage.textContent = error.message || "Ringkasan dashboard gagal dimuat.";
+      const isOffline = !navigator.onLine || error instanceof TypeError;
+      summaryErrorTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Dashboard gagal dimuat";
+      summaryErrorMessage.textContent = isOffline
+        ? "Periksa kembali jaringan internet Anda dan muat ulang halaman."
+        : error.message || "Ringkasan dashboard gagal dimuat.";
+      summaryErrorIcon.setAttribute("icon", isOffline ? "lucide:wifi-off" : "lucide:triangle-alert");
+      summaryRetryButton.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
       summaryError.hidden = false;
     } finally {
+      summaryCards.setAttribute("aria-busy", "false");
       summaryRetryButton.disabled = false;
+    }
+  }
+
+  function openLogoutConfirmation() {
+    logoutErrorMessage.hidden = true;
+    logoutConfirmModal.hidden = false;
+    document.getElementById("cancelLogoutButton").focus();
+  }
+
+  function closeLogoutConfirmation() {
+    if (confirmLogoutButton.disabled) return;
+    logoutConfirmModal.hidden = true;
+    adminLogoutButton.focus();
+  }
+
+  async function logout() {
+    confirmLogoutButton.disabled = true;
+    logoutErrorMessage.hidden = true;
+
+    try {
+      const result = await getJson(`${API_BASE_URL}/logout.php`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!result.status) {
+        throw new Error(result.message || "Gagal keluar dari akun.");
+      }
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      logoutConfirmModal.hidden = true;
+      logoutSuccessModal.hidden = false;
+      document.getElementById("finishLogoutButton").focus();
+    } catch (error) {
+      logoutErrorMessage.textContent = error.message || "Gagal keluar dari akun.";
+      logoutErrorMessage.hidden = false;
+    } finally {
+      confirmLogoutButton.disabled = false;
     }
   }
 
@@ -212,6 +263,18 @@
 
   authRetryButton.addEventListener("click", checkAdminAccess);
   summaryRetryButton.addEventListener("click", loadDashboardSummary);
+  adminLogoutButton.addEventListener("click", openLogoutConfirmation);
+  document.getElementById("cancelLogoutButton").addEventListener("click", closeLogoutConfirmation);
+  confirmLogoutButton.addEventListener("click", logout);
+  document.getElementById("finishLogoutButton").addEventListener("click", () => {
+    window.location.replace("login.html");
+  });
+  logoutConfirmModal.addEventListener("click", (event) => {
+    if (event.target === logoutConfirmModal) closeLogoutConfirmation();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !logoutConfirmModal.hidden) closeLogoutConfirmation();
+  });
   sidebarToggle.addEventListener("click", () => {
     setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
   });
