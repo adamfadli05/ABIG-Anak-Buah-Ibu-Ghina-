@@ -1,106 +1,139 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Kelola Daftar Kuliner</title>
-  <link rel="stylesheet" href="daftar kuliner admin.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#001b7d" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Kuliner | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/daftar_kuliner_admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/daftar_kuliner_admin.js" defer></script>
+  </head>
+  <body>
+    <!-- State Autentikasi -->
+    <main id="authState" class="page-state" role="status" aria-live="polite">
+      <p id="authMessage">Memeriksa akses Admin...</p>
+      <button id="authRetryButton" class="button button-secondary" type="button" hidden>Coba lagi</button>
+    </main>
 
-  <!-- Sidebar Navigasi -->
-  <aside class="sidebar">
-    <h2>Admin Panel</h2>
-    <nav>
-      <ul>
-        <li><a href="#" class="active">Daftar Kuliner</a></li>
-        <li><a href="#">Kategori</a></li>
-        <li><a href="#">Ulasan Pengguna</a></li>
-        <li><a href="#">Pengaturan</a></li>
-      </ul>
-    </nav>
-  </aside>
+    <!-- App Utama -->
+    <div id="adminApp" class="admin-app" hidden>
+      <!-- Sidebar konsisten dengan Dashboard -->
+      <aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
+        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
+          <img src="assets/logo.png" alt="Mangan Yukkk" />
+        </a>
 
-  <!-- Konten Utama -->
-  <main class="main-content">
-    <header class="top-header">
-      <h1>Kelola Data Kuliner</h1>
-      <button id="btn-tambah" class="btn btn-primary">+ Tambah Kuliner</button>
-    </header>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="Dashboard_Admin.html">
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+            <span>Dashboard</span>
+          </a>
+          <a class="nav-link active" href="daftar_kuliner_admin.html" aria-current="page">
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <span>Kuliner</span>
+          </a>
+          <a class="nav-link" href="kategori_kuliner_admin.html">
+            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
+            <span>Kategori</span>
+          </a>
+          <a class="nav-link" href="#pengguna" data-coming-soon="Daftar Pengguna">
+            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+            <span>Pengguna</span>
+          </a>
+          <button id="adminLogoutButton" class="nav-link logout-link" type="button">
+            <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
+            <span>Keluar</span>
+          </button>
+        </nav>
+      </aside>
 
-    <!-- Toolbar Filter & Pencarian -->
-    <section class="toolbar">
-      <input type="text" id="search-input" placeholder="Cari nama kuliner..." />
-      <select id="filter-kategori">
-        <option value="semua">Semua Kategori</option>
-        <option value="Makanan">Makanan</option>
-        <option value="Minuman">Minuman</option>
-        <option value="Cemilan">Cemilan</option>
-      </select>
-    </section>
+      <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
 
-    <!-- Tabel Daftar Kuliner -->
-    <section class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Foto</th>
-            <th>Nama Kuliner</th>
-            <th>Kategori</th>
-            <th>Harga</th>
-            <th>Rating</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="kuliner-table-body">
-          <!-- Data akan dimuat melalui JavaScript -->
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <!-- Panel Konten Utama -->
+      <section class="main-panel">
+        <header class="topbar">
+          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
+            <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
+          </button>
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Daftar Kuliner</strong>
+              <span id="adminName">Admin</span>
+            </span>
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+          </div>
+        </header>
 
-  <!-- Modal Form Tambah/Edit Kuliner -->
-  <div id="kuliner-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" id="btn-close-modal">&times;</span>
-      <h2 id="modal-title">Tambah Kuliner Baru</h2>
-      
-      <form id="kuliner-form">
-        <input type="hidden" id="kuliner-id" />
-        
-        <div class="form-group">
-          <label for="nama">Nama Kuliner</label>
-          <input type="text" id="nama" required />
-        </div>
+        <div class="dashboard-content">
+          <!-- Header Bagian Halaman -->
+          <div class="content-header-flex">
+            <h2>Daftar Kuliner</h2>
+            <button id="btnTambahKuliner" class="button button-primary">
+              <iconify-icon icon="lucide:plus" aria-hidden="true"></iconify-icon>
+              Tambah Kuliner
+            </button>
+          </div>
 
-        <div class="form-group">
-          <label for="kategori">Kategori</label>
-          <select id="kategori" required>
-            <option value="Makanan">Makanan</option>
-            <option value="Minuman">Minuman</option>
-            <option value="Cemilan">Cemilan</option>
-          </select>
-        </div>
+          <!-- Kotak Pencarian -->
+          <div class="search-toolbar">
+            <div class="search-input-wrapper">
+              <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
+              <input type="text" id="searchKuliner" placeholder="Cari Kuliner..." />
+            </div>
+          </div>
 
-        <div class="form-group">
-          <label for="harga">Harga (Rp)</label>
-          <input type="number" id="harga" required />
-        </div>
-
-        <div class="form-group">
-          <label for="gambar">URL Gambar</label>
-          <input type="url" id="gambar" placeholder="https://via.placeholder.com/150" required />
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="btn-batal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan</button>
-        </div>
-      </form>
-    </div>
+<!-- Tabel Data Kuliner -->
+<div class="table-card">
+  <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
+  <div id="tableError" class="dashboard-error-state" role="alert" hidden>
+    <iconify-icon class="error-state-icon" icon="lucide:wifi-off" aria-hidden="true"></iconify-icon>
+    <p>Gagal memuat data kuliner dari server.</p>
+    <button id="tableRetryButton" class="button button-secondary" type="button">Coba lagi</button>
   </div>
 
-  <script src="daftar kuliner admin.js"></script>
-</body>
+  <div class="table-responsive" id="tableWrapper" hidden>
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Foto</th>
+          <th>Nama Kuliner</th>
+          <th>Kategori</th>
+          <th>Alamat</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="kulinerTableBody">
+        <!-- Data dimuat dinamis melalui JS -->
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- AKHIR .table-card -->
+
+<!-- Pindahkan #tableEmpty KE LUAR .table-card -->
+<div id="tableEmpty" class="culinary-empty-state" role="status" hidden>
+  <iconify-icon icon="ic:baseline-search-off" width="48" height="48" aria-hidden="true"></iconify-icon>
+  <p>Kuliner Tidak Ditemukan</p>
+</div>
+
+<!-- State Error / Koneksi Terputus Sesuai Figma -->
+<div id="tableError" class="culinary-error-state" role="alert" hidden>
+  <iconify-icon icon="fluent:wifi-warning-20-filledf" width="50" height="50" aria-hidden="true"></iconify-icon>
+  <h3>Koneksi Internet Terputus</h3>
+  <p>Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+  <button id="tableRetryButton" class="button button-primary" type="button">
+    <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon> Muat Ulang
+  </button>
+</div>
+
+    <!-- Modal Konfirmasi Hapus / Logout (Opsional/Menyesuaikan Dashboard) -->
+  </body>
 </html>
