@@ -1,0 +1,231 @@
+.add-culinary-content {
+  max-width: 1080px;
+}
+
+.add-culinary-content > h1 {
+  margin-bottom: 22px;
+  font-size: 24px;
+}
+
+.add-culinary-form {
+  display: grid;
+  max-width: 800px;
+  margin: 0 auto;
+  gap: 22px;
+}
+
+.photo-field {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.photo-picker {
+  display: grid;
+  width: min(100%, 328px);
+  min-height: 132px;
+  place-items: center;
+  overflow: hidden;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #ededed;
+  color: #141414;
+  cursor: pointer;
+}
+
+.photo-picker:hover {
+  background: #e4e8f5;
+}
+
+.photo-picker:focus-visible,
+.remove-photo:focus-visible,
+.form-actions .button:focus-visible,
+.back-link:focus-visible {
+  outline: 3px solid #6b8cf5;
+  outline-offset: 3px;
+}
+
+.photo-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.photo-placeholder iconify-icon {
+  font-size: 38px;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.photo-help {
+  color: #788294;
+  font-size: 12px;
+}
+
+.remove-photo {
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #b42318;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 28px;
+}
+
+.form-field {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+}
+
+.form-field > label {
+  color: #242424;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-field > label span {
+  color: #e34b4b;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid #d5d5d5;
+  border-radius: 24px;
+  background: #fff;
+  color: #202020;
+  font: inherit;
+  font-size: 14px;
+}
+
+.form-field textarea {
+  min-height: 42px;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #397ee8;
+  outline: 2px solid rgb(57 126 232 / 18%);
+}
+
+.operating-hours {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.operating-hours input {
+  min-width: 0;
+  padding: 8px 10px;
+}
+
+.operating-hours span {
+  flex: 0 0 auto;
+  color: #788294;
+  font-size: 12px;
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-message {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fff8e6;
+  color: #805b00;
+  font-size: 13px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.form-actions .button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.button-cancel {
+  background: #eef0f4;
+  color: #384152;
+}
+
+.button-primary {
+  background: #001b7d;
+  color: #fff;
+}
+
+.button-primary:hover {
+  background: #092caa;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5565;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.back-link iconify-icon {
+  font-size: 20px;
+}
+
+@media (max-width: 700px) {
+  .add-culinary-content {
+    padding: 28px 18px 36px;
+  }
+
+  .add-culinary-content > h1 {
+    font-size: 22px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-field-wide {
+    grid-column: auto;
+  }
+
+  .form-actions .button {
+    flex: 1;
+    padding: 0 12px;
+  }
+}

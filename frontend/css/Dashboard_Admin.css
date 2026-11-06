@@ -38,6 +38,34 @@ a {
   text-align: center;
 }
 
+.page-state h1 {
+  margin: 0;
+  color: #252b35;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.page-state p {
+  max-width: 420px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.error-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #858585;
+  font-size: 38px;
+}
+
+.offline-status-icon {
+  width: 38px;
+  height: 38px;
+  fill: currentColor;
+}
+
 .admin-app {
   min-height: 100vh;
 }
@@ -47,7 +75,7 @@ a {
   z-index: 3;
   inset: 0 auto 0 0;
   display: flex;
-  width: clamp(220px, 19vw, 280px);
+  width: clamp(240px, 21vw, 300px);
   flex-direction: column;
   padding: 32px 16px;
   border-right: 1px solid #00166a;
@@ -120,7 +148,7 @@ button.nav-link {
 
 .main-panel {
   min-height: 100vh;
-  margin-left: clamp(220px, 19vw, 280px);
+  margin-left: clamp(240px, 21vw, 300px);
   transition: margin-left 180ms ease;
 }
 
@@ -318,88 +346,134 @@ h1 {
   margin-top: 28px;
 }
 
+.users-section {
+  margin-top: 36px;
+  scroll-margin-top: 24px;
+}
+
+.recent-users {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.recent-user {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #e8ebf2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.recent-user strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-user span,
+.recent-users-empty {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #788294;
+  font-size: 12px;
+}
+
 .culinary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 22px;
 }
 
 .culinary-card {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
   overflow: hidden;
-  padding: 10px 11px 12px;
-  border: 2px solid #c9cdd5;
-  border-bottom-color: #001b7d;
-  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #dfe3eb;
+  border-bottom: 3px solid #001b7d;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 2px 3px rgb(0 0 0 / 15%);
+  box-shadow: 0 3px 8px rgb(23 32 51 / 9%);
   color: inherit;
   text-decoration: none;
+  transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
 .culinary-card:hover {
-  box-shadow: 0 5px 14px rgb(23 32 51 / 12%);
-  transform: translateY(-1px);
+  box-shadow: 0 9px 22px rgb(23 32 51 / 14%);
+  transform: translateY(-3px);
 }
 
 .culinary-photo {
   display: block;
   width: 100%;
-  height: clamp(110px, 12vw, 160px);
+  aspect-ratio: 3 / 2;
   object-fit: cover;
+  border-radius: 7px;
   background: #eef0f4;
 }
 
 .culinary-card-content {
-  padding: 8px 0 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 14px 4px 5px;
 }
 
 .culinary-card-title {
   overflow: hidden;
-  margin: 0 0 8px;
-  color: #111;
-  font-size: 12px;
-  font-weight: 500;
+  margin: 0 0 10px;
+  color: #172033;
+  font-size: 16px;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .culinary-card-address {
   display: flex;
-  min-height: 34px;
+  min-height: 40px;
   align-items: flex-start;
-  gap: 8px;
-  margin: 0 0 8px;
-  color: #444;
-  font-size: 10px;
-  line-height: 1.4;
+  gap: 9px;
+  margin: 0 0 14px;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .culinary-card-address iconify-icon {
   flex: 0 0 auto;
-  color: #929292;
-  font-size: 17px;
+  color: #788294;
+  font-size: 18px;
 }
 
 .culinary-card-footer {
   display: flex;
+  margin-top: auto;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  color: #111;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 12px;
+  color: #172033;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .culinary-card-rating {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
+  color: #475467;
 }
 
 .culinary-card-rating iconify-icon {
   color: #ffb800;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .sr-only {
@@ -458,11 +532,6 @@ h1 {
   text-align: center;
 }
 
-.error-state-icon {
-  color: #8a8f98;
-  font-size: 34px;
-}
-
 .dashboard-error-state h1 {
   margin: 0;
   color: #252b35;
@@ -488,8 +557,25 @@ h1 {
 }
 
 .button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   background: #001b7d;
   color: #fff;
+}
+
+.button-secondary iconify-icon {
+  font-size: 16px;
+}
+
+.refresh-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 .button-secondary:hover {

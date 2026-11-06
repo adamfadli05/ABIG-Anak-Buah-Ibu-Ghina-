@@ -2,20 +2,27 @@
   const API_BASE_URL = window.BASE_URL || window.location.origin;
   const adminApp = document.getElementById("adminApp");
   const authState = document.getElementById("authState");
+  const authTitle = document.getElementById("authTitle");
   const authMessage = document.getElementById("authMessage");
+  const authErrorIcon = document.getElementById("authErrorIcon");
+  const authIconify = document.getElementById("authIconify");
+  const authOfflineIcon = document.getElementById("authOfflineIcon");
   const authRetryButton = document.getElementById("authRetryButton");
+  const authRetryLabel = document.getElementById("authRetryLabel");
   const summaryLoading = document.getElementById("summaryLoading");
   const summaryError = document.getElementById("summaryError");
   const summaryErrorTitle = document.getElementById("summaryErrorTitle");
   const summaryErrorIcon = document.getElementById("summaryErrorIcon");
+  const summaryIconify = document.getElementById("summaryIconify");
+  const summaryOfflineIcon = document.getElementById("summaryOfflineIcon");
   const summaryErrorMessage = document.getElementById("summaryErrorMessage");
   const summaryRetryButton = document.getElementById("summaryRetryButton");
+  const summaryRetryLabel = document.getElementById("summaryRetryLabel");
   const summaryCards = document.getElementById("summaryCards");
   const culinaryCards = document.getElementById("culinaryCards");
   const culinaryEmpty = document.getElementById("culinaryEmpty");
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const navigationMessage = document.getElementById("navigationMessage");
   const adminLogoutButton = document.getElementById("adminLogoutButton");
   const logoutConfirmModal = document.getElementById("logoutConfirmModal");
   const logoutSuccessModal = document.getElementById("logoutSuccessModal");
@@ -30,7 +37,9 @@
     try {
       result = await response.json();
     } catch {
-      throw new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+      const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+      error.status = response.status;
+      throw error;
     }
 
     if (!response.ok) {
@@ -44,7 +53,11 @@
 
   async function checkAdminAccess() {
     authRetryButton.hidden = true;
-    authMessage.textContent = "Memeriksa akses Admin...";
+    authErrorIcon.hidden = true;
+    authOfflineIcon.toggleAttribute("hidden", true);
+    authIconify.hidden = false;
+    authTitle.textContent = "Memeriksa akses Admin...";
+    authMessage.textContent = "Mohon tunggu sebentar.";
 
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
@@ -74,7 +87,16 @@
         return;
       }
 
-      authMessage.textContent = error.message || "Gagal memeriksa akses Admin.";
+      const isOffline = !navigator.onLine || error instanceof TypeError;
+
+      authTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Validasi halaman gagal dilakukan";
+      authMessage.textContent = isOffline
+        ? "Periksa kembali jaringan internet Anda dan silakan muat ulang halaman."
+        : error.message || "Gagal memeriksa akses Admin.";
+      authIconify.hidden = isOffline;
+      authOfflineIcon.toggleAttribute("hidden", !isOffline);
+      authErrorIcon.hidden = false;
+      authRetryLabel.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
       authRetryButton.hidden = false;
     }
   }
@@ -174,9 +196,9 @@
 
       const data = dashResult.data;
 
-      document.getElementById("totalCulinary").textContent = numberFormatter.format(data.total_kuliner ?? 0);
-      document.getElementById("totalCategories").textContent = numberFormatter.format(data.total_kategori ?? 0);
-      document.getElementById("totalUsers").textContent = numberFormatter.format(data.total_user ?? 0);
+      document.getElementById("totalCulinary").textContent = numberFormatter.format(getCount(data.total_kuliner));
+      document.getElementById("totalCategories").textContent = numberFormatter.format(getCount(data.total_kategori));
+      document.getElementById("totalUsers").textContent = numberFormatter.format(getCount(data.total_user));
 
       // Ambil data kuliner untuk card grid
       const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
@@ -207,8 +229,9 @@
       summaryErrorMessage.textContent = isOffline
         ? "Periksa kembali jaringan internet Anda dan muat ulang halaman."
         : error.message || "Ringkasan dashboard gagal dimuat.";
-      summaryErrorIcon.setAttribute("icon", isOffline ? "lucide:wifi-off" : "lucide:triangle-alert");
-      summaryRetryButton.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
+      summaryIconify.hidden = isOffline;
+      summaryOfflineIcon.toggleAttribute("hidden", !isOffline);
+      summaryRetryLabel.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
       summaryError.hidden = false;
     } finally {
       summaryCards.setAttribute("aria-busy", "false");
@@ -280,17 +303,23 @@
   });
   sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
 
-  document.querySelectorAll("[data-coming-soon]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      navigationMessage.textContent = `Halaman ${link.dataset.comingSoon} belum tersedia pada kerangka awal ini.`;
-      navigationMessage.hidden = false;
-    });
-  });
-
   window.addEventListener("resize", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || adminApp.classList.contains("sidebar-collapsed");
   });
+
+  window.addEventListener("offline", () => {
+    if (!adminApp.hidden) loadDashboardSummary();
+  });
+  window.addEventListener("online", () => {
+    if (adminApp.hidden) checkAdminAccess();
+    else loadDashboardSummary();
+  });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js").catch((error) => {
+      console.error("[Admin] Gagal mendaftarkan cache offline:", error);
+    });
+  }
 
   checkAdminAccess();
 })();

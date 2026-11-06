@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#001b7d" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Kuliner | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/tambah_kuliner_admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="js/tambah_kuliner_admin.js" defer></script>
+  </head>
+  <body>
+    <div class="admin-app">
+      <aside class="sidebar" aria-label="Navigasi Admin">
+        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
+          <img src="assets/logo.png" alt="" />
+        </a>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="Dashboard_Admin.html">
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+            <span>Dashboard</span>
+          </a>
+          <a class="nav-link active" href="daftar_kuliner_admin.html" aria-current="page">
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <span>Kuliner</span>
+          </a>
+          <a class="nav-link" href="kategori_kuliner_admin.html">
+            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
+            <span>Kategori</span>
+          </a>
+          <a class="nav-link" href="Dashboard_Admin.html#pengguna">
+            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+            <span>Pengguna</span>
+          </a>
+        </nav>
+      </aside>
+
+      <section class="main-panel">
+        <header class="topbar">
+          <a class="back-link" href="daftar_kuliner_admin.html">
+            <iconify-icon icon="lucide:arrow-left" aria-hidden="true"></iconify-icon>
+            <span>Kuliner</span>
+          </a>
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Tambah Kuliner</strong>
+              <span>Admin</span>
+            </span>
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+          </div>
+        </header>
+
+        <main class="dashboard-content add-culinary-content">
+          <h1>Tambah Kuliner</h1>
+          <form id="addCulinaryForm" class="add-culinary-form">
+            <div class="photo-field">
+              <input id="culinaryPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+              <button id="photoPicker" class="photo-picker" type="button" aria-label="Pilih foto kuliner">
+                <span id="photoPlaceholder" class="photo-placeholder">
+                  <iconify-icon icon="lucide:image-plus" aria-hidden="true"></iconify-icon>
+                  <span>Tambah Foto Kuliner</span>
+                </span>
+                <img id="photoPreview" class="photo-preview" alt="Pratinjau foto kuliner" hidden />
+              </button>
+              <span class="photo-help">Unggah foto JPG, PNG, atau WebP (maks. 5 MB).</span>
+              <button id="removePhoto" class="remove-photo" type="button" hidden>Hapus foto</button>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="namaKuliner">Nama Kuliner <span>*</span></label>
+                <input id="namaKuliner" name="nama_kuliner" type="text" placeholder="Masukan nama kuliner" required />
+              </div>
+              <div class="form-field">
+                <label for="harga">Harga Kuliner <span>*</span></label>
+                <input id="harga" name="harga" type="number" min="0" placeholder="Masukan harga kuliner" required />
+              </div>
+              <div class="form-field">
+                <label for="deskripsi">Deskripsi Kuliner <span>*</span></label>
+                <textarea id="deskripsi" name="deskripsi" rows="2" placeholder="Masukan deskripsi singkat kuliner" required></textarea>
+              </div>
+              <div class="form-field">
+                <label>Jam Operasional</label>
+                <div class="operating-hours">
+                  <input id="jamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
+                  <span>sampai</span>
+                  <input id="jamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="kategori">Kategori Kuliner <span>*</span></label>
+                <select id="kategori" name="kategori" required>
+                  <option value="" selected disabled>Atur kategori kuliner</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Cemilan">Cemilan</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="telepon">Nomor Telepon</label>
+                <input id="telepon" name="no_telepon" type="tel" placeholder="Masukan nomor telepon" />
+              </div>
+              <div class="form-field form-field-wide">
+                <label for="alamat">Alamat Kuliner</label>
+                <input id="alamat" name="alamat" type="text" placeholder="Masukan alamat kuliner" />
+              </div>
+            </div>
+
+            <p id="formMessage" class="form-message" role="status" aria-live="polite" hidden></p>
+            <div class="form-actions">
+              <a class="button button-cancel" href="daftar_kuliner_admin.html">Batal</a>
+              <button class="button button-primary" type="submit">Simpan Kuliner</button>
+            </div>
+          </form>
+        </main>
+      </section>
+    </div>
+  </body>
+</html>
