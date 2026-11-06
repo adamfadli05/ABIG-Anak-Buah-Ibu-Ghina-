@@ -209,10 +209,18 @@ if ($method === 'POST') {
     $latitude     = trim((string)($body['latitude']    ?? ''));
     $longitude    = trim((string)($body['longitude']   ?? ''));
     $harga        = trim((string)($body['harga']       ?? ''));
-    $jam_buka     = trim($body['jam_buka']     ?? '') ?: null;
-    $jam_tutup    = trim($body['jam_tutup']    ?? '') ?: null;
-    $no_telepon   = trim($body['no_telepon']   ?? '') ?: null;
-    $photo_url    = trim($body['photo_url']    ?? '') ?: null;
+    $jam_operasional = trim($body['jam_operasional'] ?? '') ?: null;
+    $no_telepon      = trim($body['no_telepon']      ?? '') ?: null;
+    $photo_url       = trim($body['photo_url']       ?? '') ?: null;
+
+    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
+    $jam_buka  = null;
+    $jam_tutup = null;
+    if ($jam_operasional !== null) {
+        $parts     = explode('-', $jam_operasional, 2);
+        $jam_buka  = trim($parts[0] ?? '') ?: null;
+        $jam_tutup = trim($parts[1] ?? '') ?: null;
+    }
 
     // Validasi field wajib
     if (empty($nama_kuliner) || empty($deskripsi) || empty($id_kategori) ||
@@ -385,8 +393,18 @@ if ($method === 'PUT') {
     $latitude     = trim((string)($body['latitude']  ?? $lama['latitude']));
     $longitude    = trim((string)($body['longitude'] ?? $lama['longitude']));
     $harga        = trim((string)($body['harga']     ?? $lama['harga']));
-    $jam_buka     = array_key_exists('jam_buka',   $body) ? ($body['jam_buka']   ?: null) : $lama['jam_buka'];
-    $jam_tutup    = array_key_exists('jam_tutup',  $body) ? ($body['jam_tutup']  ?: null) : $lama['jam_tutup'];
+
+    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
+    // Kalau tidak dikirim, fallback ke nilai lama
+    if (array_key_exists('jam_operasional', $body) && $body['jam_operasional'] !== '') {
+        $parts     = explode('-', $body['jam_operasional'], 2);
+        $jam_buka  = trim($parts[0] ?? '') ?: null;
+        $jam_tutup = trim($parts[1] ?? '') ?: null;
+    } else {
+        $jam_buka  = $lama['jam_buka'];
+        $jam_tutup = $lama['jam_tutup'];
+    }
+
     $no_telepon   = array_key_exists('no_telepon', $body) ? ($body['no_telepon'] ?: null) : $lama['no_telepon'];
 
     // Foto: kalau dikirim pakai photo_url baru, kalau tidak pertahankan lama
@@ -510,6 +528,7 @@ if ($method === 'PUT') {
             "harga"        => $harga,
             "jam_buka"     => $jam_buka,
             "jam_tutup"    => $jam_tutup,
+            "jam_operasional" => ($jam_buka && $jam_tutup) ? "$jam_buka - $jam_tutup" : null,
             "no_telepon"   => $no_telepon,
             "photo_url"    => $photo_url
         ]
