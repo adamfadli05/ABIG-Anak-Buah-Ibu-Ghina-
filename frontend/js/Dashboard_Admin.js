@@ -23,7 +23,6 @@
   const culinaryEmpty = document.getElementById("culinaryEmpty");
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const navigationMessage = document.getElementById("navigationMessage");
   const adminLogoutButton = document.getElementById("adminLogoutButton");
   const logoutConfirmModal = document.getElementById("logoutConfirmModal");
   const logoutSuccessModal = document.getElementById("logoutSuccessModal");
@@ -89,12 +88,6 @@
       }
 
       const isOffline = !navigator.onLine || error instanceof TypeError;
-      if (isOffline) {
-        authState.hidden = true;
-        adminApp.hidden = false;
-        await loadDashboardSummary();
-        return;
-      }
 
       authTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Validasi halaman gagal dilakukan";
       authMessage.textContent = isOffline
@@ -203,9 +196,9 @@
 
       const data = dashResult.data;
 
-      document.getElementById("totalCulinary").textContent = numberFormatter.format(data.total_kuliner ?? 0);
-      document.getElementById("totalCategories").textContent = numberFormatter.format(data.total_kategori ?? 0);
-      document.getElementById("totalUsers").textContent = numberFormatter.format(data.total_user ?? 0);
+      document.getElementById("totalCulinary").textContent = numberFormatter.format(getCount(data.total_kuliner));
+      document.getElementById("totalCategories").textContent = numberFormatter.format(getCount(data.total_kategori));
+      document.getElementById("totalUsers").textContent = numberFormatter.format(getCount(data.total_user));
 
       // Ambil data kuliner untuk card grid
       const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
@@ -309,14 +302,6 @@
     setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
   });
   sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
-
-  document.querySelectorAll("[data-coming-soon]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      navigationMessage.textContent = `Halaman ${link.dataset.comingSoon} belum tersedia pada kerangka awal ini.`;
-      navigationMessage.hidden = false;
-    });
-  });
 
   window.addEventListener("resize", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || adminApp.classList.contains("sidebar-collapsed");

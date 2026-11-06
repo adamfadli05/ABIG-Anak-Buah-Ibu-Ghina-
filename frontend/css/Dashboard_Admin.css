@@ -346,6 +346,43 @@ h1 {
   margin-top: 28px;
 }
 
+.users-section {
+  margin-top: 36px;
+  scroll-margin-top: 24px;
+}
+
+.recent-users {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.recent-user {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #e8ebf2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.recent-user strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-user span,
+.recent-users-empty {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #788294;
+  font-size: 12px;
+}
+
 .culinary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
