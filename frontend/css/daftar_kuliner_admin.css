@@ -1,179 +1,290 @@
-/* Reset Basic */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  body {
-    display: flex;
-    min-height: 100vh;
-    background-color: #f4f6f9;
-    color: #333;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    width: 240px;
-    background-color: #1e293b;
-    color: #fff;
-    padding: 20px;
-  }
-  
-  .sidebar h2 {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    color: #38bdf8;
-  }
-  
-  .sidebar ul {
-    list-style: none;
-  }
-  
-  .sidebar li a {
-    display: block;
-    color: #cbd5e1;
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    margin-bottom: 5px;
-  }
-  
-  .sidebar li a.active, 
-  .sidebar li a:hover {
-    background-color: #0f172a;
-    color: #fff;
-  }
-  
-  /* Main Content */
-  .main-content {
-    flex: 1;
-    padding: 30px;
-  }
-  
-  .top-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  /* Toolbar (Search & Filter) */
-  .toolbar {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
-  .toolbar input, 
-  .toolbar select {
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    outline: none;
-  }
-  
-  .toolbar input {
-    flex: 1;
-  }
-  
-  /* Button Styling */
-  .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  
-  .btn-primary { background-color: #2563eb; color: #fff; }
-  .btn-primary:hover { background-color: #1d4ed8; }
-  .btn-secondary { background-color: #64748b; color: #fff; }
-  .btn-danger { background-color: #ef4444; color: #fff; }
-  .btn-edit { background-color: #f59e0b; color: #fff; }
-  
-  /* Table Styling */
-  .table-container {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  
-  th {
-    background-color: #f8fafc;
-    color: #475569;
-  }
-  
-  .img-thumb {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-  
-  /* Modal Styling */
-  .modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .modal.hidden {
-    display: none;
-  }
-  
-  .modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    width: 400px;
-    position: relative;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: 15px; right: 20px;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-  }
-  
-  .form-group input, 
-  .form-group select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-  }
-  
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-  }
+/* Styling Khusus Halaman Daftar Kuliner */
+.content-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.content-header-flex h2 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.button-primary {
+  background-color: #001b7d;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button-primary:hover {
+  background-color: #00145c;
+}
+
+/* Toolbar Pencarian */
+.search-toolbar {
+  margin-bottom: 20px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  max-width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.search-input-wrapper iconify-icon {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-right: 10px;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #0f172a;
+}
+
+/* Desain Kotak Tabel Persis Referensi */
+.table-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* Garis Grid Tegas Antar Sel */
+th, td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  vertical-align: middle;
+  border: 1px solid #cbd5e1;
+}
+
+/* Styling Header Tabel (Warna Biru dan Rata Tengah) */
+th {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  text-align: center !important;
+  vertical-align: middle;
+  padding: 14px 16px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Pengaturan Lebar Kolom dan Posisi Teks */
+th:nth-child(1), td:nth-child(1) { width: 50px; text-align: center; }  /* No */
+th:nth-child(2), td:nth-child(2) { width: 100px; text-align: center; } /* Foto */
+th:nth-child(3), td:nth-child(3) {width: 22%; white-space: nowrap; color: #000000; font-weight: 400; }  /* Nama Kuliner (lurus ke samping) */
+th:nth-child(4), td:nth-child(4) { width: 20%; text-align: left; }     /* Kategori */
+th:nth-child(5), td:nth-child(5) { width: 32%; text-align: left; }     /* Alamat (dikecilkan) */
+th:nth-child(6), td:nth-child(6) { width: 130px; text-align: center; } /* Aksi */
+
+td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  vertical-align: middle;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+td:nth-child(3) strong {
+  font-weight: normal !important; /* Memaksa tag strong di kolom ini jadi tidak bold */
+}
+
+tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Pengaturan Kolom Nomor agar di Tengah */
+th:first-child, td:first-child {
+  text-align: center;
+  width: 60px;
+}
+
+/* Gambar Thumbnail Kuliner */
+.table-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #e2e8f0;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Styling Tombol Aksi (Edit & Hapus) Sesuai Figma */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  text-decoration: none;
+  width: 100px;
+  justify-content: flex-start;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Tombol Edit */
+.btn-edit {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.btn-edit iconify-icon {
+  background-color: #001b7d;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit:hover {
+  background-color: #f8fafc;
+  border-color: #001b7d;
+  color: #000000;
+}
+
+/* Tombol Hapus */
+.btn-delete {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.btn-delete iconify-icon {
+  background-color: #001b7d;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete:hover {
+  background-color: #f8fafc;
+  border-color: #001b7d;
+  color: #000000;
+}
+
+.culinary-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #64748b;
+  gap: 12px;
+  width: 100%;
+}
+
+.culinary-empty-state iconify-icon {
+  color: #64748b;
+}
+
+.culinary-empty-state p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* Styling State Koneksi Internet Terputus */
+.culinary-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: transparent;
+  width: 100%;
+  min-height: 280px;
+  gap: 8px;
+}
+
+.culinary-error-state iconify-icon {
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.culinary-error-state h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.culinary-error-state p {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0 0 16px 0;
+}
+
+.culinary-error-state .button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #001b7d;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.culinary-error-state .button-primary:hover {
+  background-color: #00145c;
+}

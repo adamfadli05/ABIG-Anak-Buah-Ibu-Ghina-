@@ -1,141 +1,161 @@
-// State Data Kuliner (Default Data Sederhana)
-let dataKuliner = JSON.parse(localStorage.getItem('adminKulinerData')) || [
-    { id: 1, nama: "Empal Gentong", kategori: "Makanan", harga: 25000, rating: 4.8, gambar: "https://via.placeholder.com/50" },
-    { id: 2, nama: "Nasi Jamblang", kategori: "Makanan", harga: 15000, rating: 4.7, gambar: "https://via.placeholder.com/50" },
-    { id: 3, nama: "Es Tebu", kategori: "Minuman", harga: 5000, rating: 4.5, gambar: "https://via.placeholder.com/50" }
-  ];
+document.addEventListener("DOMContentLoaded", () => {
+  // Bypass tampilan auth di local agar langsung masuk ke panel utama
+  const authState = document.getElementById("authState");
+  const adminApp = document.getElementById("adminApp");
   
-  // Element DOM
-  const tableBody = document.getElementById('kuliner-table-body');
-  const searchInput = document.getElementById('search-input');
-  const filterKategori = document.getElementById('filter-kategori');
-  
-  const modal = document.getElementById('kuliner-modal');
-  const modalTitle = document.getElementById('modal-title');
-  const form = document.getElementById('kuliner-form');
-  
-  const btnTambah = document.getElementById('btn-tambah');
-  const btnCloseModal = document.getElementById('btn-close-modal');
-  const btnBatal = document.getElementById('btn-batal');
-  
-  // Render Tabel
-  function renderTable(data = dataKuliner) {
-    tableBody.innerHTML = '';
+  if (authState) authState.hidden = true;
+  if (adminApp) adminApp.hidden = false;
+
+  const tableLoading = document.getElementById("tableLoading");
+  const tableError = document.getElementById("tableError");
+  const tableWrapper = document.getElementById("tableWrapper");
+  const tableEmpty = document.getElementById("tableEmpty");
+  const kulinerTableBody = document.getElementById("kulinerTableBody");
+  const searchInput = document.getElementById("searchKuliner");
+  const tableRetryButton = document.getElementById("tableRetryButton");
+  const tableCard = document.querySelector(".table-card");
+
+  let culinaryData = [];
+
+  async function fetchKulinerData() {
+    if (tableLoading) tableLoading.hidden = false;
+    if (tableError) tableError.hidden = true;
+    if (tableWrapper) tableWrapper.hidden = true;
+    if (tableEmpty) tableEmpty.hidden = true;
+
+    try {
+      // 1. Fetch data kuliner & kategori dari kuliner.php
+      const endpointKuliner = "/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/kuliner.php";
+      // 2. Fetch data tempat & alamat dari tempat_kuliner.php
+      const endpointTempat = "/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/tempat_kuliner.php";
+
+      const [resKuliner, resTempat] = await Promise.all([
+        fetch(endpointKuliner, { headers: { "Accept": "application/json" } }),
+        fetch(endpointTempat, { headers: { "Accept": "application/json" } }).catch(() => null)
+      ]);
+
+      if (!resKuliner.ok) throw new Error("Gagal mengambil data dari server");
+
+      const jsonKuliner = await resKuliner.json();
+      const listKuliner = Array.isArray(jsonKuliner) ? jsonKuliner : (jsonKuliner.data || []);
+
+      // Ambil data tempat kuliner (untuk alamat) jika berhasil di-fetch
+      let listTempat = [];
+      if (resTempat && resTempat.ok) {
+        const jsonTempat = await resTempat.json();
+        listTempat = Array.isArray(jsonTempat) ? jsonTempat : (jsonTempat.data || []);
+      }
+
+      // Buat mapping/kamus alamat berdasarkan id_kuliner
+      const alamatMap = {};
+      listTempat.forEach(t => {
+        if (t.id_kuliner) {
+          alamatMap[t.id_kuliner] = t.alamat || "-";
+        }
+      });
+
+      // Gabungkan data kuliner dengan alamatnya di frontend
+      culinaryData = listKuliner.map(item => {
+        const idKul = item.id_kuliner;
+        return {
+          ...item,
+          alamat: alamatMap[idKul] || "-"
+        };
+      });
+
+      renderTable(culinaryData);
+    } catch (error) {
+      console.error("Error fetching culinary data:", error);
+      if (tableLoading) tableLoading.hidden = true;
+      if (tableWrapper) tableWrapper.hidden = true;
+      if (tableCard) tableCard.hidden = true; // Sembunyikan kotak tabel utama
+      if (tableError) tableError.hidden = false; // Tampilkan pesan error koneksi
+    }
+  }
+
+  // Fungsi merender baris tabel ke HTML
+  function renderTable(data) {
+    if (tableLoading) tableLoading.hidden = true;
     
-    if (data.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Data kuliner tidak ditemukan.</td></tr>`;
+    if (!data || data.length === 0) {
+      if (tableCard) tableCard.hidden = true;
+      if (tableEmpty) tableEmpty.hidden = false;
       return;
     }
-  
+
+    if (tableCard) tableCard.hidden = false;
+    if (tableEmpty) tableEmpty.hidden = true;
+    if (tableWrapper) tableWrapper.hidden = false;
+    if (kulinerTableBody) kulinerTableBody.innerHTML = "";
+
     data.forEach((item, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td><img src="${item.gambar}" alt="${item.nama}" class="img-thumb"></td>
-        <td><strong>${item.nama}</strong></td>
-        <td>${item.kategori}</td>
-        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
-        <td>⭐ ${item.rating || 5.0}</td>
+      const tr = document.createElement("tr");
+
+      const fotoUrl = item.foto || item.image || "assets/default-kuliner.png";
+      const namaKuliner = item.nama_kuliner || item.name || "Tanpa Nama";
+      const kategori = item.nama_kategori || item.kategori || "Umum";
+      const alamat = item.alamat || "-";
+      const itemId = item.id_kuliner || item.id || index;
+
+      tr.innerHTML = `
+        <td><strong>${index + 1}.</strong></td>
+        <td><img src="${fotoUrl}" alt="${namaKuliner}" class="table-img" onerror="this.src='assets/default-kuliner.png'"></td>
+        <td>${namaKuliner}</td>
+        <td>${kategori}</td>
+        <td>${alamat}</td>
         <td>
-          <button class="btn btn-edit" onclick="editKuliner(${item.id})">Edit</button>
-          <button class="btn btn-danger" onclick="hapusKuliner(${item.id})">Hapus</button>
+          <div class="action-buttons">
+            <button class="btn-action btn-edit" data-id="${itemId}">
+              <iconify-icon icon="lucide:pencil" aria-hidden="true"></iconify-icon> Edit
+            </button>
+            <button class="btn-action btn-delete" data-id="${itemId}">
+              <iconify-icon icon="lucide:trash-2" aria-hidden="true"></iconify-icon> Hapus
+            </button>
+          </div>
         </td>
       `;
-      tableBody.appendChild(row);
+      if (kulinerTableBody) kulinerTableBody.appendChild(tr);
+    });
+
+    attachActionListeners();
+  }
+
+  // Fitur Pencarian Real-Time
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      const keyword = e.target.value.toLowerCase();
+      const filtered = culinaryData.filter(item => {
+        const name = (item.nama_kuliner || "").toLowerCase();
+        const category = (item.nama_kategori || "").toLowerCase();
+        const address = (item.alamat || "").toLowerCase();
+        return name.includes(keyword) || category.includes(keyword) || address.includes(keyword);
+      });
+      renderTable(filtered);
     });
   }
-  
-  // Simpan ke LocalStorage
-  function saveData() {
-    localStorage.setItem('adminKulinerData', JSON.stringify(dataKuliner));
-    renderTable();
-  }
-  
-  // Buka Modal (Tambah)
-  btnTambah.addEventListener('click', () => {
-    form.reset();
-    document.getElementById('kuliner-id').value = '';
-    modalTitle.textContent = "Tambah Kuliner Baru";
-    modal.classList.remove('hidden');
-  });
-  
-  // Tutup Modal
-  function closeModal() {
-    modal.classList.add('hidden');
-  }
-  btnCloseModal.addEventListener('click', closeModal);
-  btnBatal.addEventListener('click', closeModal);
-  
-  // Handle Form Submit (Tambah / Edit)
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-  
-    const id = document.getElementById('kuliner-id').value;
-    const nama = document.getElementById('nama').value;
-    const kategori = document.getElementById('kategori').value;
-    const harga = parseInt(document.getElementById('harga').value);
-    const gambar = document.getElementById('gambar').value;
-  
-    if (id) {
-      // Edit Data
-      const index = dataKuliner.findIndex(item => item.id == id);
-      dataKuliner[index] = { ...dataKuliner[index], nama, kategori, harga, gambar };
-    } else {
-      // Tambah Data Baru
-      const newKuliner = {
-        id: Date.now(),
-        nama,
-        kategori,
-        harga,
-        rating: 5.0,
-        gambar
-      };
-      dataKuliner.push(newKuliner);
-    }
-  
-    saveData();
-    closeModal();
-  });
-  
-  // Edit Kuliner
-  window.editKuliner = function(id) {
-    const item = dataKuliner.find(k => k.id === id);
-    if (item) {
-      document.getElementById('kuliner-id').value = item.id;
-      document.getElementById('nama').value = item.nama;
-      document.getElementById('kategori').value = item.kategori;
-      document.getElementById('harga').value = item.harga;
-      document.getElementById('gambar').value = item.gambar;
-  
-      modalTitle.textContent = "Edit Data Kuliner";
-      modal.classList.remove('hidden');
-    }
-  };
-  
-  // Hapus Kuliner
-  window.hapusKuliner = function(id) {
-    if (confirm("Apakah Anda yakin ingin menghapus data kuliner ini?")) {
-      dataKuliner = dataKuliner.filter(item => item.id !== id);
-      saveData();
-    }
-  };
-  
-  // Filter & Pencarian
-  function filterData() {
-    const keyword = searchInput.value.toLowerCase();
-    const kategoriSelected = filterKategori.value;
-  
-    const filtered = dataKuliner.filter(item => {
-      const matchNama = item.nama.toLowerCase().includes(keyword);
-      const matchKategori = kategoriSelected === 'semua' || item.kategori === kategoriSelected;
-      return matchNama && matchKategori;
+
+  function attachActionListeners() {
+    document.querySelectorAll(".btn-edit").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.getAttribute("data-id");
+        alert(`Edit kuliner dengan ID: ${id}`);
+      });
     });
-  
-    renderTable(filtered);
+
+    document.querySelectorAll(".btn-delete").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.getAttribute("data-id");
+        if (confirm("Apakah Anda yakin ingin menghapus data kuliner ini?")) {
+          alert(`Hapus kuliner dengan ID: ${id}`);
+        }
+      });
+    });
   }
-  
-  searchInput.addEventListener('input', filterData);
-  filterKategori.addEventListener('change', filterData);
-  
-  // Inisialisasi Tampilan Awal
-  renderTable();
+
+  if (tableRetryButton) {
+    tableRetryButton.addEventListener("click", fetchKulinerData);
+  }
+
+  // Jalankan fungsi ambil data
+  fetchKulinerData();
+});
