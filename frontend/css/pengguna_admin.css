@@ -1,0 +1,140 @@
+.users-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.users-heading h1 {
+  margin-bottom: 8px;
+}
+
+.users-search {
+  display: flex;
+  width: min(100%, 440px);
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 0 14px;
+  border: 1px solid #dfe3eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #788294;
+}
+
+.users-search:focus-within {
+  border-color: #001b7d;
+  box-shadow: 0 0 0 3px rgb(0 27 125 / 10%);
+}
+
+.users-search iconify-icon {
+  flex: 0 0 auto;
+  font-size: 19px;
+}
+
+.users-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172033;
+  font: inherit;
+  font-size: 13px;
+}
+
+.users-search input::placeholder {
+  color: #98a1b1;
+}
+
+.users-table-card {
+  overflow: hidden;
+  border: 1px solid #e3e7ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgb(23 32 51 / 6%);
+}
+
+.users-count {
+  margin: 0;
+  padding: 15px 18px;
+  border-bottom: 1px solid #e8ebf2;
+  color: #667085;
+  font-size: 12px;
+}
+
+.users-table-scroll {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.users-table th,
+.users-table td {
+  min-width: 130px;
+  padding: 15px 18px;
+  border-bottom: 1px solid #edf0f5;
+  color: #475467;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.users-table th {
+  background: #f7f8fb;
+  color: #344054;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.users-table th:first-child,
+.users-table td:first-child {
+  min-width: 62px;
+  text-align: center;
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.users-table td:nth-child(2) {
+  color: #172033;
+  font-weight: 600;
+}
+
+.users-state {
+  margin: 0;
+  padding: 42px 20px;
+  border: 1px solid #e8ebf2;
+  border-radius: 10px;
+  background: #fff;
+  color: #788294;
+  font-size: 14px;
+  text-align: center;
+}
+
+.users-error {
+  min-height: 300px;
+}
+
+.users-error > iconify-icon {
+  color: #788294;
+  font-size: 42px;
+}
+
+@media (max-width: 700px) {
+  .users-heading {
+    margin-bottom: 18px;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 13px 14px;
+  }
+}

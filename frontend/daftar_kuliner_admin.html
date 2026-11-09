@@ -44,7 +44,7 @@
             <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
             <span>Kategori</span>
           </a>
-          <a class="nav-link" href="Dashboard_Admin.html#pengguna">
+          <a class="nav-link" href="pengguna_admin.html">
             <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
             <span>Pengguna</span>
           </a>
@@ -93,12 +93,6 @@
 <!-- Tabel Data Kuliner -->
 <div class="table-card">
   <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
-  <div id="tableError" class="dashboard-error-state" role="alert" hidden>
-    <iconify-icon class="error-state-icon" icon="lucide:wifi-off" aria-hidden="true"></iconify-icon>
-    <p>Gagal memuat data kuliner dari server.</p>
-    <button id="tableRetryButton" class="button button-secondary" type="button">Coba lagi</button>
-  </div>
-
   <div class="table-responsive" id="tableWrapper" hidden>
     <table>
       <thead>
@@ -135,6 +129,43 @@
   </button>
 </div>
 
-    <!-- Modal Konfirmasi Hapus / Logout (Opsional/Menyesuaikan Dashboard) -->
+    <div id="deleteConfirmModal" class="delete-modal" hidden>
+      <section class="delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="deleteDialogTitle" aria-describedby="deleteDialogMessage">
+        <div id="deleteConfirmState">
+          <span class="delete-state-icon delete-icon" aria-hidden="true">
+            <iconify-icon icon="bi:trash-fill"></iconify-icon>
+          </span>
+          <h2 id="deleteDialogTitle">Hapus Data Kuliner ?</h2>
+          <p id="deleteDialogMessage" class="delete-dialog-message"></p>
+          <div class="delete-dialog-actions">
+            <button id="cancelDeleteBtn" class="delete-button delete-button-cancel" type="button">Batal</button>
+            <button id="confirmDeleteBtn" class="delete-button delete-button-confirm" type="button">Hapus</button>
+          </div>
+        </div>
+
+        <div id="deleteProgressState" class="delete-result-state" role="status" aria-live="polite" hidden>
+          <span class="delete-spinner" aria-hidden="true"></span>
+          <h2>Menghapus Kuliner</h2>
+          <p class="delete-dialog-message">Mohon tunggu hingga proses penghapusan selesai.</p>
+        </div>
+
+        <div id="deleteSuccessState" class="delete-result-state" hidden>
+          <span class="delete-state-icon delete-icon-success" aria-hidden="true">
+            <iconify-icon icon="mdi:check-circle"></iconify-icon>
+          </span>
+          <h2>Kuliner berhasil di hapus</h2>
+          <button id="closeDeleteSuccessBtn" class="delete-link-button" type="button">Oke</button>
+        </div>
+
+        <div id="deleteErrorState" class="delete-result-state" role="alert" hidden>
+          <span class="delete-state-icon delete-icon-error" aria-hidden="true">
+            <iconify-icon icon="lucide:circle-x"></iconify-icon>
+          </span>
+          <h2>Kuliner gagal di hapus</h2>
+          <p id="deleteErrorMessage" class="delete-dialog-message">Periksa koneksi internet anda</p>
+          <button id="retryDeleteBtn" class="delete-link-button" type="button">Coba lagi</button>
+        </div>
+      </section>
+    </div>
   </body>
 </html>

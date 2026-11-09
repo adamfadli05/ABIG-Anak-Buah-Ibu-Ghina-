@@ -1,4 +1,5 @@
-(() => {
+(() => {                                   // <‑‑ PEMBUKA IIFE
+  const API_BASE_URL = "http://manganyukkk.my.id";
   const form = document.getElementById("addCulinaryForm");
   const photoInput = document.getElementById("culinaryPhoto");
   const photoPicker = document.getElementById("photoPicker");
@@ -17,6 +18,7 @@
     if (file) photoPreview.src = previewUrl;
   }
 
+  // --- Foto picker & preview ---
   photoPicker.addEventListener("click", () => photoInput.click());
 
   photoInput.addEventListener("change", () => {
@@ -48,9 +50,61 @@
     setPhoto(null);
   });
 
-  form.addEventListener("submit", (event) => {
+  // --- Submit & validasi ---
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    formMessage.textContent = "Kerangka form siap. Penyimpanan data akan dihubungkan berikutnya.";
-    formMessage.hidden = false;
+    formMessage.hidden = true;
+
+    // Validasi deskripsi
+    const deskripsi = document.getElementById('deskripsi').value;
+    if (deskripsi.length > 300) {
+      formMessage.textContent = "Deskripsi maksimal 300 karakter.";
+      formMessage.hidden = false;
+      return;
+    }
+
+    // Validasi harga
+    const harga = document.getElementById('harga').value;
+    if (harga === '' || Number(harga) < 0) {
+      formMessage.textContent = "Harga harus berupa angka positif.";
+      formMessage.hidden = false;
+      return;
+    }
+
+    // Foto wajib
+    if (!photoInput.files || !photoInput.files[0]) {
+      formMessage.textContent = "Foto kuliner wajib diunggah.";
+      formMessage.hidden = false;
+      return;
+    }
+
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/kuliner`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || "Server mengembalikan status tidak berhasil.");
+      }
+
+      // Sukses
+      formMessage.textContent = "Kuliner berhasil ditambahkan!";
+      formMessage.className = "form-message success";
+      formMessage.hidden = false;
+
+      // Redirect ke dashboard setelah 1,5 detik
+      setTimeout(() => {
+        window.location.href = "Dashboard_Admin.html";
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      formMessage.textContent = "Gagal menyimpan data: " + err.message + " - coba lagi?";
+      formMessage.className = "form-message error";
+      formMessage.hidden = false;
+    }
   });
-})();
+})();                                      // <‑‑ PENUTUP IIFE

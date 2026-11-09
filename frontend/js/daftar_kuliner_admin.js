@@ -1,8 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
+
   // Bypass tampilan auth di local agar langsung masuk ke panel utama
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
-  
+
   if (authState) authState.hidden = true;
   if (adminApp) adminApp.hidden = false;
 
@@ -14,8 +16,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchKuliner");
   const tableRetryButton = document.getElementById("tableRetryButton");
   const tableCard = document.querySelector(".table-card");
+  const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+  const deleteConfirmMessage = document.getElementById("deleteDialogMessage");
+  const deleteConfirmState = document.getElementById("deleteConfirmState");
+  const deleteProgressState = document.getElementById("deleteProgressState");
+  const deleteSuccessState = document.getElementById("deleteSuccessState");
+  const deleteErrorState = document.getElementById("deleteErrorState");
+  const deleteErrorMessage = document.getElementById("deleteErrorMessage");
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+  const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+  const retryDeleteBtn = document.getElementById("retryDeleteBtn");
+  const closeDeleteSuccessBtn = document.getElementById("closeDeleteSuccessBtn");
 
   let culinaryData = [];
+  let pendingDeleteId = null;
+  let deleteInProgress = false;
 
   async function fetchKulinerData() {
     if (tableLoading) tableLoading.hidden = false;
@@ -24,44 +39,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableEmpty) tableEmpty.hidden = true;
 
     try {
-      // 1. Fetch data kuliner & kategori dari kuliner.php
-      const endpointKuliner = "/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/kuliner.php";
-      // 2. Fetch data tempat & alamat dari tempat_kuliner.php
-      const endpointTempat = "/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/tempat_kuliner.php";
+      const response = await fetch(`${API_BASE_URL}/api/admin/kuliner.php`, {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+      });
+      const result = await response.json();
 
-      const [resKuliner, resTempat] = await Promise.all([
-        fetch(endpointKuliner, { headers: { "Accept": "application/json" } }),
-        fetch(endpointTempat, { headers: { "Accept": "application/json" } }).catch(() => null)
-      ]);
-
-      if (!resKuliner.ok) throw new Error("Gagal mengambil data dari server");
-
-      const jsonKuliner = await resKuliner.json();
-      const listKuliner = Array.isArray(jsonKuliner) ? jsonKuliner : (jsonKuliner.data || []);
-
-      // Ambil data tempat kuliner (untuk alamat) jika berhasil di-fetch
-      let listTempat = [];
-      if (resTempat && resTempat.ok) {
-        const jsonTempat = await resTempat.json();
-        listTempat = Array.isArray(jsonTempat) ? jsonTempat : (jsonTempat.data || []);
+      if (!response.ok || !result.status || !Array.isArray(result.data)) {
+        throw new Error(result.message || "Gagal mengambil data kuliner dari server.");
       }
 
-      // Buat mapping/kamus alamat berdasarkan id_kuliner
-      const alamatMap = {};
-      listTempat.forEach(t => {
-        if (t.id_kuliner) {
-          alamatMap[t.id_kuliner] = t.alamat || "-";
-        }
-      });
-
-      // Gabungkan data kuliner dengan alamatnya di frontend
-      culinaryData = listKuliner.map(item => {
-        const idKul = item.id_kuliner;
-        return {
-          ...item,
-          alamat: alamatMap[idKul] || "-"
-        };
-      });
+      culinaryData = result.data;
 
       renderTable(culinaryData);
     } catch (error) {
@@ -76,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fungsi merender baris tabel ke HTML
   function renderTable(data) {
     if (tableLoading) tableLoading.hidden = true;
-    
+
     if (!data || data.length === 0) {
       if (tableCard) tableCard.hidden = true;
       if (tableEmpty) tableEmpty.hidden = false;
@@ -91,11 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
     data.forEach((item, index) => {
       const tr = document.createElement("tr");
 
-      const fotoUrl = item.foto || item.image || "assets/default-kuliner.png";
+      const fotoUrl = item.photo_url || item.foto || item.image || "assets/default-kuliner.png";
       const namaKuliner = item.nama_kuliner || item.name || "Tanpa Nama";
       const kategori = item.nama_kategori || item.kategori || "Umum";
       const alamat = item.alamat || "-";
-      const itemId = item.id_kuliner || item.id || index;
+      const itemId = item.id_tempat;
 
       tr.innerHTML = `
         <td><strong>${index + 1}.</strong></td>
@@ -109,48 +97,124 @@ document.addEventListener("DOMContentLoaded", () => {
               <iconify-icon icon="lucide:pencil" aria-hidden="true"></iconify-icon> Edit
             </button>
             <button class="btn-action btn-delete" data-id="${itemId}">
-              <iconify-icon icon="lucide:trash-2" aria-hidden="true"></iconify-icon> Hapus
+              <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus
             </button>
           </div>
         </td>
       `;
       if (kulinerTableBody) kulinerTableBody.appendChild(tr);
     });
+  }
 
-    attachActionListeners();
+  function getFilteredCulinaryData() {
+    const keyword = searchInput.value.trim().toLowerCase();
+    return culinaryData.filter((item) => {
+      const name = (item.nama_kuliner || "").toLowerCase();
+      const category = (item.nama_kategori || "").toLowerCase();
+      const address = (item.alamat || "").toLowerCase();
+      return name.includes(keyword) || category.includes(keyword) || address.includes(keyword);
+    });
+  }
+
+  function showDeleteState(state) {
+    deleteConfirmModal.dataset.state = state;
+    deleteConfirmState.hidden = state !== "confirm";
+    deleteProgressState.hidden = state !== "progress";
+    deleteSuccessState.hidden = state !== "success";
+    deleteErrorState.hidden = state !== "error";
+  }
+
+  function closeDeleteModal() {
+    if (deleteInProgress) return;
+    deleteConfirmModal.hidden = true;
+    pendingDeleteId = null;
   }
 
   // Fitur Pencarian Real-Time
   if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      const keyword = e.target.value.toLowerCase();
-      const filtered = culinaryData.filter(item => {
-        const name = (item.nama_kuliner || "").toLowerCase();
-        const category = (item.nama_kategori || "").toLowerCase();
-        const address = (item.alamat || "").toLowerCase();
-        return name.includes(keyword) || category.includes(keyword) || address.includes(keyword);
-      });
-      renderTable(filtered);
-    });
+    searchInput.addEventListener("input", () => renderTable(getFilteredCulinaryData()));
   }
 
-  function attachActionListeners() {
-    document.querySelectorAll(".btn-edit").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const id = e.currentTarget.getAttribute("data-id");
+  if (kulinerTableBody) {
+    kulinerTableBody.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+
+      const id = button.getAttribute("data-id");
+      if (button.classList.contains("btn-edit")) {
         alert(`Edit kuliner dengan ID: ${id}`);
-      });
-    });
+        return;
+      }
 
-    document.querySelectorAll(".btn-delete").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const id = e.currentTarget.getAttribute("data-id");
-        if (confirm("Apakah Anda yakin ingin menghapus data kuliner ini?")) {
-          alert(`Hapus kuliner dengan ID: ${id}`);
-        }
-      });
+      if (!button.classList.contains("btn-delete")) return;
+
+      const name = button.closest("tr")?.querySelector("td:nth-child(3)")?.textContent.trim();
+      pendingDeleteId = id;
+      if (deleteConfirmMessage) {
+        deleteConfirmMessage.textContent = `Kuliner “${name || "kuliner ini"}” akan di hapus dari daftar kuliner.`;
+      }
+      showDeleteState("confirm");
+      deleteConfirmModal.hidden = false;
+      cancelDeleteBtn.focus();
     });
   }
+
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener("click", () => {
+      closeDeleteModal();
+    });
+  }
+
+  async function deletePendingCulinary() {
+    if (!pendingDeleteId || deleteInProgress) return;
+
+    deleteInProgress = true;
+    confirmDeleteBtn.disabled = true;
+    retryDeleteBtn.disabled = true;
+    showDeleteState("progress");
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/admin/kuliner.php?id=${encodeURIComponent(pendingDeleteId)}`,
+        {
+          method: "DELETE",
+          headers: { "Accept": "application/json" },
+          credentials: "include"
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Periksa koneksi internet Anda, lalu coba lagi.");
+      }
+
+      culinaryData = culinaryData.filter((item) => String(item.id_tempat) !== String(pendingDeleteId));
+      renderTable(getFilteredCulinaryData());
+      showDeleteState("success");
+      closeDeleteSuccessBtn.focus();
+    } catch (error) {
+      console.error("Error deleting culinary:", error);
+      deleteErrorMessage.textContent = !navigator.onLine || error instanceof TypeError
+        ? "Periksa koneksi internet anda"
+        : error.message || "Terjadi kesalahan. Silakan coba lagi.";
+      showDeleteState("error");
+      retryDeleteBtn.focus();
+    } finally {
+      deleteInProgress = false;
+      confirmDeleteBtn.disabled = false;
+      retryDeleteBtn.disabled = false;
+    }
+  }
+
+  confirmDeleteBtn.addEventListener("click", deletePendingCulinary);
+  retryDeleteBtn.addEventListener("click", deletePendingCulinary);
+  closeDeleteSuccessBtn.addEventListener("click", closeDeleteModal);
+  deleteConfirmModal.addEventListener("click", (event) => {
+    if (event.target === deleteConfirmModal) closeDeleteModal();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !deleteConfirmModal.hidden) closeDeleteModal();
+  });
 
   if (tableRetryButton) {
     tableRetryButton.addEventListener("click", fetchKulinerData);

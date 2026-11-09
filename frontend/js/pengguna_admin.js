@@ -1,0 +1,214 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
+  const authState = document.getElementById("authState");
+  const authTitle = document.getElementById("authTitle");
+  const authMessage = document.getElementById("authMessage");
+  const authRetryButton = document.getElementById("authRetryButton");
+  const adminApp = document.getElementById("adminApp");
+  const adminName = document.getElementById("adminName");
+  const loading = document.getElementById("usersLoading");
+  const errorState = document.getElementById("usersError");
+  const errorMessage = document.getElementById("usersErrorMessage");
+  const retryButton = document.getElementById("usersRetryButton");
+  const emptyState = document.getElementById("usersEmpty");
+  const noResultsState = document.getElementById("usersNoResults");
+  const tableCard = document.getElementById("usersTableCard");
+  const tableBody = document.getElementById("usersTableBody");
+  const usersCount = document.getElementById("usersCount");
+  const searchInput = document.getElementById("searchUsers");
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+  const logoutButton = document.getElementById("adminLogoutButton");
+  const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
+  let users = [];
+  let usersLoaded = false;
+
+  async function getJson(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      credentials: "include",
+      headers: { Accept: "application/json", ...options.headers }
+    });
+    let result;
+
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+    }
+
+    if (!response.ok || !result.status) {
+      const error = new Error(result.message || `Permintaan gagal (HTTP ${response.status}).`);
+      error.status = response.status;
+      throw error;
+    }
+
+    return result;
+  }
+
+  function redirectForAccessError(error) {
+    if (error.status === 401) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      const returnTo = encodeURIComponent("pengguna_admin.html");
+      window.location.replace(`login.html?returnTo=${returnTo}`);
+      return true;
+    }
+
+    if (error.status === 403) {
+      window.location.replace("index.html");
+      return true;
+    }
+
+    return false;
+  }
+
+  async function checkAdminAccess() {
+    authRetryButton.hidden = true;
+    authTitle.textContent = "Memeriksa akses Admin...";
+    authMessage.textContent = "Mohon tunggu sebentar.";
+
+    try {
+      const result = await getJson(`${API_BASE_URL}/api/me.php`);
+      if (result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.setItem("role", result.role);
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+      adminName.textContent = result.data?.nama || "Admin";
+      authState.hidden = true;
+      adminApp.hidden = false;
+      await loadUsers();
+    } catch (error) {
+      if (redirectForAccessError(error)) return;
+
+      authTitle.textContent = !navigator.onLine || error instanceof TypeError
+        ? "Koneksi Internet Terputus"
+        : "Validasi halaman gagal dilakukan";
+      authMessage.textContent = error.message || "Gagal memeriksa akses Admin.";
+      authRetryButton.hidden = false;
+    }
+  }
+
+  function formatDate(value) {
+    if (!value) return "Tidak tersedia";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "Tidak tersedia" : dateFormatter.format(date);
+  }
+
+  function renderUsers() {
+    if (!usersLoaded) return;
+
+    const keyword = searchInput.value.trim().toLocaleLowerCase("id");
+    const filteredUsers = users.filter((user) =>
+      String(user.nama || "").toLocaleLowerCase("id").includes(keyword) ||
+      String(user.email || "").toLocaleLowerCase("id").includes(keyword)
+    );
+
+    tableBody.replaceChildren();
+    loading.hidden = true;
+    errorState.hidden = true;
+    emptyState.hidden = users.length > 0;
+    noResultsState.hidden = users.length === 0 || filteredUsers.length > 0;
+    tableCard.hidden = users.length === 0 || filteredUsers.length === 0;
+
+    if (users.length === 0 || filteredUsers.length === 0) return;
+
+    usersCount.textContent = `Menampilkan ${filteredUsers.length} dari ${users.length} pengguna terbaru`;
+    filteredUsers.forEach((user, index) => {
+      const row = document.createElement("tr");
+      const values = [
+        String(index + 1),
+        user.nama || "Nama tidak tersedia",
+        user.email || "Email tidak tersedia",
+        user.no_telepon || "Tidak tersedia",
+        formatDate(user.tanggal_pendaftaran)
+      ];
+
+      values.forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      });
+
+      tableBody.append(row);
+    });
+  }
+
+  async function loadUsers() {
+    usersLoaded = false;
+    loading.hidden = false;
+    errorState.hidden = true;
+    emptyState.hidden = true;
+    noResultsState.hidden = true;
+    tableCard.hidden = true;
+    retryButton.disabled = true;
+
+    try {
+      const result = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
+      if (!Array.isArray(result.data?.user_terbaru)) {
+        throw new Error("Data pengguna terbaru dari server tidak valid.");
+      }
+      users = result.data.user_terbaru;
+      usersLoaded = true;
+      renderUsers();
+    } catch (error) {
+      if (redirectForAccessError(error)) return;
+
+      loading.hidden = true;
+      errorMessage.textContent = !navigator.onLine || error instanceof TypeError
+        ? "Periksa koneksi internet Anda, lalu coba lagi."
+        : error.message || "Gagal memuat daftar pengguna.";
+      errorState.hidden = false;
+    } finally {
+      retryButton.disabled = false;
+    }
+  }
+
+  function setSidebarOpen(isOpen) {
+    const isMobile = window.matchMedia("(max-width: 700px)").matches;
+    adminApp.classList.toggle("sidebar-collapsed", !isOpen);
+    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+    sidebarToggle.setAttribute("aria-label", isOpen ? "Tutup menu" : "Buka menu");
+    sidebarBackdrop.hidden = !isMobile || !isOpen;
+  }
+
+  searchInput.addEventListener("input", renderUsers);
+  retryButton.addEventListener("click", loadUsers);
+  authRetryButton.addEventListener("click", checkAdminAccess);
+  sidebarToggle.addEventListener("click", () => {
+    setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
+  });
+  sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+  window.addEventListener("resize", () => {
+    sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches ||
+      adminApp.classList.contains("sidebar-collapsed");
+  });
+  logoutButton.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    try {
+      await getJson(`${API_BASE_URL}/logout.php`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      window.location.replace("login.html");
+    } catch (error) {
+      console.error("Gagal keluar dari akun:", error);
+      alert(error.message || "Gagal keluar dari akun. Silakan coba lagi.");
+    } finally {
+      logoutButton.disabled = false;
+    }
+  });
+
+  checkAdminAccess();
+});
