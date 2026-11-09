@@ -1,12 +1,20 @@
 openapi: 3.0.0
 info:
   title: Mangan Yukkk API
-  version: 2.0.0
-  description: API untuk aplikasi kuliner Mangan Yukkk — Sprint 3
+  version: 3.0.0
+  description: |
+    API untuk aplikasi kuliner Mangan Yukkk — Sprint 3
+
+    **Perubahan v3.0.0:**
+    - Logout berubah dari GET redirect → POST JSON API
+    - Komentar ulasan batas maksimal diubah dari 100 → 200 karakter
+    - Endpoint Admin baru: Dashboard, Kuliner, Kategori, Pengguna
 
 servers:
   - url: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend
-    description: Local Development
+    description: Local Development (XAMPP)
+  - url: http://manganyukkk.my.id
+    description: Production (VPS)
 
 tags:
   - name: Auth
@@ -21,6 +29,8 @@ tags:
     description: Rating kuliner
   - name: Profil
     description: Profil pengguna
+  - name: Admin
+    description: Endpoint khusus Admin (butuh login admin)
 
 paths:
 
@@ -678,7 +688,7 @@ paths:
                 komentar:
                   type: string
                   minLength: 5
-                  maxLength: 100
+                  maxLength: 200
                   example: "Enak banget!"
                 foto_url:
                   type: string
@@ -703,7 +713,7 @@ paths:
                 komentar_min:
                   value: { status: false, message: "Komentar minimal 5 karakter" }
                 komentar_max:
-                  value: { status: false, message: "Komentar maksimal 100 karakter" }
+                  value: { status: false, message: "Komentar maksimal 200 karakter" }
                 foto_invalid:
                   value: { status: false, message: "Format URL foto tidak valid" }
         '401':
@@ -753,7 +763,7 @@ paths:
                 komentar:
                   type: string
                   minLength: 5
-                  maxLength: 100
+                  maxLength: 200
                   example: "Lumayan enak"
                 foto_url:
                   type: string
@@ -778,7 +788,7 @@ paths:
                 komentar_min:
                   value: { status: false, message: "Komentar minimal 5 karakter" }
                 komentar_max:
-                  value: { status: false, message: "Komentar maksimal 100 karakter" }
+                  value: { status: false, message: "Komentar maksimal 200 karakter" }
                 foto_invalid:
                   value: { status: false, message: "Format URL foto tidak valid" }
         '401':
@@ -1194,3 +1204,652 @@ paths:
                   value: { status: false, message: "Gagal memeriksa data pengguna" }
                 ubah:
                   value: { status: false, message: "Gagal mengubah kata sandi" }
+
+  /logout.php:
+    post:
+      summary: Logout
+      tags: [Auth]
+      description: |
+        Menghapus sesi login. FE bertanggung jawab menghapus localStorage dan redirect ke login.html setelah response sukses.
+        **Perubahan v3:** Sebelumnya GET dengan redirect, sekarang POST dengan JSON response.
+      responses:
+        '200':
+          description: Berhasil logout
+          content:
+            application/json:
+              example: { status: true, message: "Berhasil keluar" }
+        '405':
+          description: Method salah
+          content:
+            application/json:
+              example: { status: false, message: "Method harus POST" }
+
+  /api/admin/dashboard.php:
+    get:
+      summary: Dashboard Admin
+      tags: [Admin]
+      description: Ringkasan statistik aplikasi. Butuh login Admin (401 belum login, 403 bukan admin).
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              example:
+                status: true
+                data:
+                  total_kuliner: 14
+                  total_tempat: 20
+                  total_user: 50
+                  total_ulasan: 100
+                  total_kategori: 3
+                  rata_rata_rating: 4.2
+                  kuliner_populer:
+                    nama_kuliner: Empal Gentong
+                    jumlah_ulasan: "10"
+                  ulasan_terbaru:
+                    - id_ulasan: 1
+                      rating: "5"
+                      komentar: Enak banget!
+                      tanggal: "2026-10-01"
+                      nama_user: Rizki
+                      nama_kuliner: Empal Gentong
+                  user_terbaru:
+                    - id_user: 1
+                      nama: Rizki
+                      email: rizki@gmail.com
+                      foto_profil: null
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '405':
+          description: Method salah
+          content:
+            application/json:
+              example: { status: false, message: "Method harus GET" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kuliner" }
+
+  /api/admin/kuliner.php:
+    get:
+      summary: Daftar / Pencarian / Detail Kuliner Admin
+      tags: [Admin]
+      description: Butuh login Admin.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: integer
+          example: 9
+          description: Detail kuliner berdasarkan id_tempat
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: empal
+          description: Pencarian berdasarkan nama kuliner
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                daftar:
+                  value:
+                    status: true
+                    data:
+                      - id_tempat: 9
+                        id_kuliner: 21
+                        nama_kuliner: Empal Gentong
+                        id_kategori: 1
+                        nama_kategori: Makanan Berat
+                        alamat: Jl. Raya Kedawung
+                        harga: "25000"
+                        photo_url: "https://supabase.co/..."
+                        rata_rata_rating: "4.5"
+                        jumlah_ulasan: "10"
+                tidak_ditemukan:
+                  value:
+                    status: true
+                    message: "Tidak ada kuliner yang cocok dengan pencarian"
+                    data: []
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID kuliner tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kuliner tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kuliner" }
+    post:
+      summary: Tambah Kuliner
+      tags: [Admin]
+      description: |
+        Butuh login Admin. Foto diupload dari FE ke Supabase Storage bucket `foto-tempat-kuliner`, lalu URL-nya dikirim via `photo_url`.
+        `jam_operasional` format `HH:MM - HH:MM`, backend otomatis memisah ke `jam_buka` dan `jam_tutup`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nama_kuliner, deskripsi, id_kategori, nama_tempat, alamat, latitude, longitude, harga]
+              properties:
+                nama_kuliner:
+                  type: string
+                  example: Empal Gentong
+                deskripsi:
+                  type: string
+                  example: "Kuliner khas Cirebon..."
+                id_kategori:
+                  type: integer
+                  example: 1
+                nama_tempat:
+                  type: string
+                  example: Warung H. Apud
+                alamat:
+                  type: string
+                  example: "Jl. Raya Kedawung No. 24"
+                latitude:
+                  type: string
+                  example: "-6.7320"
+                longitude:
+                  type: string
+                  example: "108.5523"
+                harga:
+                  type: number
+                  example: 25000
+                jam_operasional:
+                  type: string
+                  example: "08:00 - 21:00"
+                no_telepon:
+                  type: string
+                  example: "08123456789"
+                photo_url:
+                  type: string
+                  example: "https://kppeplufcluygonkolou.supabase.co/storage/v1/object/public/foto-tempat-kuliner/..."
+      responses:
+        '201':
+          description: Kuliner berhasil ditambahkan
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Kuliner berhasil ditambahkan"
+                data:
+                  id_kuliner: 22
+                  id_tempat: 30
+                  nama_kuliner: Empal Gentong
+                  photo_url: "https://..."
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                kosong:
+                  value: { status: false, message: "Semua field wajib diisi" }
+                kategori_invalid:
+                  value: { status: false, message: "ID kategori tidak valid" }
+                harga_invalid:
+                  value: { status: false, message: "Harga tidak valid" }
+                koordinat_invalid:
+                  value: { status: false, message: "Latitude dan longitude harus berupa angka" }
+                foto_invalid:
+                  value: { status: false, message: "Format URL foto tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kategori tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal menyimpan data kuliner" }
+    put:
+      summary: Ubah Kuliner
+      tags: [Admin]
+      description: Butuh login Admin. Hanya field yang dikirim yang diubah, sisanya fallback ke nilai lama. `photo_url` null = pertahankan foto lama.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 9
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_kuliner:
+                  type: string
+                deskripsi:
+                  type: string
+                id_kategori:
+                  type: integer
+                nama_tempat:
+                  type: string
+                alamat:
+                  type: string
+                latitude:
+                  type: string
+                longitude:
+                  type: string
+                harga:
+                  type: number
+                jam_operasional:
+                  type: string
+                  example: "08:00 - 21:00"
+                no_telepon:
+                  type: string
+                photo_url:
+                  type: string
+      responses:
+        '200':
+          description: Kuliner berhasil diperbarui
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Kuliner berhasil diperbarui"
+                data:
+                  id_tempat: 9
+                  nama_kuliner: Empal Gentong Updated
+                  photo_url: "https://..."
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              example: { status: false, message: "Field wajib tidak boleh kosong" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kuliner tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal memperbarui data kuliner" }
+    delete:
+      summary: Hapus Kuliner
+      tags: [Admin]
+      description: Butuh login Admin. Hard delete — ulasan dan favorit terkait ikut dihapus dalam satu transaksi.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 9
+      responses:
+        '200':
+          description: Kuliner berhasil dihapus
+          content:
+            application/json:
+              example: { status: true, message: "Kuliner berhasil dihapus" }
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID kuliner tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kuliner tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal menghapus tempat kuliner" }
+
+  /api/admin/kategori.php:
+    get:
+      summary: Daftar / Detail Kategori Admin
+      tags: [Admin]
+      description: GET tidak butuh autentikasi (bisa dipakai form kuliner publik juga).
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: integer
+          example: 1
+          description: Detail kategori berdasarkan id_kategori
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                daftar:
+                  value:
+                    status: true
+                    data:
+                      - id_kategori: 1
+                        nama_kategori: Makanan Berat
+                        total_kuliner: "14"
+                kosong:
+                  value:
+                    status: true
+                    message: "Belum ada kategori"
+                    data: []
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID kategori tidak valid" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kategori tidak ditemukan" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data kategori" }
+    post:
+      summary: Tambah Kategori
+      tags: [Admin]
+      description: Butuh login Admin. Nama kategori unik (case-insensitive).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nama_kategori]
+              properties:
+                nama_kategori:
+                  type: string
+                  maxLength: 100
+                  example: Minuman Tradisional
+      responses:
+        '201':
+          description: Kategori berhasil ditambahkan
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Kategori berhasil ditambahkan"
+                data:
+                  id_kategori: 4
+                  nama_kategori: Minuman Tradisional
+                  total_kuliner: 0
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              examples:
+                kosong:
+                  value: { status: false, message: "Nama kategori wajib diisi" }
+                max:
+                  value: { status: false, message: "Nama kategori maksimal 100 karakter" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '409':
+          description: Nama duplikat
+          content:
+            application/json:
+              example: { status: false, message: "Nama kategori sudah ada" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal menyimpan kategori" }
+    put:
+      summary: Ubah Kategori
+      tags: [Admin]
+      description: Butuh login Admin. Cek duplikasi nama kecuali kategori yang sedang diubah.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nama_kategori]
+              properties:
+                nama_kategori:
+                  type: string
+                  maxLength: 100
+                  example: Makanan Ringan
+      responses:
+        '200':
+          description: Kategori berhasil diperbarui
+          content:
+            application/json:
+              example:
+                status: true
+                message: "Kategori berhasil diperbarui"
+                data:
+                  id_kategori: 1
+                  nama_kategori: Makanan Ringan
+                  total_kuliner: "5"
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              example: { status: false, message: "Nama kategori wajib diisi" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kategori tidak ditemukan" }
+        '409':
+          description: Nama duplikat
+          content:
+            application/json:
+              example: { status: false, message: "Nama kategori sudah ada" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal memperbarui kategori" }
+    delete:
+      summary: Hapus Kategori
+      tags: [Admin]
+      description: Butuh login Admin. Ditolak jika kategori masih digunakan oleh data kuliner.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Kategori berhasil dihapus
+          content:
+            application/json:
+              example: { status: true, message: "Kategori berhasil dihapus" }
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID kategori tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Data tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Kategori tidak ditemukan" }
+        '409':
+          description: Masih digunakan kuliner
+          content:
+            application/json:
+              example: { status: false, message: "Kategori tidak dapat dihapus karena masih digunakan oleh data kuliner" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal menghapus kategori" }
+
+  /api/admin/user.php:
+    get:
+      summary: Daftar / Pencarian / Detail Pengguna Admin
+      tags: [Admin]
+      description: |
+        Butuh login Admin. Hanya menampilkan akun dari tabel `users` (bukan admin).
+        Password dan informasi sensitif tidak disertakan dalam respons.
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: integer
+          example: 1
+          description: Detail pengguna berdasarkan id_user
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: rizki
+          description: Pencarian berdasarkan nama atau email
+      responses:
+        '200':
+          description: Berhasil
+          content:
+            application/json:
+              examples:
+                daftar:
+                  value:
+                    status: true
+                    data:
+                      - id_user: 1
+                        nama: Rizki
+                        email: rizki@gmail.com
+                        foto_profil: null
+                        is_google: false
+                kosong:
+                  value:
+                    status: true
+                    message: "Belum ada pengguna"
+                    data: []
+                tidak_ditemukan:
+                  value:
+                    status: true
+                    message: "Tidak ada pengguna yang cocok dengan pencarian"
+                    data: []
+        '400':
+          description: ID tidak valid
+          content:
+            application/json:
+              example: { status: false, message: "ID pengguna tidak valid" }
+        '401':
+          description: Belum login
+          content:
+            application/json:
+              example: { status: false, message: "Anda harus login untuk mengakses halaman ini" }
+        '403':
+          description: Bukan admin
+          content:
+            application/json:
+              example: { status: false, message: "Akses ditolak. Halaman ini hanya untuk admin" }
+        '404':
+          description: Pengguna tidak ditemukan
+          content:
+            application/json:
+              example: { status: false, message: "Pengguna tidak ditemukan" }
+        '405':
+          description: Method salah
+          content:
+            application/json:
+              example: { status: false, message: "Method harus GET" }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              example: { status: false, message: "Gagal mengambil data pengguna" }
