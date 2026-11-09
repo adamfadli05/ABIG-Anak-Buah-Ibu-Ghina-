@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#001b7d" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Pengguna | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/pengguna_admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/pengguna_admin.js" defer></script>
+  </head>
+  <body>
+    <main id="authState" class="page-state" role="status" aria-live="polite">
+      <h1 id="authTitle">Memeriksa akses Admin...</h1>
+      <p id="authMessage">Mohon tunggu sebentar.</p>
+      <button id="authRetryButton" class="button button-secondary" type="button" hidden>Coba lagi</button>
+    </main>
+
+    <div id="adminApp" class="admin-app" hidden>
+      <aside class="sidebar" aria-label="Navigasi Admin">
+        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
+          <img src="assets/logo.png" alt="Mangan Yukkk" />
+        </a>
+        <nav class="sidebar-nav">
+          <a class="nav-link" href="Dashboard_Admin.html">
+            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+            <span>Dashboard</span>
+          </a>
+          <a class="nav-link" href="daftar_kuliner_admin.html">
+            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <span>Kuliner</span>
+          </a>
+          <a class="nav-link" href="kategori_kuliner_admin.html">
+            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
+            <span>Kategori</span>
+          </a>
+          <a class="nav-link active" href="pengguna_admin.html" aria-current="page">
+            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+            <span>Pengguna</span>
+          </a>
+          <button id="adminLogoutButton" class="nav-link logout-link" type="button">
+            <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
+            <span>Keluar</span>
+          </button>
+        </nav>
+      </aside>
+
+      <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
+
+      <section class="main-panel">
+        <header class="topbar">
+          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
+            <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
+          </button>
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Daftar Pengguna</strong>
+              <span id="adminName">Admin</span>
+            </span>
+            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+          </div>
+        </header>
+
+        <main class="dashboard-content">
+          <header class="users-heading">
+            <div>
+              <h1>Daftar Pengguna</h1>
+              <p class="page-description">Cari hingga lima akun terbaru. Nomor telepon dan tanggal pendaftaran ditampilkan jika tersedia dari API.</p>
+            </div>
+          </header>
+
+          <label class="users-search" for="searchUsers">
+            <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
+            <input id="searchUsers" type="search" placeholder="Cari nama atau email..." autocomplete="off" />
+          </label>
+
+          <div id="usersLoading" class="notice" role="status" aria-live="polite">Memuat daftar pengguna...</div>
+          <section id="usersError" class="dashboard-error-state users-error" role="alert" hidden>
+            <iconify-icon icon="fluent:wifi-warning-20-filled" aria-hidden="true"></iconify-icon>
+            <h2>Daftar pengguna gagal dimuat</h2>
+            <p id="usersErrorMessage">Periksa koneksi internet Anda, lalu coba lagi.</p>
+            <button id="usersRetryButton" class="button button-secondary" type="button">Coba lagi</button>
+          </section>
+          <p id="usersEmpty" class="users-state" role="status" hidden>Belum ada pengguna yang terdaftar.</p>
+          <p id="usersNoResults" class="users-state" role="status" hidden>Pengguna tidak ditemukan.</p>
+
+          <div id="usersTableCard" class="users-table-card" hidden>
+            <p id="usersCount" class="users-count" role="status"></p>
+            <div class="users-table-scroll">
+              <table class="users-table">
+                <thead>
+                  <tr>
+                    <th scope="col">No.</th>
+                    <th scope="col">Nama</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Nomor Telepon</th>
+                    <th scope="col">Tanggal Pendaftaran</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </section>
+    </div>
+  </body>
+</html>
