@@ -109,10 +109,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!usersLoaded) return;
 
     const keyword = searchInput.value.trim().toLocaleLowerCase("id");
-    const filteredUsers = users.filter((user) =>
-      String(user.nama || "").toLocaleLowerCase("id").includes(keyword) ||
-      String(user.email || "").toLocaleLowerCase("id").includes(keyword)
-    );
+    const searchTerms = keyword.split(/\s+/).filter(Boolean);
+
+    const filteredUsers = users.filter((user) => {
+      if (searchTerms.length === 0) return true;
+      const combined = `${user.nama || ""} ${user.email || ""}`.toLocaleLowerCase("id");
+      return searchTerms.every((term) => combined.includes(term));
+    });
 
     tableBody.replaceChildren();
     loading.hidden = true;
@@ -123,20 +126,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (users.length === 0 || filteredUsers.length === 0) return;
 
-    usersCount.textContent = `Menampilkan ${filteredUsers.length} dari ${users.length} pengguna terbaru`;
+    if (usersCount) {
+      usersCount.textContent = `Menampilkan ${filteredUsers.length} pengguna`;
+    }
+
     filteredUsers.forEach((user, index) => {
       const row = document.createElement("tr");
       const values = [
-        String(index + 1),
-        user.nama || "Nama tidak tersedia",
-        user.email || "Email tidak tersedia",
-        user.no_telepon || "Tidak tersedia",
-        formatDate(user.tanggal_pendaftaran)
+        `${index + 1}.`,
+        user.nama || "-",
+        user.email || "-"
       ];
 
-      values.forEach((value) => {
+      values.forEach((value, colIndex) => {
         const cell = document.createElement("td");
         cell.textContent = value;
+        if (colIndex === 0) {
+          cell.className = "td-no";
+        } else if (colIndex === 1) {
+          cell.className = "td-nama";
+        } else {
+          cell.className = "td-email";
+        }
         row.append(cell);
       });
 
@@ -154,11 +165,11 @@ document.addEventListener("DOMContentLoaded", () => {
     retryButton.disabled = true;
 
     try {
-      const result = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
-      if (!Array.isArray(result.data?.user_terbaru)) {
-        throw new Error("Data pengguna terbaru dari server tidak valid.");
+      const result = await getJson(`${API_BASE_URL}/api/admin/user.php`);
+      if (!Array.isArray(result.data)) {
+        throw new Error("Data pengguna dari server tidak valid.");
       }
-      users = result.data.user_terbaru;
+      users = result.data;
       usersLoaded = true;
       renderUsers();
     } catch (error) {

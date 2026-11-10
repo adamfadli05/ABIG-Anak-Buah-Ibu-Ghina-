@@ -60,47 +60,52 @@
           </button>
           <div class="topbar-title">
             <span class="topbar-title-text">
-              <strong>Daftar Pengguna</strong>
+              <strong>Panel</strong>
               <span id="adminName">Admin</span>
             </span>
-            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+            <iconify-icon icon="lucide-extended:user-cog-filled" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
         <main class="dashboard-content">
           <header class="users-heading">
-            <div>
-              <h1>Daftar Pengguna</h1>
-              <p class="page-description">Cari hingga lima akun terbaru. Nomor telepon dan tanggal pendaftaran ditampilkan jika tersedia dari API.</p>
-            </div>
+            <h1>Daftar Pengguna</h1>
           </header>
 
-          <label class="users-search" for="searchUsers">
-            <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
-            <input id="searchUsers" type="search" placeholder="Cari nama atau email..." autocomplete="off" />
-          </label>
+          <div class="users-search-container">
+            <label class="users-search" for="searchUsers">
+              <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
+              <input id="searchUsers" type="search" placeholder="Cari Pengguna" autocomplete="off" />
+            </label>
+          </div>
 
           <div id="usersLoading" class="notice" role="status" aria-live="polite">Memuat daftar pengguna...</div>
+          
           <section id="usersError" class="dashboard-error-state users-error" role="alert" hidden>
             <iconify-icon icon="fluent:wifi-warning-20-filled" aria-hidden="true"></iconify-icon>
             <h2>Daftar pengguna gagal dimuat</h2>
             <p id="usersErrorMessage">Periksa koneksi internet Anda, lalu coba lagi.</p>
-            <button id="usersRetryButton" class="button button-secondary" type="button">Coba lagi</button>
+            <button id="usersRetryButton" class="button button-secondary" type="button">Coba Lagi</button>
           </section>
-          <p id="usersEmpty" class="users-state" role="status" hidden>Belum ada pengguna yang terdaftar.</p>
-          <p id="usersNoResults" class="users-state" role="status" hidden>Pengguna tidak ditemukan.</p>
+
+          <div id="usersEmpty" class="users-state-box" role="status" hidden>
+            <iconify-icon icon="lucide:users" aria-hidden="true"></iconify-icon>
+            <p>Belum ada pengguna yang terdaftar.</p>
+          </div>
+
+          <div id="usersNoResults" class="users-not-found-box" role="status" hidden>
+            <iconify-icon icon="ic:baseline-search-off" aria-hidden="true"></iconify-icon>
+            <p>Pengguna Tidak Ditemukan</p>
+          </div>
 
           <div id="usersTableCard" class="users-table-card" hidden>
-            <p id="usersCount" class="users-count" role="status"></p>
             <div class="users-table-scroll">
               <table class="users-table">
                 <thead>
                   <tr>
-                    <th scope="col">No.</th>
-                    <th scope="col">Nama</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Nomor Telepon</th>
-                    <th scope="col">Tanggal Pendaftaran</th>
+                    <th scope="col" class="th-no">No</th>
+                    <th scope="col" class="th-nama">Nama Pengguna</th>
+                    <th scope="col" class="th-email">Email Pengguna</th>
                   </tr>
                 </thead>
                 <tbody id="usersTableBody"></tbody>
