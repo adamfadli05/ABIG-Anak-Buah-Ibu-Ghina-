@@ -1,36 +1,47 @@
 .users-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .users-heading h1 {
-  margin-bottom: 8px;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #172033;
+}
+
+/* Kotak Pencarian Mengikuti Desain Oval / Pill */
+.users-search-container {
+  width: 100%;
+  margin-bottom: 24px;
 }
 
 .users-search {
   display: flex;
-  width: min(100%, 440px);
-  min-height: 44px;
+  width: 100%;
+  min-height: 48px;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding: 0 14px;
-  border: 1px solid #dfe3eb;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 0 20px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9999px;
   background: #fff;
-  color: #788294;
+  color: #64748b;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .users-search:focus-within {
   border-color: #001b7d;
-  box-shadow: 0 0 0 3px rgb(0 27 125 / 10%);
+  box-shadow: 0 0 0 3px rgba(0, 27, 125, 0.12);
 }
 
 .users-search iconify-icon {
   flex: 0 0 auto;
-  font-size: 19px;
+  font-size: 22px;
+  color: #4b5563;
 }
 
 .users-search input {
@@ -40,101 +51,169 @@
   outline: 0;
   background: transparent;
   color: #172033;
-  font: inherit;
-  font-size: 13px;
+  font-family: inherit;
+  font-size: 15px;
 }
 
 .users-search input::placeholder {
-  color: #98a1b1;
+  color: #4b5563;
 }
 
+/* Tabel Card & Scroll */
 .users-table-card {
-  overflow: hidden;
-  border: 1px solid #e3e7ef;
-  border-radius: 10px;
+  width: 100%;
   background: #fff;
-  box-shadow: 0 3px 8px rgb(23 32 51 / 6%);
-}
-
-.users-count {
-  margin: 0;
-  padding: 15px 18px;
-  border-bottom: 1px solid #e8ebf2;
-  color: #667085;
-  font-size: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .users-table-scroll {
+  width: 100%;
   overflow-x: auto;
 }
 
 .users-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: center;
 }
 
-.users-table th,
-.users-table td {
-  min-width: 130px;
-  padding: 15px 18px;
-  border-bottom: 1px solid #edf0f5;
-  color: #475467;
-  font-size: 13px;
+/* Header Tabel Biru Tua Sesuai Figma */
+.users-table thead th {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 16px 20px;
+  border: 1px solid #001b7d;
+}
+
+.users-table th.th-no {
+  width: 15%;
+}
+
+.users-table th.th-nama {
+  width: 42%;
+}
+
+.users-table th.th-email {
+  width: 43%;
+}
+
+/* Data Baris */
+.users-table tbody td {
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #1e293b;
+  text-align: center;
+  border: 1px solid #cbd5e1;
   vertical-align: middle;
 }
 
-.users-table th {
-  background: #f7f8fb;
-  color: #344054;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.users-table th:first-child,
-.users-table td:first-child {
-  min-width: 62px;
-  text-align: center;
-}
-
-.users-table tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.users-table td:nth-child(2) {
-  color: #172033;
+.users-table tbody td.td-no {
   font-weight: 600;
 }
 
-.users-state {
-  margin: 0;
-  padding: 42px 20px;
-  border: 1px solid #e8ebf2;
-  border-radius: 10px;
-  background: #fff;
-  color: #788294;
-  font-size: 14px;
+.users-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* State: Pengguna Tidak Ditemukan Sesuai Figma */
+.users-not-found-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 40px 20px;
   text-align: center;
 }
 
+.users-not-found-box iconify-icon {
+  font-size: 68px;
+  color: #475569;
+}
+
+.users-not-found-box p {
+  margin: 16px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* State: Daftar Pengguna Kosong */
+.users-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.users-state-box iconify-icon {
+  font-size: 64px;
+  color: #94a3b8;
+}
+
+.users-state-box p {
+  margin: 16px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* State: Gagal Memuat Pengguna */
 .users-error {
-  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 40px 20px;
+  text-align: center;
 }
 
 .users-error > iconify-icon {
-  color: #788294;
-  font-size: 42px;
+  font-size: 56px;
+  color: #ef4444;
+}
+
+.users-error h2 {
+  margin: 16px 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.users-error p {
+  margin: 0 0 18px;
+  font-size: 14px;
+  color: #64748b;
+  max-width: 400px;
+}
+
+.notice {
+  padding: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  color: #475569;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 700px) {
-  .users-heading {
-    margin-bottom: 18px;
+  .users-heading h1 {
+    font-size: 22px;
   }
 
   .users-table th,
   .users-table td {
-    padding: 13px 14px;
+    padding: 12px 14px;
+    font-size: 13px;
   }
 }
