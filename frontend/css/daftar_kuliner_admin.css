@@ -104,9 +104,9 @@ th {
 /* Pengaturan Lebar Kolom dan Posisi Teks */
 th:nth-child(1), td:nth-child(1) { width: 50px; text-align: center; }  /* No */
 th:nth-child(2), td:nth-child(2) { width: 100px; text-align: center; } /* Foto */
-th:nth-child(3), td:nth-child(3) {width: 22%; white-space: nowrap; color: #000000; font-weight: 400; }  /* Nama Kuliner (lurus ke samping) */
+th:nth-child(3), td:nth-child(3) { width: 22%; white-space: nowrap; color: #000000; font-weight: 400; }  /* Nama Kuliner */
 th:nth-child(4), td:nth-child(4) { width: 20%; text-align: left; }     /* Kategori */
-th:nth-child(5), td:nth-child(5) { width: 32%; text-align: left; }     /* Alamat (dikecilkan) */
+th:nth-child(5), td:nth-child(5) { width: 32%; text-align: left; }     /* Alamat */
 th:nth-child(6), td:nth-child(6) { width: 130px; text-align: center; } /* Aksi */
 
 td {
@@ -116,18 +116,13 @@ td {
   border: 1px solid #cbd5e1;
   color: #334155;
 }
+
 td:nth-child(3) strong {
-  font-weight: normal !important; /* Memaksa tag strong di kolom ini jadi tidak bold */
+  font-weight: normal !important;
 }
 
 tbody tr:hover {
   background-color: #f8fafc;
-}
-
-/* Pengaturan Kolom Nomor agar di Tengah */
-th:first-child, td:first-child {
-  text-align: center;
-  width: 60px;
 }
 
 /* Gambar Thumbnail Kuliner */
@@ -196,7 +191,251 @@ th:first-child, td:first-child {
   color: #000000;
 }
 
-/* Delete confirmation and result states */
+.btn-delete iconify-icon {
+  background-color: #001b7d;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete:hover {
+  background-color: #f8fafc;
+  border-color: #001b7d;
+  color: #000000;
+}
+
+/* State Kosong & Error */
+.culinary-empty-state,
+.culinary-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: transparent;
+  width: 100%;
+  gap: 12px;
+  color: #64748b;
+}
+
+.culinary-empty-state p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.culinary-error-state h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.culinary-error-state p {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0 0 16px 0;
+}
+
+/* Styling Halaman Edit Kuliner (Persis Figma) */
+.edit-culinary-container {
+  background: transparent;
+  width: 100%;
+  max-width: 900px;
+  margin-top: 10px;
+}
+
+.edit-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 24px;
+}
+
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 30px;
+}
+
+.edit-photo-section {
+  grid-column: span 2;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.edit-photo-card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Menambahkan efek overlay transparan di atas foto persis Figma */
+.edit-photo-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25); /* Efek gelap tipis */
+  pointer-events: none;
+}
+
+.edit-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.btn-change-photo {
+  position: absolute;
+  z-index: 3; /* Supaya berada di atas overlay gelap */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #001b7d;
+  color: #ffffff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s;
+}
+
+.btn-change-photo:hover {
+  background-color: #00145c;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group-full {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.form-group label .required {
+  color: #ef4444;
+}
+
+.form-group input,
+.form-group textarea,
+.select-wrapper select {
+  width: 100%;
+  padding: 11px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group textarea {
+  border-radius: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.select-wrapper select:focus {
+  border-color: #001b7d;
+}
+
+/* Custom Dropdown Styling */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #0f172a;
+  pointer-events: none;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.btn-cancel {
+  background-color: #f1f5f9;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-save {
+  background-color: #001b7d;
+  color: #ffffff;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-save:hover {
+  background-color: #00145c;
+}
+
+/* Modal Hapus */
 .delete-modal {
   position: fixed;
   z-index: 1000;
@@ -273,15 +512,6 @@ th:first-child, td:first-child {
   font-weight: 400;
 }
 
-.delete-button:hover:not(:disabled) {
-  box-shadow: 0 2px 8px rgb(0 27 125 / 20%);
-}
-
-.delete-button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
 .delete-state-icon {
   display: grid;
   width: 44px;
@@ -306,35 +536,6 @@ th:first-child, td:first-child {
   background: #e83d32;
 }
 
-.delete-result-state {
-  display: grid;
-  width: 100%;
-  justify-items: center;
-  gap: 14px;
-}
-
-.delete-dialog[data-state="success"],
-.delete-dialog[data-state="error"] {
-  padding: 26px 36px;
-}
-
-.delete-result-state h2 {
-  font-size: 18px;
-}
-
-.delete-result-state .delete-dialog-message {
-  font-size: 13px;
-}
-
-.delete-spinner {
-  width: 42px;
-  height: 42px;
-  border: 3px solid #e1e1e1;
-  border-top-color: #737373;
-  border-radius: 50%;
-  animation: delete-spin 0.8s linear infinite;
-}
-
 .delete-link-button {
   justify-self: end;
   padding: 4px 8px;
@@ -346,137 +547,175 @@ th:first-child, td:first-child {
   font-size: 16px;
   text-decoration: underline;
 }
-
-.delete-button:focus-visible,
-.delete-link-button:focus-visible {
-  outline: 3px solid #9db8ff;
-  outline-offset: 2px;
-}
-
-@media (max-width: 350px) {
-  .delete-dialog {
-    gap: 16px;
-    padding: 24px 20px 26px;
-  }
-
-  .delete-dialog[data-state="success"],
-  .delete-dialog[data-state="error"] {
-    padding: 24px 20px;
-  }
-
-  .delete-dialog h2 {
-    font-size: 22px;
-  }
-
-  .delete-dialog-message {
-    font-size: 16px;
-  }
-
-  .delete-dialog-actions {
-    gap: 16px;
-  }
-}
-
-@keyframes delete-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btn-delete {
-  background-color: #ffffff;
-  color: #000000;
-}
-
-.btn-delete iconify-icon {
-  background-color: #001b7d;
-  color: #ffffff;
-  font-size: 1rem;
-  padding: 6px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-delete:hover {
-  background-color: #f8fafc;
-  border-color: #001b7d;
-  color: #000000;
-}
-
-.culinary-empty-state {
+/* Banner Peringatan Validasi (Persis Figma) */
+.form-alert-banner {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color: #64748b;
-  gap: 12px;
-  width: 100%;
-}
-
-.culinary-empty-state iconify-icon {
-  color: #64748b;
-}
-
-.culinary-empty-state p {
-  margin: 0;
+  gap: 10px;
+  color: #ef4444 !important;
   font-size: 0.95rem;
   font-weight: 500;
-  color: #334155;
+  margin-top: 14px;
+  margin-bottom: 18px;
+  width: 100%;
 }
 
-/* Styling State Koneksi Internet Terputus */
-.culinary-error-state {
+.form-alert-banner[hidden] {
+  display: none !important;
+}
+
+/* Menggunakan ikon tanda seru dalam lingkaran merah persis Figma */
+.form-alert-banner iconify-icon {
+  font-size: 1.4rem;
+  color: #ef4444 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.form-alert-banner span {
+  color: #ef4444 !important;
+}
+
+/* Border Merah Terang pada Form Input yang Error */
+.form-group input.input-error,
+.form-group textarea.input-error,
+.select-wrapper select.input-error {
+  border: 1.5px solid #ef4444 !important;
+  background-color: #ffffff;
+  outline: none;
+}
+/* Styling Modal Berhasil Edit Sesuai Figma */
+.success-modal-overlay {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.success-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.success-modal-dialog {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
+  width: min(100%, 400px);
+  padding: 32px 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   text-align: center;
-  background: transparent;
-  width: 100%;
-  min-height: 280px;
-  gap: 8px;
+  gap: 16px;
 }
 
-.culinary-error-state iconify-icon {
-  color: #64748b;
-  margin-bottom: 4px;
-}
-
-.culinary-error-state h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.culinary-error-state p {
-  font-size: 0.9rem;
-  color: #475569;
-  margin: 0 0 16px 0;
-}
-
-.culinary-error-state .button-primary {
-  display: inline-flex;
+.success-icon-wrapper {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: #001b7d;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #22c55e; /* Hijau sukses */
   color: #ffffff;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 32px;
 }
 
-.culinary-error-state .button-primary:hover {
-  background-color: #00145c;
+.success-modal-dialog h3 {
+  margin: 0;
+  color: #001b7d;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.btn-success-ok {
+  background-color: transparent;
+  color: #001b7d;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 16px;
+  margin-top: 4px;
+  transition: opacity 0.2s;
+}
+
+.btn-success-ok:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+/* Styling Modal Gagal Edit Sesuai Figma */
+.error-modal-overlay {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.error-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.error-modal-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 390px);
+  padding: 32px 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  gap: 12px;
+}
+
+.error-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #ef4444; /* Merah gagal */
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.error-modal-dialog h3 {
+  margin: 0;
+  color: #001b7d;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.error-modal-dialog p {
+  margin: 0;
+  color: #001b7d;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.btn-error-retry {
+  background-color: transparent;
+  color: #001b7d;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 16px;
+  margin-top: 6px;
+  transition: opacity 0.2s;
+}
+
+.btn-error-retry:hover {
+  opacity: 0.75;
 }

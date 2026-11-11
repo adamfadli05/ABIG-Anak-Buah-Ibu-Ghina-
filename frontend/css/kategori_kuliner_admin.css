@@ -1,227 +1,501 @@
-/* Reset Basic */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  body {
-    display: flex;
-    min-height: 100vh;
-    background-color: #f4f6f9;
-    color: #333;
-  }
-  
-  /* Sidebar Navigasi */
-  .sidebar {
-    width: 250px;
-    background-color: #1e293b;
-    color: #fff;
-    padding: 20px;
-  }
-  
-  .sidebar h2 {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    color: #38bdf8;
-  }
-  
-  .sidebar ul {
-    list-style: none;
-  }
-  
-  .sidebar li {
-    margin-bottom: 8px;
-  }
-  
-  .sidebar .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #cbd5e1;
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-  }
-  
-  .sidebar .nav-link iconify-icon {
-    font-size: 1.2rem;
-  }
-  
-  .sidebar .nav-link.active, 
-  .sidebar .nav-link:hover {
-    background-color: #0f172a;
-    color: #38bdf8;
-  }
-  
-  /* Main Content */
-  .main-content {
-    flex: 1;
-    padding: 30px;
-  }
-  
-  .top-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .top-header h1 {
-    font-size: 1.6rem;
-    color: #0f172a;
-  }
-  
-  /* Toolbar */
-  .toolbar {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
-  .toolbar input {
-    width: 100%;
-    max-width: 400px;
-    padding: 10px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    outline: none;
-  }
-  
-  .toolbar input:focus {
-    border-color: #2563eb;
-  }
-  
-  /* Buttons */
-  .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  
-  .btn-primary { background-color: #2563eb; color: #fff; }
-  .btn-primary:hover { background-color: #1d4ed8; }
-  .btn-secondary { background-color: #64748b; color: #fff; }
-  .btn-danger { background-color: #ef4444; color: #fff; }
-  .btn-edit { background-color: #f59e0b; color: #fff; }
-  
-  /* Table Styling */
-  .table-container {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 14px 18px;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  
-  th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 600;
-  }
-  
-  .badge-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background-color: #e0f2fe;
-    color: #0284c7;
-    font-size: 1.3rem;
-  }
-  
-  .badge-count {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background-color: #f1f5f9;
-    color: #475569;
-    font-weight: 600;
-    font-size: 0.85rem;
-  }
-  
-  /* Modal Styling */
-  .modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-  }
-  
-  .modal.hidden {
-    display: none;
-  }
-  
-  .modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 450px;
-    position: relative;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: 15px; right: 20px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #64748b;
-  }
-  
-  .form-group {
-    margin-bottom: 16px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-  
-  .form-group input, 
-  .form-group textarea {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    outline: none;
-  }
-  
-  .help-text {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 4px;
-    display: block;
-  }
-  
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 24px;
-  }
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+}
+
+body {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.admin-layout {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  overflow-x: hidden !important;
+}
+
+#sidebar-container {
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+}
+
+.main-content {
+  flex: 1 !important;
+  width: calc(100% - 260px) !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background-color: #f1f5f9 !important;
+}
+
+.top-header {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 16px 32px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.panel-admin-info {
+  display: flex !important;
+  flex-direction: column !important;
+  text-align: right !important;
+}
+
+.panel-title {
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  color: #0f172a !important;
+}
+
+.admin-subtitle {
+  font-size: 0.75rem !important;
+  color: #64748b !important;
+}
+
+.admin-avatar-icon {
+  font-size: 28px !important;
+  color: #001b7d !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.content-body {
+  padding: 32px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.content-header-flex {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 24px !important;
+  width: 100% !important;
+}
+
+.content-header-flex h2 {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.btn-primary-custom {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 12px rgba(0, 27, 125, 0.2) !important;
+  transition: background 0.2s !important;
+}
+
+.btn-primary-custom:hover {
+  background-color: #00145c !important;
+}
+
+.table-card {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden !important;
+  border: 1px solid #cbd5e1 !important;
+  width: 100% !important;
+}
+
+.table-status-msg {
+  padding: 32px !important;
+  text-align: center !important;
+  color: #64748b !important;
+  font-size: 0.95rem !important;
+}
+
+.table-status-msg.error {
+  color: #ef4444 !important;
+}
+
+.table-wrapper {
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  text-align: left !important;
+}
+
+th, td {
+  padding: 14px 20px !important;
+  font-size: 0.9rem !important;
+  vertical-align: middle !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+th {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+td {
+  color: #334155 !important;
+}
+
+td:nth-child(1) { text-align: center !important; width: 80px !important; }
+td:nth-child(3) { text-align: center !important; }
+
+/* STYLING TOMBOL AKSI */
+.action-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.btn-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 4px 14px 4px 5px !important;
+  border-radius: 24px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  border: 1px solid #cbd5e1 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  width: 110px !important;
+  justify-content: flex-start !important;
+  transition: all 0.2s ease !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.btn-action iconify-icon {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
+  padding: 6px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-edit:hover, .btn-delete:hover {
+  background-color: #f8fafc !important;
+  border-color: #001b7d !important;
+}
+
+/* MODAL OVERLAY FORM TAMBAH/EDIT */
+.modal-overlay {
+  position: fixed !important;
+  z-index: 1000 !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 16px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.modal-overlay[hidden] {
+  display: none !important;
+}
+
+.modal-dialog {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  padding: 32px !important;
+  width: min(100%, 460px) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.modal-dialog h3 {
+  margin-bottom: 20px !important;
+  font-size: 1.25rem !important;
+  font-weight: 400 !important;
+  color: #001b7d !important;
+}
+
+.form-group {
+  margin-bottom: 24px !important;
+}
+
+.form-group label {
+  display: block !important;
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  margin-bottom: 8px !important;
+  color: #0f172a !important;
+}
+
+.form-group input {
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 50px !important;
+  font-size: 0.95rem !important;
+  outline: none !important;
+  color: #001b7d !important; 
+  background-color: #ffffff !important;
+  transition: border-color 0.2s !important;
+}
+
+.form-group input:focus {
+  border-color: #001b7d !important;
+}
+
+.modal-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+}
+
+.btn-cancel-figma {
+  background: #ffffff !important;
+  border: 1px solid #001b7d !important;
+  color: #001b7d !important;
+  padding: 8px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+
+.btn-cancel-figma:hover {
+  background: #f1f5f9 !important;
+}
+
+.btn-save-figma {
+  background: #001b7d !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 8px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+
+.btn-save-figma:hover {
+  background: #00145c !important;
+}
+
+/* POP-UP VALIDASI SUKSES & GAGAL (Disesuaikan agar pas & presisi dengan Figma) */
+.success-modal-overlay,
+.error-modal-overlay {
+  position: fixed !important;
+  z-index: 1100 !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 16px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.success-modal-overlay[hidden],
+.error-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.success-modal-dialog,
+.error-modal-dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: min(100%, 360px) !important; /* Ukuran lebar dikurangi agar lebih pas */
+  padding: 26px 24px 20px 24px !important; /* Padding disesuaikan */
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  text-align: center !important;
+  gap: 12px !important;
+  position: relative !important;
+}
+
+.success-icon-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important; /* Ukuran ikon diperkecil agar proporsional */
+  height: 38px !important;
+  border-radius: 50% !important;
+  background-color: #22c55e !important;
+  color: #ffffff !important;
+  font-size: 24px !important;
+}
+
+.error-icon-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 22px !important;
+}
+
+.success-modal-dialog h3,
+.error-modal-dialog h3 {
+  margin: 0 !important;
+  color: #001b7d !important;
+  font-size: 1.15rem !important; /* Ukuran font judul disesuaikan */
+  font-weight: 400 !important;
+}
+
+.error-modal-dialog p {
+  margin: 0 !important;
+  color: #001b7d !important;
+  font-size: 0.9rem !important;
+  opacity: 0.85 !important;
+}
+
+/* Tombol Aksi diatur agar posisinya merata ke kanan (flex end) */
+.success-modal-dialog, 
+.error-modal-dialog {
+  align-items: center !important;
+}
+
+.btn-success-ok,
+.btn-error-retry {
+  align-self: flex-end !important; /* Posisi tombol bergeser ke kanan bawah */
+  background-color: transparent !important;
+  color: #001b7d !important;
+  border: none !important;
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  margin-top: 4px !important;
+  text-decoration: underline !important;
+  transition: opacity 0.2s !important;
+}
+
+.btn-success-ok:hover,
+.btn-error-retry:hover {
+  opacity: 0.75 !important;
+}
+
+/* Border Merah Terang pada Form Input yang Error */
+.form-group input.input-error {
+  border: 1.5px solid #ef4444 !important;
+  background-color: #ffffff !important;
+  outline: none !important;
+}
+
+/* Banner Peringatan Validasi (Persis Figma) */
+.form-alert-banner {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #ef4444 !important;
+  font-size: 0.85rem !important;
+  font-weight: 400 !important;
+  margin-top: 8px !important;
+  width: 100% !important;
+}
+
+.form-alert-banner[hidden] {
+  display: none !important;
+}
+
+.form-alert-banner iconify-icon {
+  font-size: 1.15rem !important;
+  color: #ef4444 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.form-alert-banner span {
+  color: #ef4444 !important;
+}
+
+/* Modal Konfirmasi Hapus */
+.delete-confirm-dialog {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: min(100%, 420px) !important;
+  padding: 32px !important;
+  gap: 12px !important;
+}
+
+.delete-icon-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-size: 24px !important;
+  margin-bottom: 4px !important;
+}
+
+.delete-confirm-dialog h3 {
+  margin: 0 !important;
+  color: #001b7d !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+.delete-confirm-dialog p {
+  margin: 0 0 12px 0 !important;
+  color: #64748b !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+}
+
+.modal-actions-figma {
+  display: flex !important;
+  gap: 12px !important;
+  width: 100% !important;
+  justify-content: center !important;
+  margin-top: 8px !important;
+}
+
+.btn-delete-figma {
+  background: #001b7d !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 8px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+
+.btn-delete-figma:hover {
+  background: #00145c !important;
+}

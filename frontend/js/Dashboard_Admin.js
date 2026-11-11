@@ -9,25 +9,9 @@
   const authOfflineIcon = document.getElementById("authOfflineIcon");
   const authRetryButton = document.getElementById("authRetryButton");
   const authRetryLabel = document.getElementById("authRetryLabel");
-  const summaryLoading = document.getElementById("summaryLoading");
-  const summaryError = document.getElementById("summaryError");
-  const summaryErrorTitle = document.getElementById("summaryErrorTitle");
-  const summaryErrorIcon = document.getElementById("summaryErrorIcon");
-  const summaryIconify = document.getElementById("summaryIconify");
-  const summaryOfflineIcon = document.getElementById("summaryOfflineIcon");
-  const summaryErrorMessage = document.getElementById("summaryErrorMessage");
-  const summaryRetryButton = document.getElementById("summaryRetryButton");
-  const summaryRetryLabel = document.getElementById("summaryRetryLabel");
   const summaryCards = document.getElementById("summaryCards");
   const culinaryCards = document.getElementById("culinaryCards");
   const culinaryEmpty = document.getElementById("culinaryEmpty");
-  const sidebarToggle = document.getElementById("sidebarToggle");
-  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const adminLogoutButton = document.getElementById("adminLogoutButton");
-  const logoutConfirmModal = document.getElementById("logoutConfirmModal");
-  const logoutSuccessModal = document.getElementById("logoutSuccessModal");
-  const logoutErrorMessage = document.getElementById("logoutErrorMessage");
-  const confirmLogoutButton = document.getElementById("confirmLogoutButton");
   const numberFormatter = new Intl.NumberFormat("id-ID");
 
   async function getJson(url, options = {}) {
@@ -53,9 +37,9 @@
 
   async function checkAdminAccess() {
     authRetryButton.hidden = true;
-    authErrorIcon.hidden = true;
-    authOfflineIcon.toggleAttribute("hidden", true);
-    authIconify.hidden = false;
+    if (authErrorIcon) authErrorIcon.hidden = true;
+    if (authOfflineIcon) authOfflineIcon.toggleAttribute("hidden", true);
+    if (authIconify) authIconify.hidden = false;
     authTitle.textContent = "Memeriksa akses Admin...";
     authMessage.textContent = "Mohon tunggu sebentar.";
 
@@ -93,9 +77,9 @@
       authMessage.textContent = isOffline
         ? "Periksa kembali jaringan internet Anda dan silakan muat ulang halaman."
         : error.message || "Gagal memeriksa akses Admin.";
-      authIconify.hidden = isOffline;
-      authOfflineIcon.toggleAttribute("hidden", !isOffline);
-      authErrorIcon.hidden = false;
+      if (authIconify) authIconify.hidden = isOffline;
+      if (authOfflineIcon) authOfflineIcon.toggleAttribute("hidden", !isOffline);
+      if (authErrorIcon) authErrorIcon.hidden = false;
       authRetryLabel.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
       authRetryButton.hidden = false;
     }
@@ -179,16 +163,12 @@
   }
 
   async function loadDashboardSummary() {
-    summaryLoading.hidden = false;
-    summaryError.hidden = true;
     summaryCards.hidden = true;
     culinaryCards.hidden = true;
     culinaryEmpty.hidden = true;
     summaryCards.setAttribute("aria-busy", "true");
-    summaryRetryButton.disabled = true;
 
     try {
-      // Pakai satu endpoint dashboard yang return semua data sekaligus
       const dashResult = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
       if (!dashResult.status || !dashResult.data) {
         throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
@@ -196,17 +176,30 @@
 
       const data = dashResult.data;
 
-      document.getElementById("totalCulinary").textContent = numberFormatter.format(getCount(data.total_kuliner));
-      document.getElementById("totalCategories").textContent = numberFormatter.format(getCount(data.total_kategori));
-      document.getElementById("totalUsers").textContent = numberFormatter.format(getCount(data.total_user));
+      // Render kartu ringkasan secara dinamis jika elemennya ada
+      summaryCards.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-card-icon icon-blue"><iconify-icon icon="dashicons:food"></iconify-icon></div>
+          <p class="summary-label">Total Kuliner</p>
+          <p class="summary-value">${numberFormatter.format(getCount(data.total_kuliner))}</p>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-icon icon-orange"><iconify-icon icon="wordpress:category"></iconify-icon></div>
+          <p class="summary-label">Total Kategori</p>
+          <p class="summary-value">${numberFormatter.format(getCount(data.total_kategori))}</p>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-icon icon-green"><iconify-icon icon="f7:person-2-fill"></iconify-icon></div>
+          <p class="summary-label">Total Pengguna</p>
+          <p class="summary-value">${numberFormatter.format(getCount(data.total_user))}</p>
+        </div>
+      `;
 
-      // Ambil data kuliner untuk card grid
       const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
       if (!culinaryResult.status || !Array.isArray(culinaryResult.data)) {
         throw new Error("Data kuliner dari server tidak valid.");
       }
 
-      // Ambil rating dari detail kuliner secara paralel
       const culinary = culinaryResult.data;
       const details = await Promise.all(culinary.map((item) =>
         getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)
@@ -221,91 +214,14 @@
 
       summaryCards.hidden = false;
       summaryCards.setAttribute("aria-busy", "false");
-      summaryLoading.hidden = true;
     } catch (error) {
-      summaryLoading.hidden = true;
-      const isOffline = !navigator.onLine || error instanceof TypeError;
-      summaryErrorTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Dashboard gagal dimuat";
-      summaryErrorMessage.textContent = isOffline
-        ? "Periksa kembali jaringan internet Anda dan muat ulang halaman."
-        : error.message || "Ringkasan dashboard gagal dimuat.";
-      summaryIconify.hidden = isOffline;
-      summaryOfflineIcon.toggleAttribute("hidden", !isOffline);
-      summaryRetryLabel.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
-      summaryError.hidden = false;
+      console.error("Gagal memuat ringkasan dashboard:", error);
     } finally {
       summaryCards.setAttribute("aria-busy", "false");
-      summaryRetryButton.disabled = false;
     }
   }
 
-  function openLogoutConfirmation() {
-    logoutErrorMessage.hidden = true;
-    logoutConfirmModal.hidden = false;
-    document.getElementById("cancelLogoutButton").focus();
-  }
-
-  function closeLogoutConfirmation() {
-    if (confirmLogoutButton.disabled) return;
-    logoutConfirmModal.hidden = true;
-    adminLogoutButton.focus();
-  }
-
-  async function logout() {
-    confirmLogoutButton.disabled = true;
-    logoutErrorMessage.hidden = true;
-
-    try {
-      const result = await getJson(`${API_BASE_URL}/logout.php`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-      });
-      if (!result.status) {
-        throw new Error(result.message || "Gagal keluar dari akun.");
-      }
-
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
-      logoutConfirmModal.hidden = true;
-      logoutSuccessModal.hidden = false;
-      document.getElementById("finishLogoutButton").focus();
-    } catch (error) {
-      logoutErrorMessage.textContent = error.message || "Gagal keluar dari akun.";
-      logoutErrorMessage.hidden = false;
-    } finally {
-      confirmLogoutButton.disabled = false;
-    }
-  }
-
-  function setSidebarOpen(isOpen) {
-    const isMobile = window.matchMedia("(max-width: 700px)").matches;
-    adminApp.classList.toggle("sidebar-collapsed", !isOpen);
-    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
-    sidebarToggle.setAttribute("aria-label", isOpen ? "Tutup menu" : "Buka menu");
-    sidebarBackdrop.hidden = !isMobile || !isOpen;
-  }
-
-  authRetryButton.addEventListener("click", checkAdminAccess);
-  summaryRetryButton.addEventListener("click", loadDashboardSummary);
-  adminLogoutButton.addEventListener("click", openLogoutConfirmation);
-  document.getElementById("cancelLogoutButton").addEventListener("click", closeLogoutConfirmation);
-  confirmLogoutButton.addEventListener("click", logout);
-  document.getElementById("finishLogoutButton").addEventListener("click", () => {
-    window.location.replace("login.html");
-  });
-  logoutConfirmModal.addEventListener("click", (event) => {
-    if (event.target === logoutConfirmModal) closeLogoutConfirmation();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !logoutConfirmModal.hidden) closeLogoutConfirmation();
-  });
-  sidebarToggle.addEventListener("click", () => {
-    setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
-  });
-  sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
-
-  window.addEventListener("resize", () => {
-    sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || adminApp.classList.contains("sidebar-collapsed");
-  });
+  if (authRetryButton) authRetryButton.addEventListener("click", checkAdminAccess);
 
   window.addEventListener("offline", () => {
     if (!adminApp.hidden) loadDashboardSummary();
@@ -314,12 +230,6 @@
     if (adminApp.hidden) checkAdminAccess();
     else loadDashboardSummary();
   });
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js").catch((error) => {
-      console.error("[Admin] Gagal mendaftarkan cache offline:", error);
-    });
-  }
 
   checkAdminAccess();
 })();

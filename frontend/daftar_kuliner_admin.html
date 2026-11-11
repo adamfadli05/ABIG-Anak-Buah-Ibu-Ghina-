@@ -13,6 +13,8 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
+    <!-- Script Sidebar Terpusat -->
+    <script src="js/sidebar.js" defer></script>
     <script src="js/daftar_kuliner_admin.js" defer></script>
     <script src="js/kuliner-navigation.js" defer></script>
   </head>
@@ -25,50 +27,18 @@
 
     <!-- App Utama -->
     <div id="adminApp" class="admin-app" hidden>
-      <!-- Sidebar konsisten dengan Dashboard -->
-      <aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
-        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
-          <img src="assets/logo.png" alt="Mangan Yukkk" />
-        </a>
-
-        <nav class="sidebar-nav">
-          <a class="nav-link" href="Dashboard_Admin.html">
-            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
-            <span>Dashboard</span>
-          </a>
-          <a class="nav-link active" href="daftar_kuliner_admin.html" aria-current="page">
-            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
-            <span>Kuliner</span>
-          </a>
-          <a class="nav-link" href="kategori_kuliner_admin.html">
-            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
-            <span>Kategori</span>
-          </a>
-          <a class="nav-link" href="pengguna_admin.html">
-            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
-            <span>Pengguna</span>
-          </a>
-          <button id="adminLogoutButton" class="nav-link logout-link" type="button">
-            <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
-            <span>Keluar</span>
-          </button>
-        </nav>
-      </aside>
-
-      <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
+      <!-- PEMANGGILAN SIDEBAR DINAMIS -->
+      <div id="sidebar-container"></div>
 
       <!-- Panel Konten Utama -->
       <section class="main-panel">
         <header class="topbar">
-          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
-            <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
-          </button>
           <div class="topbar-title">
             <span class="topbar-title-text">
-              <strong>Daftar Kuliner</strong>
+              <strong>Panel</strong>
               <span id="adminName">Admin</span>
             </span>
-            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+            <iconify-icon icon="lucide-extended:user-cog-filled" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
@@ -90,45 +60,147 @@
             </div>
           </div>
 
-<!-- Tabel Data Kuliner -->
-<div class="table-card">
-  <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
-  <div class="table-responsive" id="tableWrapper" hidden>
-    <table>
-      <thead>
-        <tr>
-          <th>No</th>
-          <th>Foto</th>
-          <th>Nama Kuliner</th>
-          <th>Kategori</th>
-          <th>Alamat</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="kulinerTableBody">
-        <!-- Data dimuat dinamis melalui JS -->
-      </tbody>
-    </table>
-  </div>
-</div>
-<!-- AKHIR .table-card -->
+          <!-- Tabel Data Kuliner -->
+          <div class="table-card">
+            <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
+            <div class="table-responsive" id="tableWrapper" hidden>
+              <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Foto</th>
+                    <th>Nama Kuliner</th>
+                    <th>Kategori</th>
+                    <th>Alamat</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="kulinerTableBody">
+                  <!-- Data dimuat dinamis melalui JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- AKHIR .table-card -->
 
-<!-- Pindahkan #tableEmpty KE LUAR .table-card -->
-<div id="tableEmpty" class="culinary-empty-state" role="status" hidden>
-  <iconify-icon icon="ic:baseline-search-off" width="48" height="48" aria-hidden="true"></iconify-icon>
-  <p>Kuliner Tidak Ditemukan</p>
-</div>
+          <!-- STATE KOSONG & ERROR (DIPINDAHKAN KE DALAM DASHBOARD-CONTENT) -->
+          <div id="tableEmpty" class="culinary-empty-state" role="status" hidden>
+            <iconify-icon icon="ic:baseline-search-off" width="48" height="48" aria-hidden="true"></iconify-icon>
+            <p>Kuliner Tidak Ditemukan</p>
+          </div>
 
-<!-- State Error / Koneksi Terputus Sesuai Figma -->
-<div id="tableError" class="culinary-error-state" role="alert" hidden>
-  <iconify-icon icon="fluent:wifi-warning-20-filledf" width="50" height="50" aria-hidden="true"></iconify-icon>
-  <h3>Koneksi Internet Terputus</h3>
-  <p>Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
-  <button id="tableRetryButton" class="button button-primary" type="button">
-    <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon> Muat Ulang
-  </button>
-</div>
+          <div id="tableError" class="culinary-error-state" role="alert" hidden>
+            <iconify-icon icon="fluent:wifi-warning-20-filled" width="50" height="50" aria-hidden="true"></iconify-icon>
+            <h3>Koneksi Internet Terputus</h3>
+            <p>Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+            <button id="tableRetryButton" class="button button-primary" type="button"><iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon> Muat Ulang</button>
+          </div>
 
+          <!-- SECTION FORM EDIT KULINER -->
+          <div id="editCulinarySection" class="edit-culinary-container" hidden>
+            <div class="edit-header">
+              <h2>Edit Kuliner</h2>
+            </div>
+
+            <!-- Preview Foto & Tombol Ganti Foto -->
+            <div class="edit-photo-section">
+              <div class="edit-photo-card">
+                <img id="editPhotoPreview" src="" alt="Preview Kuliner" style="display: none" />
+                <label for="editPhotoInput" class="btn-change-photo"> <iconify-icon icon="ri:image-edit-fill" aria-hidden="true"></iconify-icon> Ganti Foto </label>
+                <input type="file" id="editPhotoInput" accept="image/*" hidden />
+              </div>
+            </div>
+
+            <div id="formAlertBanner" class="form-alert-banner" hidden>
+              <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+              <span id="formAlertMessage">Harga harus berupa angka</span>
+            </div>
+
+            <form id="editCulinaryForm" class="edit-form-grid" novalidate>
+              <input type="hidden" id="editIdKuliner" />
+
+              <!-- Baris 1: Nama & Latitude -->
+              <div class="form-group">
+                <label for="editNamaKuliner">Nama Kuliner <span class="required">*</span></label>
+                <input type="text" id="editNamaKuliner" placeholder="Masukkan nama kuliner" required />
+              </div>
+              <div class="form-group">
+                <label for="editLatitude">Latitude <span class="required">*</span></label>
+                <input type="text" id="editLatitude" placeholder="-6.7321" />
+              </div>
+
+              <!-- Baris 2: Harga & Longitude -->
+              <div class="form-group">
+                <label for="editHarga">Harga Kuliner <span class="required">*</span></label>
+                <input type="text" id="editHarga" placeholder="20.000" />
+              </div>
+              <div class="form-group">
+                <label for="editLongitude">Longitude <span class="required">*</span></label>
+                <input type="text" id="editLongitude" placeholder="108.5521" />
+              </div>
+
+              <!-- Baris 3: Kategori & Jam Operasional -->
+              <div class="form-group">
+                <label for="editKategori">Kategori Kuliner <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select id="editKategori" required>
+                    <option value="" disabled selected>Pilih Kategori</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="editJamOperasional">Jam Operasional</label>
+                <input type="text" id="editJamOperasional" placeholder="08.00 - 20.00" />
+              </div>
+
+              <!-- Baris 4: Alamat & Nomor Telepon -->
+              <div class="form-group">
+                <label for="editAlamat">Alamat Kuliner <span class="required">*</span></label>
+                <input type="text" id="editAlamat" placeholder="Jl. Raya Kedawung No. 24" required />
+              </div>
+              <div class="form-group">
+                <label for="editNoTelepon">Nomor Telepon</label>
+                <input type="text" id="editNoTelepon" placeholder="081214387580" />
+              </div>
+
+              <!-- Baris 5: Deskripsi -->
+              <div class="form-group form-group-full">
+                <label for="editDeskripsi">Deskripsi Kuliner <span class="required">*</span></label>
+                <textarea id="editDeskripsi" rows="3" placeholder="Deskripsi mengenai makanan..." required></textarea>
+              </div>
+
+              <!-- Tombol Aksi Batal & Simpan -->
+              <div class="edit-actions form-group-full">
+                <button type="button" id="cancelEditBtn" class="btn-cancel">Batal</button>
+                <button type="submit" id="saveEditBtn" class="btn-save">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- MODAL VALIDASI BERHASIL EDIT -->
+    <div id="successEditModal" class="success-modal-overlay" hidden>
+      <div class="success-modal-dialog">
+        <div class="success-icon-wrapper">
+          <iconify-icon icon="lucide:check" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Berhasil memperbarui kuliner</h3>
+        <button type="button" id="closeSuccessEditBtn" class="btn-success-ok">Oke</button>
+      </div>
+    </div>
+    <!-- MODAL VALIDASI GAGAL EDIT (SESUAI FIGMA) -->
+    <div id="errorEditModal" class="error-modal-overlay" hidden>
+      <div class="error-modal-dialog">
+        <div class="error-icon-wrapper">
+          <iconify-icon icon="lucide:x" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Gagal memperbarui kuliner</h3>
+        <p id="editErrorMessage">Periksa koneksi internet anda</p>
+        <button type="button" id="retryEditBtn" class="btn-error-retry">Coba lagi</button>
+      </div>
+    </div>
+    <!-- MODAL KONFIRMASI HAPUS -->
     <div id="deleteConfirmModal" class="delete-modal" hidden>
       <section class="delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="deleteDialogTitle" aria-describedby="deleteDialogMessage">
         <div id="deleteConfirmState">
