@@ -83,7 +83,8 @@ table {
 }
 
 /* Garis Grid Tegas Antar Sel */
-th, td {
+th,
+td {
   padding: 14px 16px;
   font-size: 0.9rem;
   vertical-align: middle;
@@ -102,12 +103,50 @@ th {
 }
 
 /* Pengaturan Lebar Kolom dan Posisi Teks */
-th:nth-child(1), td:nth-child(1) { width: 50px; text-align: center; }  /* No */
-th:nth-child(2), td:nth-child(2) { width: 100px; text-align: center; } /* Foto */
-th:nth-child(3), td:nth-child(3) { width: 22%; white-space: nowrap; color: #000000; font-weight: 400; }  /* Nama Kuliner */
-th:nth-child(4), td:nth-child(4) { width: 20%; text-align: left; }     /* Kategori */
-th:nth-child(5), td:nth-child(5) { width: 32%; text-align: left; }     /* Alamat */
-th:nth-child(6), td:nth-child(6) { width: 130px; text-align: center; } /* Aksi */
+th:nth-child(1),
+td:nth-child(1) {
+  width: 50px;
+  text-align: center;
+}
+
+/* No */
+th:nth-child(2),
+td:nth-child(2) {
+  width: 100px;
+  text-align: center;
+}
+
+/* Foto */
+th:nth-child(3),
+td:nth-child(3) {
+  width: 22%;
+  white-space: nowrap;
+  color: #000000;
+  font-weight: 400;
+}
+
+/* Nama Kuliner */
+th:nth-child(4),
+td:nth-child(4) {
+  width: 20%;
+  text-align: left;
+}
+
+/* Kategori */
+th:nth-child(5),
+td:nth-child(5) {
+  width: 32%;
+  text-align: left;
+}
+
+/* Alamat */
+th:nth-child(6),
+td:nth-child(6) {
+  width: 130px;
+  text-align: center;
+}
+
+/* Aksi */
 
 td {
   padding: 14px 16px;
@@ -289,7 +328,8 @@ tbody tr:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25); /* Efek gelap tipis */
+  background: rgba(0, 0, 0, 0.25);
+  /* Efek gelap tipis */
   pointer-events: none;
 }
 
@@ -302,7 +342,8 @@ tbody tr:hover {
 
 .btn-change-photo {
   position: absolute;
-  z-index: 3; /* Supaya berada di atas overlay gelap */
+  z-index: 3;
+  /* Supaya berada di atas overlay gelap */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -323,6 +364,7 @@ tbody tr:hover {
 .btn-change-photo:hover {
   background-color: #00145c;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -547,6 +589,7 @@ tbody tr:hover {
   font-size: 16px;
   text-decoration: underline;
 }
+
 /* Banner Peringatan Validasi (Persis Figma) */
 .form-alert-banner {
   display: flex;
@@ -586,6 +629,7 @@ tbody tr:hover {
   background-color: #ffffff;
   outline: none;
 }
+
 /* Styling Modal Berhasil Edit Sesuai Figma */
 .success-modal-overlay {
   position: fixed;
@@ -621,7 +665,8 @@ tbody tr:hover {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: #22c55e; /* Hijau sukses */
+  background-color: #22c55e;
+  /* Hijau sukses */
   color: #ffffff;
   font-size: 32px;
 }
@@ -630,7 +675,8 @@ tbody tr:hover {
   margin: 0;
   color: #001b7d;
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 400 !important;
+  /* Diubah dari 600 menjadi 400 */
 }
 
 .btn-success-ok {
@@ -649,6 +695,7 @@ tbody tr:hover {
   opacity: 0.75;
   text-decoration: underline;
 }
+
 /* Styling Modal Gagal Edit Sesuai Figma */
 .error-modal-overlay {
   position: fixed;
@@ -665,16 +712,16 @@ tbody tr:hover {
 }
 
 .error-modal-dialog {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: min(100%, 390px);
-  padding: 32px 24px;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  gap: 12px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: min(100%, 390px) !important;
+  padding: 32px 24px 20px 24px !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  text-align: center !important;
+  gap: 12px !important;
 }
 
 .error-icon-wrapper {
@@ -684,7 +731,8 @@ tbody tr:hover {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background-color: #ef4444; /* Merah gagal */
+  background-color: #ef4444;
+  /* Merah gagal */
   color: #ffffff;
   font-size: 30px;
 }
@@ -693,7 +741,8 @@ tbody tr:hover {
   margin: 0;
   color: #001b7d;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 400 !important;
+  /* Diubah dari 600 menjadi 400 */
 }
 
 .error-modal-dialog p {
@@ -704,18 +753,21 @@ tbody tr:hover {
 }
 
 .btn-error-retry {
-  background-color: transparent;
-  color: #001b7d;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 6px 16px;
-  margin-top: 6px;
-  transition: opacity 0.2s;
+  background-color: transparent !important;
+  color: #001b7d !important;
+  border: none !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  /* Diubah dari 600 menjadi 400 */
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  margin-top: 4px !important;
+  align-self: flex-end !important;
+  /* Menggeser tombol ke pojok kanan bawah */
+  transition: opacity 0.2s !important;
 }
 
 .btn-error-retry:hover {
-  opacity: 0.75;
+  opacity: 0.75 !important;
 }

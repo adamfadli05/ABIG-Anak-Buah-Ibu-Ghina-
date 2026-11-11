@@ -10,6 +10,9 @@
   const authRetryButton = document.getElementById("authRetryButton");
   const authRetryLabel = document.getElementById("authRetryLabel");
   const summaryCards = document.getElementById("summaryCards");
+  const totalCulinary = document.getElementById("totalCulinary");
+  const totalCategories = document.getElementById("totalCategories");
+  const totalUsers = document.getElementById("totalUsers");
   const culinaryCards = document.getElementById("culinaryCards");
   const culinaryEmpty = document.getElementById("culinaryEmpty");
   const numberFormatter = new Intl.NumberFormat("id-ID");
@@ -36,6 +39,15 @@
   }
 
   async function checkAdminAccess() {
+    // Jika sudah pernah terverifikasi sebagai admin di session/local storage
+    const cachedRole = localStorage.getItem("role");
+    if (cachedRole === "admin") {
+      authState.hidden = true;
+      adminApp.hidden = false;
+      loadDashboardSummary();
+      return;
+    }
+
     authRetryButton.hidden = true;
     if (authErrorIcon) authErrorIcon.hidden = true;
     if (authOfflineIcon) authOfflineIcon.toggleAttribute("hidden", true);
@@ -109,10 +121,8 @@
 
     items.forEach((item) => {
       const title = item.nama_kuliner || item.nama_tempat || "Kuliner";
-      const card = document.createElement("a");
-      card.className = "culinary-card";
-      card.href = `detail_kuliner.html?id=${encodeURIComponent(item.id_tempat)}`;
-      card.setAttribute("aria-label", `Lihat detail ${title}`);
+      const card = document.createElement("div");
+      card.className = "culinary-card culinary-card-static";
 
       const photo = document.createElement("img");
       photo.className = "culinary-photo";
@@ -132,7 +142,7 @@
       const address = document.createElement("p");
       address.className = "culinary-card-address";
       const locationIcon = document.createElement("iconify-icon");
-      locationIcon.setAttribute("icon", "lucide:map-pin");
+      locationIcon.setAttribute("icon", "material-symbols:location-on");
       locationIcon.setAttribute("aria-hidden", "true");
       const addressText = document.createElement("span");
       addressText.textContent = item.alamat || item.nama_tempat || "Alamat belum tersedia";
@@ -163,12 +173,10 @@
   }
 
   async function loadDashboardSummary() {
-    summaryCards.hidden = true;
-    culinaryCards.hidden = true;
-    culinaryEmpty.hidden = true;
     summaryCards.setAttribute("aria-busy", "true");
 
     try {
+      // 1. Ambil data ringkasan langsung dari BE
       const dashResult = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
       if (!dashResult.status || !dashResult.data) {
         throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
@@ -176,44 +184,46 @@
 
       const data = dashResult.data;
 
-      // Render kartu ringkasan secara dinamis jika elemennya ada
-      summaryCards.innerHTML = `
-        <div class="summary-card">
-          <div class="summary-card-icon icon-blue"><iconify-icon icon="dashicons:food"></iconify-icon></div>
-          <p class="summary-label">Total Kuliner</p>
-          <p class="summary-value">${numberFormatter.format(getCount(data.total_kuliner))}</p>
-        </div>
-        <div class="summary-card">
-          <div class="summary-card-icon icon-orange"><iconify-icon icon="wordpress:category"></iconify-icon></div>
-          <p class="summary-label">Total Kategori</p>
-          <p class="summary-value">${numberFormatter.format(getCount(data.total_kategori))}</p>
-        </div>
-        <div class="summary-card">
-          <div class="summary-card-icon icon-green"><iconify-icon icon="f7:person-2-fill"></iconify-icon></div>
-          <p class="summary-label">Total Pengguna</p>
-          <p class="summary-value">${numberFormatter.format(getCount(data.total_user))}</p>
-        </div>
-      `;
-
-      const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
-      if (!culinaryResult.status || !Array.isArray(culinaryResult.data)) {
-        throw new Error("Data kuliner dari server tidak valid.");
+      // 2. Langsung sinkronkan angka ke elemen ringkasan di dashboard
+      if (totalCulinary) {
+        // Gunakan total_tempat (jumlah kuliner yang dikelola & ditampilkan di daftar kuliner)
+        const culinaryCount = data.total_tempat !== undefined && data.total_tempat !== null
+          ? data.total_tempat
+          : data.total_kuliner;
+        totalCulinary.textContent = numberFormatter.format(getCount(culinaryCount));
+      }
+      if (totalCategories) {
+        totalCategories.textContent = numberFormatter.format(getCount(data.total_kategori));
+      }
+      if (totalUsers) {
+        totalUsers.textContent = numberFormatter.format(getCount(data.total_user));
       }
 
-      const culinary = culinaryResult.data;
-      const details = await Promise.all(culinary.map((item) =>
-        getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)
-      ));
-      const culinaryWithRatings = culinary.map((item, index) => {
-        const detail = details[index];
-        const rating = detail?.status && detail?.data ? detail.data.rata_rata_rating : 0;
-        return { ...item, rata_rata_rating: rating };
-      });
-
-      renderCulinaryCards(culinaryWithRatings);
-
+      // Pastikan kartu ringkasan langsung tampil dan aktif
       summaryCards.hidden = false;
       summaryCards.setAttribute("aria-busy", "false");
+
+      // 3. Ambil data daftar tempat kuliner secara terpisah
+      try {
+        const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
+        if (culinaryResult.status && Array.isArray(culinaryResult.data)) {
+          const culinary = culinaryResult.data;
+          const details = await Promise.all(culinary.map((item) =>
+            getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)
+          ));
+          const culinaryWithRatings = culinary.map((item, index) => {
+            const detail = details[index];
+            const rating = detail?.status && detail?.data ? detail.data.rata_rata_rating : 0;
+            return { ...item, rata_rata_rating: rating };
+          });
+          renderCulinaryCards(culinaryWithRatings);
+        } else {
+          culinaryEmpty.hidden = false;
+        }
+      } catch (culinaryError) {
+        console.error("Gagal memuat kartu kuliner:", culinaryError);
+        culinaryEmpty.hidden = false;
+      }
     } catch (error) {
       console.error("Gagal memuat ringkasan dashboard:", error);
     } finally {
