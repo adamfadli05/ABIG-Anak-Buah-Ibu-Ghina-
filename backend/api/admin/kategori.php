@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Deteksi method override dari FormData (_method=PUT)
 // FE kadang kirim POST dengan _method=PUT karena FormData tidak support PUT
 // =============================================================================
+$method = $_SERVER['REQUEST_METHOD'];
 $actualMethod = $method;
 if ($method === 'POST') {
     $override = trim($_POST['_method'] ?? '');
