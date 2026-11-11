@@ -12,69 +12,36 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
+    
+    <!-- Panggil script sidebar agar otomatis termuat -->
+    <script src="js/sidebar.js" defer></script>
     <script src="js/Dashboard_Admin.js" defer></script>
   </head>
   <body>
+    <!-- State Autentikasi / Loading Awal -->
     <main id="authState" class="page-state" role="status" aria-live="polite">
-      <span id="authErrorIcon" class="error-state-icon" aria-hidden="true" hidden>
-        <iconify-icon id="authIconify" icon="fluent:wifi-warning-20-filled" aria-hidden="true"></iconify-icon>
-        <svg id="authOfflineIcon" class="offline-status-icon" viewBox="0 0 20 20" aria-hidden="true" hidden>
-          <path fill="currentColor" d="M16.73 7.563c.403.404.783.864 1.115 1.344a.75.75 0 0 1-1.235.852A7.968 7.968 0 0 0 4.4 8.623c-.32.322-.64.712-.932 1.133a.75.75 0 1 1-1.233-.855c.34-.49.716-.95 1.105-1.338a9.47 9.47 0 0 1 13.39 0M5.478 9.451a6.444 6.444 0 0 1 8.652-.417c-.516.095-1 .39-1.314.887a4.944 4.944 0 0 0-7.192 1.851a.75.75 0 0 1-1.338-.677a6.4 6.4 0 0 1 1.192-1.644m4.303 6.524l1.075-2.153a1.242 1.242 0 1 0-1.075 2.153m1.702-3.41l.674-1.348a4.13 4.13 0 0 0-5.044.623a4.1 4.1 0 0 0-.86 1.274a.75.75 0 0 0 1.373.6c.136-.31.32-.586.547-.813c.9-.9 2.289-1.011 3.31-.335m2.119-2.011l-3.496 6.998A1 1 0 0 0 11.002 19h6.996a1 1 0 0 0 .895-1.448l-3.5-6.999a1 1 0 0 0-1.79 0m1.395 1.941v3.002a.5.5 0 1 1-1 0v-3.002a.5.5 0 1 1 1 0m-.5 5.504a.5.5 0 1 1 0-1a.5.5 0 0 1 0 1"/>
-        </svg>
-      </span>
       <h1 id="authTitle">Memeriksa akses Admin...</h1>
       <p id="authMessage">Mohon tunggu sebentar.</p>
       <button id="authRetryButton" class="button button-secondary" type="button" hidden>
-        <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M20 7v5h-5M4.6 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.4 3a7.5 7.5 0 0 1-12.7 2L4 12" />
-        </svg>
-        <span id="authRetryLabel">Muat Ulang</span>
+        <span id="authRetryLabel">Coba lagi</span>
       </button>
     </main>
 
+    <!-- App Utama (Tersembunyi sampai akses diverifikasi) -->
     <div id="adminApp" class="admin-app" hidden>
-      <aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
-        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
-          <img src="assets/logo.png" alt="" />
-        </a>
+      
+      <!-- TEMPAT PEMANGGILAN SIDEBAR OTOMATIS -->
+      <div id="sidebar-container"></div>
 
-        <nav class="sidebar-nav">
-          <a class="nav-link active" href="Dashboard_Admin.html" aria-current="page">
-            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
-            <span>Dashboard</span>
-          </a>
-          <a class="nav-link" href="daftar_kuliner_admin.html">
-            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
-            <span>Kuliner</span>
-          </a>
-          <a class="nav-link" href="kategori_kuliner_admin.html">
-            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
-            <span>Kategori</span>
-          </a>
-          <a class="nav-link" href="pengguna_admin.html">
-            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
-            <span>Pengguna</span>
-          </a>
-          <button id="adminLogoutButton" class="nav-link logout-link" type="button">
-            <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
-            <span>Keluar</span>
-          </button>
-        </nav>
-      </aside>
-
-      <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
-
+      <!-- Panel Konten Utama -->
       <section class="main-panel">
         <header class="topbar">
-          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
-            <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
-          </button>
-          <div class="topbar-title">
-            <span class="topbar-title-text">
-              <strong>Dashboard</strong>
-              <span id="adminName">Admin</span>
-            </span>
-            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+          <div class="topbar-right-panel" style="margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 16px 32px;">
+            <div style="text-align: right; display: grid; gap: 2px;">
+              <strong style="color: #001b7d; font-size: 18px; font-weight: 700;">Panel</strong>
+              <span style="color: #001b7d; font-size: 13px; font-weight: 500;">Admin</span>
+            </div>
+            <iconify-icon icon="lucide-extended:user-cog-filled" style="color: #001b7d; font-size: 36px;" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
@@ -82,69 +49,33 @@
           <section class="summary-section" aria-labelledby="summaryTitle">
             <h2 id="summaryTitle" class="sr-only">Ringkasan</h2>
 
-            <div id="summaryLoading" class="notice" role="status" aria-live="polite">Memuat ringkasan dashboard...</div>
-            <div id="summaryError" class="dashboard-error-state" role="alert" hidden>
-              <span id="summaryErrorIcon" class="error-state-icon" aria-hidden="true">
-                <iconify-icon id="summaryIconify" icon="fluent:wifi-warning-20-filled" aria-hidden="true"></iconify-icon>
-                <svg id="summaryOfflineIcon" class="offline-status-icon" viewBox="0 0 20 20" aria-hidden="true" hidden>
-                  <path fill="currentColor" d="M16.73 7.563c.403.404.783.864 1.115 1.344a.75.75 0 0 1-1.235.852A7.968 7.968 0 0 0 4.4 8.623c-.32.322-.64.712-.932 1.133a.75.75 0 1 1-1.233-.855c.34-.49.716-.95 1.105-1.338a9.47 9.47 0 0 1 13.39 0M5.478 9.451a6.444 6.444 0 0 1 8.652-.417c-.516.095-1 .39-1.314.887a4.944 4.944 0 0 0-7.192 1.851a.75.75 0 0 1-1.338-.677a6.4 6.4 0 0 1 1.192-1.644m4.303 6.524l1.075-2.153a1.242 1.242 0 1 0-1.075 2.153m1.702-3.41l.674-1.348a4.13 4.13 0 0 0-5.044.623a4.1 4.1 0 0 0-.86 1.274a.75.75 0 0 0 1.373.6c.136-.31.32-.586.547-.813c.9-.9 2.289-1.011 3.31-.335m2.119-2.011l-3.496 6.998A1 1 0 0 0 11.002 19h6.996a1 1 0 0 0 .895-1.448l-3.5-6.999a1 1 0 0 0-1.79 0m1.395 1.941v3.002a.5.5 0 1 1-1 0v-3.002a.5.5 0 1 1 1 0m-.5 5.504a.5.5 0 1 1 0-1a.5.5 0 0 1 0 1"/>
-                </svg>
-              </span>
-              <h1 id="summaryErrorTitle">Dashboard gagal dimuat</h1>
-              <p id="summaryErrorMessage">Periksa koneksi dan coba lagi.</p>
-              <button id="summaryRetryButton" class="button button-secondary" type="button">
-                <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M20 7v5h-5M4.6 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.4 3a7.5 7.5 0 0 1-12.7 2L4 12" />
-                </svg>
-                <span id="summaryRetryLabel">Coba lagi</span>
-              </button>
-            </div>
-
-            <div id="summaryCards" class="summary-grid" aria-busy="true" hidden>
+            <!-- Kotak Kartu Statistik -->
+            <div id="summaryCards" class="summary-grid" aria-busy="true">
               <article class="summary-card">
                 <div class="summary-card-icon icon-blue"><iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Total Kuliner</p>
                 <p id="totalCulinary" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-blue"><iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon></div>
+                <div class="summary-card-icon icon-orange"><iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Kategori</p>
                 <p id="totalCategories" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-blue"><iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon></div>
+                <div class="summary-card-icon icon-green"><iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Total Pengguna</p>
                 <p id="totalUsers" class="summary-value">0</p>
               </article>
             </div>
-            <p id="navigationMessage" class="navigation-message" role="status" aria-live="polite" hidden></p>
           </section>
 
+          <!-- Bagian Grid Daftar Kuliner -->
           <section class="culinary-section" aria-labelledby="culinaryTitle">
             <h2 id="culinaryTitle" class="sr-only">Daftar Kuliner</h2>
             <div id="culinaryCards" class="culinary-grid" hidden></div>
             <p id="culinaryEmpty" class="culinary-empty" role="status" hidden>Belum ada data kuliner.</p>
           </section>
         </div>
-      </section>
-    </div>
-
-    <div id="logoutConfirmModal" class="modal-overlay" hidden>
-      <section class="logout-dialog logout-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
-        <p id="logoutConfirmTitle" class="logout-dialog-message">Apakah Anda yakin ingin keluar?</p>
-        <p id="logoutErrorMessage" class="logout-error-message" role="alert" hidden></p>
-        <div class="logout-dialog-actions">
-          <button id="cancelLogoutButton" class="button button-cancel" type="button">Batal</button>
-          <button id="confirmLogoutButton" class="button button-secondary" type="button">Oke</button>
-        </div>
-      </section>
-    </div>
-
-    <div id="logoutSuccessModal" class="modal-overlay" hidden>
-      <section class="logout-dialog logout-success-dialog" role="alertdialog" aria-modal="true" aria-labelledby="logoutSuccessMessage">
-        <iconify-icon class="logout-success-icon" icon="lucide:circle-check" aria-hidden="true"></iconify-icon>
-        <p id="logoutSuccessMessage" class="logout-dialog-message">Anda berhasil keluar</p>
-        <button id="finishLogoutButton" class="logout-success-button" type="button">Oke</button>
       </section>
     </div>
   </body>

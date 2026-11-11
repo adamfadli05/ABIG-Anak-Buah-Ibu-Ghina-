@@ -1,113 +1,143 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Kelola Kategori Kuliner</title>
-  <link rel="stylesheet" href="kategori_kuliner_admin.css" />
-  <!-- Iconify Icon Library -->
-  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kategori Kuliner - Admin ManganYukkk</title>
+    <link rel="stylesheet" href="css/kategori_kuliner_admin.css" />
+    <!-- Iconify Icons -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  </head>
+  <body>
+    <div class="admin-layout">
+      <!-- Sidebar Komponen -->
+      <aside id="sidebar-container">
+        <!-- Sidebar dimuat via sidebar.js -->
+      </aside>
 
-  <!-- Sidebar Navigasi -->
-  <aside class="sidebar">
-    <h2>Admin Panel</h2>
-    <nav>
-      <ul>
-        <li>
-          <a class="nav-link" href="daftar_kuliner_admin.html">
-            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
-            <span>Daftar Kuliner</span>
-          </a>
-        </li>
-        <li>
-          <a class="nav-link active" href="kategori_kuliner_admin.html">
-            <iconify-icon icon="dashicons:category" aria-hidden="true"></iconify-icon>
-            <span>Kategori Kuliner</span>
-          </a>
-        </li>
-        <li>
-          <a class="nav-link" href="#">
-            <iconify-icon icon="dashicons:testimonial" aria-hidden="true"></iconify-icon>
-            <span>Ulasan Pengguna</span>
-          </a>
-        </li>
-        <li>
-          <a class="nav-link" href="#">
-            <iconify-icon icon="dashicons:admin-generic" aria-hidden="true"></iconify-icon>
-            <span>Pengaturan</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </aside>
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <header class="top-header">
+          <div class="panel-admin-info">
+            <span class="panel-title">Panel</span>
+            <span class="admin-subtitle">Admin</span>
+          </div>
+          <div class="admin-avatar-icon">
+            <iconify-icon icon="lucide-extended:user-cog-filled" aria-hidden="true"></iconify-icon>
+          </div>
+        </header>
 
-  <!-- Konten Utama -->
-  <main class="main-content">
-    <header class="top-header">
-      <h1>Kelola Kategori Kuliner</h1>
-      <button id="btn-tambah" class="btn btn-primary">+ Tambah Kategori</button>
-    </header>
+        <div class="content-body">
+          <!-- Toolbar & Judul Daftar Kategori -->
+          <div class="content-header-flex">
+            <h2>Daftar Kategori</h2>
+            <button type="button" id="btnAddKategori" class="btn-primary-custom">
+              <iconify-icon icon="lucide:plus" aria-hidden="true"></iconify-icon> Tambah Kategori
+            </button>
+          </div>
 
-    <!-- Toolbar Pencarian -->
-    <section class="toolbar">
-      <input type="text" id="search-input" placeholder="Cari nama atau deskripsi kategori..." />
-    </section>
+          <!-- Tabel Daftar Kategori -->
+          <div class="table-card" id="tableCardContainer">
+            <div id="tableLoading" class="table-status-msg">Memuat data kategori...</div>
+            <div id="tableError" class="table-status-msg error" hidden>Gagal memuat data dari server.</div>
+            <div id="tableEmpty" class="table-status-msg" hidden>Belum ada kategori kuliner.</div>
 
-    <!-- Tabel Kategori Kuliner -->
-    <section class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Icon / Label</th>
-            <th>Nama Kategori</th>
-            <th>Deskripsi</th>
-            <th>Jumlah Item</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="kategori-table-body">
-          <!-- Data dimuat dinamis dari JS -->
-        </tbody>
-      </table>
-    </section>
-  </main>
-
-  <!-- Modal Form Tambah/Edit Kategori -->
-  <div id="kategori-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" id="btn-close-modal">&times;</span>
-      <h2 id="modal-title">Tambah Kategori Baru</h2>
-      
-      <form id="kategori-form">
-        <input type="hidden" id="kategori-id" />
-        
-        <div class="form-group">
-          <label for="nama-kategori">Nama Kategori</label>
-          <input type="text" id="nama-kategori" placeholder="misal: Makanan Berat" required />
+            <div class="table-wrapper" hidden id="tableWrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 80px">No</th>
+                    <th>Nama Kategori</th>
+                    <th>Jumlah Kuliner</th>
+                    <th style="width: 180px; text-align: center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="kategoriTableBody">
+                  <!-- Data dimasukkan secara dinamis via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-
-        <div class="form-group">
-          <label for="icon-kategori">Icon (Iconify Name)</label>
-          <input type="text" id="icon-kategori" placeholder="misal: mdi:food-fork-drink" required />
-          <small class="help-text">Gunakan ikon dari Iconify (contoh: dashicons:food, mdi:coffee)</small>
-        </div>
-
-        <div class="form-group">
-          <label for="deskripsi-kategori">Deskripsi Singkat</label>
-          <textarea id="deskripsi-kategori" rows="3" placeholder="Deskripsi singkat mengenai kategori..." required></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="btn-batal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan</button>
-        </div>
-      </form>
+      </main>
     </div>
-  </div>
 
-  <script src="kategori_kuliner_admin.js"></script>
-</body>
+    <!-- MODAL POP-UP FORM TAMBAH / EDIT KATEGORI -->
+    <div id="kategoriModal" class="modal-overlay" hidden>
+      <div class="modal-dialog">
+        <h3 id="modalTitle">Tambah Kategori</h3>
+        <form id="kategoriForm" novalidate>
+          <input type="hidden" id="editIdKategori" />
+          <div class="form-group">
+            <label for="namaKategoriInput">Nama Kategori</label>
+            <input type="text" id="namaKategoriInput" placeholder="Masukan nama kategori" />
+
+            <!-- BANNER PERINGATAN VALIDASI BERADA DI DALAM FORM-GROUP -->
+            <div id="formAlertBanner" class="form-alert-banner" hidden>
+              <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+              <span id="formAlertMessage">Mohon isi nama kategori sebelum menyimpan</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="cancelModalBtn" class="btn-cancel-figma">Batal</button>
+            <button type="submit" id="saveKategoriBtn" class="btn-save-figma">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- POP-UP VALIDASI BERHASIL -->
+    <div id="successModal" class="success-modal-overlay" hidden>
+      <div class="success-modal-dialog">
+        <div class="success-icon-wrapper">
+          <iconify-icon icon="lucide:check" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3 id="successMessageText">Kategori berhasil disimpan</h3>
+        <button type="button" id="closeSuccessBtn" class="btn-success-ok">Oke</button>
+      </div>
+    </div>
+
+    <!-- POP-UP VALIDASI GAGAL -->
+    <div id="errorModal" class="error-modal-overlay" hidden>
+      <div class="error-modal-dialog">
+        <div class="error-icon-wrapper">
+          <iconify-icon icon="lucide:x" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3 id="errorModalTitle">Kategori gagal disimpan</h3>
+        <p id="errorMessageText">Periksa koneksi internet anda</p>
+        <button type="button" id="retryErrorBtn" class="btn-error-retry">Coba lagi</button>
+      </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS KATEGORI -->
+    <div id="deleteConfirmModal" class="modal-overlay" hidden>
+      <div class="modal-dialog delete-confirm-dialog">
+        <div class="delete-icon-wrapper">
+          <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Hapus Kategori ?</h3>
+        <p id="deleteConfirmText">Kategori ini akan dihapus dari daftar kategori.</p>
+        <div class="modal-actions-figma">
+          <button type="button" id="cancelDeleteBtn" class="btn-cancel-figma">Batal</button>
+          <button type="button" id="confirmDeleteBtn" class="btn-delete-figma">Hapus</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PERINGATAN KATEGORI MASIH DIGUNAKAN -->
+    <div id="categoryInUseModal" class="modal-overlay" hidden>
+      <div class="success-modal-dialog">
+        <div class="error-icon-wrapper">
+          <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Kategori Tidak Dapat Dihapus</h3>
+        <p id="inUseMessageText">Kategori ini masih digunakan oleh beberapa kuliner.</p>
+        <button type="button" id="closeInUseBtn" class="btn-success-ok">Oke</button>
+      </div>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/kategori_kuliner_admin.js"></script>
+  </body>
 </html>

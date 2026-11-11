@@ -1,0 +1,128 @@
+<!-- Styling CSS Sidebar & Layout Utama -->
+<style>
+ /* Styling Modal Overlay & Dialog Logout Presisi Figma */
+#logoutModalOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 16px !important;
+}
+
+#logoutModalOverlay[hidden] {
+  display: none !important;
+}
+
+.logout-dialog {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  padding: 36px 32px 28px 32px !important;
+  width: min(100%, 420px) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 24px !important;
+}
+
+.logout-dialog[hidden] {
+  display: none !important;
+}
+
+.logout-dialog-message {
+  margin: 0 !important;
+  color: #001b7d !important;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+.logout-dialog-actions {
+  display: flex !important;
+  gap: 16px !important;
+  width: 100% !important;
+  justify-content: center !important;
+}
+
+.logout-dialog-actions button {
+  flex: 1 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  border: none !important;
+  transition: opacity 0.2s !important;
+}
+
+.logout-dialog-actions button:hover {
+  opacity: 0.9 !important;
+}
+
+/* Tombol Batal (Abu-abu terang sesuai Figma) */
+#cancelLogoutBtn {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+/* Tombol OKE / Keluar (Biru tua khas ManganYukkk) */
+#confirmLogoutBtn {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+}
+
+/* Tampilan Pop-up Sukses Logout */
+.logout-success-dialog {
+  gap: 16px !important;
+}
+
+.logout-success-icon {
+  font-size: 48px !important;
+  color: #22c55e !important;
+}
+
+.logout-success-button {
+  background-color: transparent !important;
+  color: #001b7d !important;
+  border: none !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  align-self: flex-end !important;
+  margin-top: 8px !important;
+}
+</style>
+
+<!-- Struktur HTML Sidebar -->
+<aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
+  <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
+    <img src="assets/logo.png" alt="Mangan Yukkk" />
+  </a>
+
+  <nav class="sidebar-nav">
+    <a class="nav-link" href="Dashboard_Admin.html" data-page="dashboard">
+      <iconify-icon icon="ant-design:home-filled" aria-hidden="true"></iconify-icon>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-link" href="daftar_kuliner_admin.html" data-page="kuliner">
+      <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
+      <span>Kuliner</span>
+    </a>
+    <a class="nav-link" href="kategori_kuliner_admin.html" data-page="kategori">
+      <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
+      <span>Kategori</span>
+    </a>
+    <a class="nav-link" href="pengguna_admin.html" data-page="pengguna">
+      <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
+      <span>Pengguna</span>
+    </a>
+    <button id="adminLogoutButton" class="nav-link logout-link" type="button">
+      <iconify-icon icon="lucide:log-out" aria-hidden="true"></iconify-icon>
+      <span>Keluar</span>
+    </button>
+  </nav>
+</aside>
