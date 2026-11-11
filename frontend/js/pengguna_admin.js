@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const adminName = document.getElementById("adminName");
   const loading = document.getElementById("usersLoading");
   const errorState = document.getElementById("usersError");
+  const errorTitle = document.getElementById("usersErrorTitle");
   const errorMessage = document.getElementById("usersErrorMessage");
   const retryButton = document.getElementById("usersRetryButton");
   const emptyState = document.getElementById("usersEmpty");
@@ -16,9 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableBody = document.getElementById("usersTableBody");
   const usersCount = document.getElementById("usersCount");
   const searchInput = document.getElementById("searchUsers");
+  const searchContainer = document.querySelector(".users-search-container");
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const logoutButton = document.getElementById("adminLogoutButton");
   const dateFormatter = new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "long",
@@ -69,9 +70,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function checkAdminAccess() {
+    // Jika sudah pernah terverifikasi sebagai admin di session/local storage
+    const cachedRole = localStorage.getItem("role");
+    if (cachedRole === "admin") {
+      authState.hidden = true;
+      adminApp.hidden = false;
+      loadUsers();
+      return;
+    }
+
     authRetryButton.hidden = true;
     authTitle.textContent = "Memeriksa akses Admin...";
     authMessage.textContent = "Mohon tunggu sebentar.";
+
+    if (!navigator.onLine) {
+      // Jika sejak awal sudah offline, tampilkan dashboard dengan panel offline sesuai Figma
+      authState.hidden = true;
+      adminApp.hidden = false;
+      showOfflineState();
+      return;
+    }
 
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
@@ -120,11 +138,14 @@ document.addEventListener("DOMContentLoaded", () => {
     tableBody.replaceChildren();
     loading.hidden = true;
     errorState.hidden = true;
-    emptyState.hidden = users.length > 0;
-    noResultsState.hidden = users.length === 0 || filteredUsers.length > 0;
-    tableCard.hidden = users.length === 0 || filteredUsers.length === 0;
 
-    if (users.length === 0 || filteredUsers.length === 0) return;
+    const isEmpty = users.length === 0;
+    emptyState.hidden = !isEmpty;
+    searchContainer.hidden = isEmpty;
+    noResultsState.hidden = isEmpty || filteredUsers.length > 0;
+    tableCard.hidden = isEmpty || filteredUsers.length === 0;
+
+    if (isEmpty || filteredUsers.length === 0) return;
 
     if (usersCount) {
       usersCount.textContent = `Menampilkan ${filteredUsers.length} pengguna`;
@@ -155,13 +176,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function showOfflineState() {
+    loading.hidden = true;
+    emptyState.hidden = true;
+    noResultsState.hidden = true;
+    tableCard.hidden = true;
+    searchContainer.hidden = true;
+
+    if (errorTitle) {
+      errorTitle.textContent = "Koneksi Internet Terputus";
+    }
+    if (errorMessage) {
+      errorMessage.textContent = "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
+    }
+    errorState.hidden = false;
+  }
+
   async function loadUsers() {
+    if (!navigator.onLine) {
+      showOfflineState();
+      return;
+    }
+
     usersLoaded = false;
     loading.hidden = false;
     errorState.hidden = true;
     emptyState.hidden = true;
     noResultsState.hidden = true;
     tableCard.hidden = true;
+    searchContainer.hidden = true;
     retryButton.disabled = true;
 
     try {
@@ -176,10 +219,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (redirectForAccessError(error)) return;
 
       loading.hidden = true;
-      errorMessage.textContent = !navigator.onLine || error instanceof TypeError
-        ? "Periksa koneksi internet Anda, lalu coba lagi."
-        : error.message || "Gagal memuat daftar pengguna.";
-      errorState.hidden = false;
+      const isOffline = !navigator.onLine || error instanceof TypeError;
+      if (isOffline) {
+        showOfflineState();
+      } else {
+        if (errorTitle) {
+          errorTitle.textContent = "Daftar Pengguna Gagal Dimuat";
+        }
+        if (errorMessage) {
+          errorMessage.textContent = error.message || "Terjadi kesalahan saat memuat data pengguna.";
+        }
+        errorState.hidden = false;
+      }
     } finally {
       retryButton.disabled = false;
     }
@@ -193,6 +244,14 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarBackdrop.hidden = !isMobile || !isOpen;
   }
 
+  window.addEventListener("offline", () => {
+    showOfflineState();
+  });
+
+  window.addEventListener("online", () => {
+    loadUsers();
+  });
+
   searchInput.addEventListener("input", renderUsers);
   retryButton.addEventListener("click", loadUsers);
   authRetryButton.addEventListener("click", checkAdminAccess);
@@ -203,22 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches ||
       adminApp.classList.contains("sidebar-collapsed");
-  });
-  logoutButton.addEventListener("click", async () => {
-    logoutButton.disabled = true;
-    try {
-      await getJson(`${API_BASE_URL}/logout.php`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      });
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
-      window.location.replace("login.html");
-    } catch (error) {
-      console.error("Gagal keluar dari akun:", error);
-      alert(error.message || "Gagal keluar dari akun. Silakan coba lagi.");
-    } finally {
-      logoutButton.disabled = false;
-    }
   });
 
   checkAdminAccess();

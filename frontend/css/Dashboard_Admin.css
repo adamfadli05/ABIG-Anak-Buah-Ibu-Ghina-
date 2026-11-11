@@ -298,13 +298,13 @@ h1 {
 }
 
 .icon-orange {
-  background: #fff3e8;
-  color: #d97706;
+  background: #001b7d;
+  color: #fff;
 }
 
 .icon-green {
-  background: #eaf8f0;
-  color: #14804a;
+  background: #001b7d;
+  color: #fff;
 }
 
 .icon-purple {
@@ -402,12 +402,11 @@ h1 {
   box-shadow: 0 3px 8px rgb(23 32 51 / 9%);
   color: inherit;
   text-decoration: none;
-  transition: box-shadow 180ms ease, transform 180ms ease;
+  cursor: default;
 }
 
 .culinary-card:hover {
-  box-shadow: 0 9px 22px rgb(23 32 51 / 14%);
-  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgb(23 32 51 / 11%);
 }
 
 .culinary-photo {
@@ -688,7 +687,8 @@ h1 {
 
 @media (max-width: 1000px) {
   .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .culinary-grid {

@@ -149,51 +149,90 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 280px;
-  padding: 40px 20px;
+  min-height: 360px;
+  padding: 60px 20px;
   text-align: center;
 }
 
 .users-state-box iconify-icon {
-  font-size: 64px;
-  color: #94a3b8;
+  font-size: 80px;
+  color: #001b7d;
+}
+
+.users-state-box h2 {
+  margin: 20px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #172033;
 }
 
 .users-state-box p {
-  margin: 16px 0 0;
-  font-size: 15px;
-  font-weight: 500;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
   color: #64748b;
+  max-width: 420px;
+  line-height: 1.5;
 }
 
-/* State: Gagal Memuat Pengguna */
+/* State: Gagal Memuat Pengguna / Koneksi Terputus */
 .users-error {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 280px;
-  padding: 40px 20px;
+  min-height: 360px;
+  padding: 60px 20px;
   text-align: center;
 }
 
 .users-error > iconify-icon {
-  font-size: 56px;
-  color: #ef4444;
+  font-size: 72px;
+  color: #64748b;
 }
 
 .users-error h2 {
-  margin: 16px 0 8px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
+  margin: 20px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #172033;
 }
 
 .users-error p {
-  margin: 0 0 18px;
+  margin: 0 0 24px;
   font-size: 14px;
+  font-weight: 400;
   color: #64748b;
-  max-width: 400px;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.users-reload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #001b7d;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.users-reload-button:hover {
+  background-color: #001563;
+}
+
+.users-reload-button:active {
+  transform: scale(0.98);
+}
+
+.users-reload-button iconify-icon {
+  font-size: 18px;
 }
 
 .notice {

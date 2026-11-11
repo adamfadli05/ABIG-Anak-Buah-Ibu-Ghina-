@@ -1,141 +1,82 @@
+/* Reset & Font */
 * {
-  box-sizing: border-box !important;
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
 body {
-  background-color: #f8fafc !important;
-  color: #1e293b !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-.admin-layout {
-  display: flex !important;
-  width: 100% !important;
-  min-height: 100vh !important;
-  position: relative !important;
-  overflow-x: hidden !important;
-}
-
-#sidebar-container {
-  flex: 0 0 260px !important;
-  width: 260px !important;
-  min-width: 260px !important;
-  max-width: 260px !important;
-}
-
-.main-content {
-  flex: 1 !important;
-  width: calc(100% - 260px) !important;
-  min-width: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  background-color: #f1f5f9 !important;
-}
-
-.top-header {
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-  padding: 16px 32px !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  gap: 12px !important;
-  width: 100% !important;
-}
-
-.panel-admin-info {
-  display: flex !important;
-  flex-direction: column !important;
-  text-align: right !important;
-}
-
-.panel-title {
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  color: #0f172a !important;
-}
-
-.admin-subtitle {
-  font-size: 0.75rem !important;
-  color: #64748b !important;
-}
-
-.admin-avatar-icon {
-  font-size: 28px !important;
-  color: #001b7d !important;
-  display: flex !important;
-  align-items: center !important;
+  background-color: #f8fafc;
+  color: #1e293b;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 .content-body {
-  padding: 32px !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  padding: 32px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .content-header-flex {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  margin-bottom: 24px !important;
-  width: 100% !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  width: 100%;
 }
 
 .content-header-flex h2 {
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
-  color: #0f172a !important;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .btn-primary-custom {
-  background-color: #001b7d !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 10px 20px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  font-size: 0.9rem !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 12px rgba(0, 27, 125, 0.2) !important;
-  transition: background 0.2s !important;
+  background-color: #001b7d;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 27, 125, 0.2);
+  transition: background 0.2s;
 }
 
 .btn-primary-custom:hover {
-  background-color: #00145c !important;
+  background-color: #00145c;
 }
 
 .table-card {
-  background: #ffffff !important;
-  border-radius: 12px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-  overflow: hidden !important;
-  border: 1px solid #cbd5e1 !important;
-  width: 100% !important;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  width: 100%;
 }
 
 .table-status-msg {
-  padding: 32px !important;
-  text-align: center !important;
-  color: #64748b !important;
-  font-size: 0.95rem !important;
+  padding: 32px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
 }
 
 .table-status-msg.error {
-  color: #ef4444 !important;
+  color: #ef4444;
 }
 
 .table-wrapper {
-  width: 100% !important;
-  overflow-x: auto !important;
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {

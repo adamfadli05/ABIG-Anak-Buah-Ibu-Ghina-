@@ -2,32 +2,34 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kategori Kuliner - Admin ManganYukkk</title>
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
     <link rel="stylesheet" href="css/kategori_kuliner_admin.css" />
     <!-- Iconify Icons -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="js/sidebar.js?v=2" defer></script>
+    <script src="js/kategori_kuliner_admin.js" defer></script>
   </head>
   <body>
-    <div class="admin-layout">
-      <!-- Sidebar Komponen -->
-      <aside id="sidebar-container">
-        <!-- Sidebar dimuat via sidebar.js -->
-      </aside>
+    <div id="adminApp" class="admin-app">
+      <!-- Sidebar Komponen Dinamis -->
+      <div id="sidebar-container"></div>
 
-      <!-- Main Content Area -->
-      <main class="main-content">
-        <header class="top-header">
-          <div class="panel-admin-info">
-            <span class="panel-title">Panel</span>
-            <span class="admin-subtitle">Admin</span>
-          </div>
-          <div class="admin-avatar-icon">
+      <!-- Main Panel Area -->
+      <section class="main-panel">
+        <header class="topbar">
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Panel</strong>
+              <span id="adminName">Admin</span>
+            </span>
             <iconify-icon icon="lucide-extended:user-cog-filled" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
-        <div class="content-body">
+        <div class="dashboard-content">
           <!-- Toolbar & Judul Daftar Kategori -->
           <div class="content-header-flex">
             <h2>Daftar Kategori</h2>
@@ -59,7 +61,7 @@
             </div>
           </div>
         </div>
-      </main>
+      </section>
     </div>
 
     <!-- MODAL POP-UP FORM TAMBAH / EDIT KATEGORI -->
@@ -136,8 +138,5 @@
         <button type="button" id="closeInUseBtn" class="btn-success-ok">Oke</button>
       </div>
     </div>
-
-    <script src="js/sidebar.js"></script>
-    <script src="js/kategori_kuliner_admin.js"></script>
   </body>
 </html>
