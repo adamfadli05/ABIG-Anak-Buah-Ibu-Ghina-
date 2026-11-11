@@ -11,7 +11,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$method = $_SERVER['REQUEST_METHOD'];
+// =============================================================================
+// Deteksi method override dari FormData (_method=PUT)
+// FE kadang kirim POST dengan _method=PUT karena FormData tidak support PUT
+// =============================================================================
+$actualMethod = $method;
+if ($method === 'POST') {
+    $override = trim($_POST['_method'] ?? '');
+    if (strtoupper($override) === 'PUT') {
+        $actualMethod = 'PUT';
+    }
+}
+
+// Helper: ambil nama_kategori dari JSON atau FormData
+function getNamaKategori(): string {
+    if (!empty($_POST['nama_kategori'])) {
+        return trim($_POST['nama_kategori']);
+    }
+    $body = json_decode(file_get_contents("php://input"), true) ?? [];
+    return trim($body['nama_kategori'] ?? '');
+}
+
+// Helper: ambil id dari query string, FormData, atau JSON body
+function getKategoriId(): string {
+    if (!empty($_GET['id'])) return trim($_GET['id']);
+    if (!empty($_POST['id'])) return trim($_POST['id']);
+    $body = json_decode(file_get_contents("php://input"), true) ?? [];
+    return trim((string)($body['id'] ?? ''));
+}
 
 // =============================================================================
 // GET — Daftar semua kategori / detail satu kategori
@@ -96,12 +123,11 @@ if ($method === 'GET') {
 // =============================================================================
 // POST — Tambah kategori baru (hanya Admin)
 // =============================================================================
-if ($method === 'POST') {
+if ($method === 'POST' && $actualMethod === 'POST') {
 
     requireAdmin();
 
-    $body          = json_decode(file_get_contents("php://input"), true) ?? [];
-    $nama_kategori = trim($body['nama_kategori'] ?? '');
+    $nama_kategori = getNamaKategori();
 
     if (empty($nama_kategori)) {
         http_response_code(400);
@@ -163,11 +189,11 @@ if ($method === 'POST') {
 // =============================================================================
 // PUT — Ubah nama kategori berdasarkan id_kategori (hanya Admin)
 // =============================================================================
-if ($method === 'PUT') {
+if ($method === 'PUT' || $actualMethod === 'PUT') {
 
     requireAdmin();
 
-    $id = trim($_GET['id'] ?? '');
+    $id = getKategoriId();
 
     if (empty($id) || !ctype_digit($id)) {
         http_response_code(400);
@@ -195,7 +221,7 @@ if ($method === 'PUT') {
     }
 
     $body          = json_decode(file_get_contents("php://input"), true) ?? [];
-    $nama_kategori = trim($body['nama_kategori'] ?? '');
+    $nama_kategori = getNamaKategori();
 
     if (empty($nama_kategori)) {
         http_response_code(400);
