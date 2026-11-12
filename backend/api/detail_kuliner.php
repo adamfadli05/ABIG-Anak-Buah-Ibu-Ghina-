@@ -84,6 +84,24 @@ if (!$data) {
     exit;
 }
 
+// Ambil distribusi rating (berapa ulasan per bintang)
+$distribusi_result = pg_query_params(
+    $conn,
+    "SELECT rating, COUNT(*) AS jumlah
+     FROM ulasan
+     WHERE id_tempat = $1 AND rating IS NOT NULL
+     GROUP BY rating
+     ORDER BY rating DESC",
+    [$id]
+);
+
+$distribusi_rating = ["1" => 0, "2" => 0, "3" => 0, "4" => 0, "5" => 0];
+if ($distribusi_result) {
+    while ($row = pg_fetch_assoc($distribusi_result)) {
+        $distribusi_rating[$row['rating']] = (int)$row['jumlah'];
+    }
+}
+
 // Ambil daftar ulasan untuk kuliner ini
 $ulasan_result = pg_query_params(
     $conn,
@@ -110,6 +128,5 @@ if ($ulasan_result) {
     }
 }
 
-// Scenario: Data detail kuliner berhasil diambil
 http_response_code(200);
-echo json_encode(["status" => true, "data" => $data, "ulasan" => $ulasan]);
+echo json_encode(["status" => true, "data" => $data, "ulasan" => $ulasan, "distribusi_rating" => $distribusi_rating]);

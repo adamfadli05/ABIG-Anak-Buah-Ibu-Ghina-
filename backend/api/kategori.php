@@ -10,7 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$sql = "SELECT * FROM kategori ORDER BY id_kategori ASC";
+$sql = "SELECT
+    ka.id_kategori,
+    ka.nama_kategori,
+    COUNT(k.id_kuliner) AS total_kuliner
+FROM kategori ka
+LEFT JOIN kuliner k ON k.id_kategori = ka.id_kategori
+GROUP BY ka.id_kategori, ka.nama_kategori
+ORDER BY ka.id_kategori ASC";
 $result = pg_query($conn, $sql);
 
 if (!$result) {
