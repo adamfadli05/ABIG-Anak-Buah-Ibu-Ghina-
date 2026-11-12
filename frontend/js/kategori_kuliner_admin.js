@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const pathArray = window.location.pathname.split('/');
   const projectName = pathArray[1] && !pathArray[1].includes('.') ? '/' + pathArray[1] : '';
-  const API_URL = window.location.origin + projectName + '/backend/api/kategori.php';
+  const API_URL = window.location.origin + projectName + '/backend/api/admin/kategori.php';
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");
