@@ -82,6 +82,13 @@ table {
   text-align: left;
 }
 
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #ffffff; /* Sesuaikan warna background header */
+}
+
 /* Garis Grid Tegas Antar Sel */
 th,
 td {
@@ -346,8 +353,8 @@ tbody tr:hover {
 
 .btn-change-photo {
   position: absolute;
-  z-index: 3;
-  top: 52% !important; /* Menurunkan sedikit posisi vertikal tombol dari tengah */
+  z-index: 1; /* Diubah dari angka tinggi menjadi 1 agar berada di belakang header */
+  top: 52% !important;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #001b7d;
@@ -362,7 +369,6 @@ tbody tr:hover {
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: background-color 0.2s;
-transition: background-color 0.2s;
 }
 
 .btn-change-photo:hover {
