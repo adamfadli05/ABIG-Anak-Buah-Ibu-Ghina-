@@ -282,12 +282,15 @@ tbody tr:hover {
   margin: 0 0 16px 0;
 }
 
-/* Styling Halaman Edit Kuliner (Persis Figma) */
 .edit-culinary-container {
-  background: transparent;
-  width: 100%;
-  max-width: 900px;
-  margin-top: 10px;
+  background: #ffffff !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-top: 20px !important;
+  padding: 24px 32px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .edit-header h2 {
@@ -307,6 +310,7 @@ tbody tr:hover {
   grid-column: span 2;
   display: flex;
   justify-content: center;
+  margin-top: 35px !important; /* Menambah jarak dari header atas agar tidak menembus */
   margin-bottom: 12px;
 }
 
@@ -343,8 +347,7 @@ tbody tr:hover {
 .btn-change-photo {
   position: absolute;
   z-index: 3;
-  /* Supaya berada di atas overlay gelap */
-  top: 50%;
+  top: 52% !important; /* Menurunkan sedikit posisi vertikal tombol dari tengah */
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #001b7d;
@@ -359,6 +362,7 @@ tbody tr:hover {
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: background-color 0.2s;
+transition: background-color 0.2s;
 }
 
 .btn-change-photo:hover {
@@ -659,18 +663,16 @@ tbody tr:hover {
 }
 
 .success-icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background-color: #22c55e;
-  /* Hijau sukses */
-  color: #ffffff;
-  font-size: 32px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;  /* Diperkecil dari 56px */
+  height: 40px !important; /* Diperkecil dari 56px */
+  border-radius: 50% !important;
+  background-color: #22c55e !important;
+  color: #ffffff !important;
+  font-size: 22px !important; /* Ukuran ikon di dalamnya ikut disesuaikan */
 }
-
 .success-modal-dialog h3 {
   margin: 0;
   color: #001b7d;
@@ -680,20 +682,22 @@ tbody tr:hover {
 }
 
 .btn-success-ok {
-  background-color: transparent;
-  color: #001b7d;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 6px 16px;
-  margin-top: 4px;
-  transition: opacity 0.2s;
+  background-color: transparent !important;
+  color: #001b7d !important;
+  border: none !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  margin-top: 4px !important;
+  align-self: flex-end !important;
+  text-decoration: underline !important; /* Membuat teks selalu bergaris bawah sejak pertama muncul */
+  transition: opacity 0.2s !important;
 }
 
 .btn-success-ok:hover {
-  opacity: 0.75;
-  text-decoration: underline;
+  opacity: 0.75 !important;
+  text-decoration: underline !important;
 }
 
 /* Styling Modal Gagal Edit Sesuai Figma */
@@ -770,4 +774,35 @@ tbody tr:hover {
 
 .btn-error-retry:hover {
   opacity: 0.75 !important;
+}
+/* Menyamakan gaya input jam operasional dengan input form admin lainnya */
+.operating-hours {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+
+.operating-hours input[type="time"] {
+  flex: 1 !important;
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 50px !important; /* Membuat sudutnya melengkung kapsul sama seperti input lain */
+  font-size: 0.95rem !important;
+  font-family: inherit !important;
+  outline: none !important;
+  color: #001b7d !important;
+  background-color: #ffffff !important;
+  transition: border-color 0.2s !important;
+}
+
+.operating-hours input[type="time"]:focus {
+  border-color: #001b7d !important;
+}
+
+.operating-hours span {
+  font-size: 0.95rem !important;
+  color: #475569 !important;
+  white-space: nowrap !important;
 }

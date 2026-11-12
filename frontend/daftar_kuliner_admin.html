@@ -56,7 +56,7 @@
           <div class="search-toolbar">
             <div class="search-input-wrapper">
               <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
-              <input type="text" id="searchKuliner" placeholder="Cari Kuliner..." />
+              <input type="text" id="searchKuliner" placeholder="Cari Kuliner" />
             </div>
           </div>
 
@@ -148,9 +148,13 @@
                   </select>
                 </div>
               </div>
-              <div class="form-group">
-                <label for="editJamOperasional">Jam Operasional</label>
-                <input type="text" id="editJamOperasional" placeholder="08.00 - 20.00" />
+              <div class="form-field">
+                <label>Jam Operasional</label>
+                <div class="operating-hours">
+                  <input id="editJamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
+                  <span>sampai</span>
+                  <input id="editJamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
+                </div>
               </div>
 
               <!-- Baris 4: Alamat & Nomor Telepon -->

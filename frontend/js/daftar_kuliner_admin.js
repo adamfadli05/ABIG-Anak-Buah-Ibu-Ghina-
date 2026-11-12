@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = window.BASE_URL || window.location.origin;
-
   // Bypass tampilan auth di local
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
@@ -59,25 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableWrapper) tableWrapper.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
 
-    let response;
     try {
-      response = await fetch(`${API_BASE_URL}/api/admin/kuliner.php`, {
+      const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php", {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error();
-    } catch (e) {
-      try {
-        response = await fetch(`${API_BASE_URL}/api/admin/tempat_kuliner.php`, {
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
-      } catch (err) {
-        throw new Error("Gagal mengambil data dari server.");
-      }
-    }
+      if (!response.ok) throw new Error("Gagal mengambil data dari server.");
 
-    try {
       const result = await response.json();
       const rawData = result.data || result;
       if (!Array.isArray(rawData)) {
@@ -98,10 +84,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mengambil opsi kategori untuk dropdown form edit
   async function fetchKategoriOptions(selectedCategoryId = "") {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/kategori.php`, {
+      const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kategori.php", {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
+      
       const result = await response.json();
       const categories = Array.isArray(result) ? result : result.data || [];
 
@@ -184,14 +171,28 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("editLatitude").value = item.latitude || item.lat || "";
     document.getElementById("editHarga").value = item.harga || item.price || "";
     document.getElementById("editLongitude").value = item.longitude || item.lng || item.lon || "";
-    document.getElementById("editJamOperasional").value = item.jam_operasional || item.opening_hours || item.jam_buka || "";
+
+    const jamBukaInput = document.getElementById("editJamBuka");
+    const jamTutupInput = document.getElementById("editJamTutup");
+
+    let jamBukaVal = item.jam_buka || "";
+    let jamTutupVal = item.jam_tutup || "";
+
+    if (!jamBukaVal && item.jam_operasional) {
+      const parts = item.jam_operasional.split("-");
+      jamBukaVal = (parts[0] || "").trim();
+      jamTutupVal = (parts[1] || "").trim();
+    }
+
+    if (jamBukaInput) jamBukaInput.value = jamBukaVal;
+    if (jamTutupInput) jamTutupInput.value = jamTutupVal;
+
     document.getElementById("editAlamat").value = item.alamat || item.address || "";
     document.getElementById("editNoTelepon").value = item.nomor_telepon || item.phone_number || item.no_telp || "";
     document.getElementById("editDeskripsi").value = item.deskripsi || item.description || "";
 
     await fetchKategoriOptions(item.id_kategori || item.category_id || item.kategori_id);
 
-    // Menampilkan Foto Otomatis dari Database
     let fotoPath = item.photo_url || item.foto || item.image || item.gambar || "";
     let fotoUrl = "";
     if (fotoPath) {
@@ -199,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fotoUrl = fotoPath;
       } else {
         const cleanPath = fotoPath.replace(/^\/+/, "");
-        fotoUrl = `${API_BASE_URL.replace(/\/api\/admin$/, "")}/${cleanPath}`;
+        fotoUrl = window.location.origin + "/" + cleanPath;
       }
     }
 
@@ -275,7 +276,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Submit Form Edit & Validasi Sesuai Figma (Integrasi PUT & POST)
+  // Fungsi pembantu untuk mengambil URL foto yang konsisten
+  function editPhotoPreviewUrlOrExisting() {
+    const previewImg = document.getElementById("editPhotoPreview");
+    return previewImg && previewImg.src && !previewImg.src.startsWith("data:") ? previewImg.src : null;
+  }
+
+  // Submit Form Edit & Validasi Sesuai Figma
   if (editCulinaryForm) {
     editCulinaryForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -283,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const alertBanner = document.getElementById("formAlertBanner");
       const alertMessage = document.getElementById("formAlertMessage");
 
-      // Reset semua status error sebelumnya
       const allInputs = editCulinaryForm.querySelectorAll("input, textarea, select");
       allInputs.forEach((el) => el.classList.remove("input-error"));
 
@@ -303,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const alamat = alamatInput.value.trim();
       const deskripsi = descInput.value.trim();
 
-      // 1. Validasi Field Kosong
       if (!nama || !latitudeVal || !hargaVal || !longitudeVal || !kategori || !alamat || !deskripsi) {
         if (!nama) namaInput.classList.add("input-error");
         if (!latitudeVal) latInput.classList.add("input-error");
@@ -318,68 +323,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 2. Validasi Harga Harus Berupa Angka
       const cleanHarga = hargaVal.replace(/\./g, "").replace(/,/g, ".");
-      if (isNaN(cleanHarga)) {
+      if (isNaN(cleanHarga) || Number(cleanHarga) <= 0) {
         hargaInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Harga harus berupa angka.";
+        if (alertMessage) alertMessage.textContent = "Harga harus berupa angka lebih dari 0.";
         if (alertBanner) alertBanner.hidden = false;
         hargaInput.focus();
         return;
       }
 
-      // 3. Validasi Harga > 0
-      if (Number(cleanHarga) <= 0) {
-        hargaInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Harga harus lebih dari 0.";
-        if (alertBanner) alertBanner.hidden = false;
-        hargaInput.focus();
-        return;
-      }
-
-      // 4. Validasi Latitude (-90 s.d 90)
-      const latNum = Number(latitudeVal);
-      if (isNaN(latNum) || latNum < -90 || latNum > 90) {
-        latInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Latitude harus berupa angka antara -90 hingga 90 dan menggunakan titik (.) sebagai pemisah desimal.";
-        if (alertBanner) alertBanner.hidden = false;
-        latInput.focus();
-        return;
-      }
-
-      // 5. Validasi Longitude (-180 s.d 180)
-      const lonNum = Number(longitudeVal);
-      if (isNaN(lonNum) || lonNum < -180 || lonNum > 180) {
-        lonInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Longitude harus berupa angka antara -180 hingga 180 dan menggunakan titik (.) sebagai pemisah desimal.";
-        if (alertBanner) alertBanner.hidden = false;
-        lonInput.focus();
-        return;
-      }
-
-      // Jika lulus semua validasi client-side
       if (alertBanner) alertBanner.hidden = true;
 
       const id = document.getElementById("editIdKuliner").value;
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("id_tempat", id);
-      formData.append("id_kuliner", id);
-      formData.append("_method", "PUT");
+      const jamBukaVal = document.getElementById("editJamBuka")?.value || "";
+      const jamTutupVal = document.getElementById("editJamTutup")?.value || "";
+      const jamOperasionalVal = jamBukaVal && jamTutupVal ? `${jamBukaVal} - ${jamTutupVal}` : null;
 
-      formData.append("nama_kuliner", nama);
-      formData.append("latitude", latitudeVal);
-      formData.append("harga", cleanHarga);
-      formData.append("longitude", longitudeVal);
-      formData.append("id_kategori", kategori);
-      formData.append("jam_operasional", document.getElementById("editJamOperasional").value);
-      formData.append("alamat", alamat);
-      formData.append("nomor_telepon", document.getElementById("editNoTelepon").value);
-      formData.append("deskripsi", deskripsi);
-
-      if (editPhotoInput.files[0]) {
-        formData.append("foto", editPhotoInput.files[0]);
-      }
+      const payload = {
+        nama_kuliner: nama,
+        nama_tempat: nama,
+        deskripsi: deskripsi,
+        id_kategori: kategori,
+        alamat: alamat,
+        latitude: latitudeVal,
+        longitude: longitudeVal,
+        harga: cleanHarga,
+        jam_operasional: jamOperasionalVal,
+        no_telepon: document.getElementById("editNoTelepon").value || null,
+        photo_url: editPhotoPreviewUrlOrExisting(),
+      };
 
       const saveBtn = document.getElementById("saveEditBtn");
       if (saveBtn) {
@@ -388,21 +360,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // Integrasi request PUT / POST ke backend kuliner.php
-        const response = await fetch(`${API_BASE_URL}/api/admin/kuliner.php?id=${encodeURIComponent(id)}`, {
-          method: "POST",
-          headers: { Accept: "application/json" },
-          body: formData,
+        const response = await fetch(`/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php?id=${encodeURIComponent(id)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
           credentials: "include",
         });
 
-        const result = await response.json();
+        const textResponse = await response.text();
+        let result;
+        try {
+          result = JSON.parse(textResponse);
+        } catch (err) {
+          throw new Error("Server mengembalikan respons yang tidak valid.");
+        }
 
         if (!response.ok || !result.status) {
           throw new Error(result.message || "Gagal memperbarui kuliner");
         }
 
-        // BERHASIL: TUTUP FORM EDIT & TAMPILKAN MODAL SUKSES
         closeEditPage();
         if (successEditModal) {
           successEditModal.hidden = false;
@@ -413,7 +392,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Error saving culinary:", error);
 
-        // GAGAL: TAMPILKAN MODAL POP-UP GAGAL (SESUAI FIGMA)
         if (editErrorMessage) {
           editErrorMessage.textContent = !navigator.onLine || error instanceof TypeError ? "Periksa koneksi internet anda" : error.message || "Gagal memperbarui kuliner";
         }
@@ -443,7 +421,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Event Listener Modal Gagal
   if (retryEditBtn) {
     retryEditBtn.addEventListener("click", () => {
       if (errorEditModal) errorEditModal.hidden = true;
@@ -493,7 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showDeleteState("progress");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/kuliner.php?id=${encodeURIComponent(pendingDeleteId)}`, {
+      const response = await fetch(`/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php?id=${encodeURIComponent(pendingDeleteId)}`, {
         method: "DELETE",
         headers: { Accept: "application/json" },
         credentials: "include",
