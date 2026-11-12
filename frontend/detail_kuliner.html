@@ -264,6 +264,10 @@
         let uploadedReviewPhotoUrl = null;
         let photoWasRemoved = false;
         let editingReviewId = null;
+        let inlineEditPhoto = null;
+        let inlineEditUploadedPhotoUrl = null;
+        let inlineEditPhotoPreviewUrl = null;
+        let inlineEditPhotoWasRemoved = false;
 
         const setReviewFormVisible = (visible) => {
           reviewForm.hidden = !visible;
@@ -373,12 +377,12 @@
           pendingReviewDelete = null;
         }
 
-        function showReviewDeleteResult(success, message, detail = "") {
+        function showReviewDeleteResult(success, message, detail = "", iconName = "") {
           reviewDeleteConfirm.hidden = true;
           reviewDeleteResult.hidden = false;
           document.getElementById("reviewDeleteResultIcon").setAttribute(
             "icon",
-            success ? "material-symbols:check-circle" : "material-symbols:error-outline"
+            iconName || (success ? "material-symbols:check-circle" : "material-symbols:error-outline")
           );
           document.getElementById("reviewDeleteResultIcon").classList.toggle("is-error", !success);
           document.getElementById("reviewDeleteResultMessage").textContent = message;
@@ -389,6 +393,22 @@
           reviewDeleteResultAction.dataset.retry = String(!success);
           reviewDeleteResultAction.disabled = false;
           reviewDeleteResultAction.focus();
+        }
+
+        function getReviewDeleteError(error) {
+          if (error instanceof TypeError) {
+            return {
+              message: "Koneksi ke server terputus",
+              detail: "Periksa koneksi internet Anda, lalu pilih Coba lagi.",
+              icon: "material-symbols:wifi-off-rounded",
+            };
+          }
+
+          return {
+            message: "Ulasan gagal dihapus",
+            detail: error.message || "Silakan coba lagi.",
+            icon: "material-symbols:error-outline",
+          };
         }
 
         async function runReviewDelete() {
@@ -556,10 +576,18 @@
             // Cari card yang akan diedit dan ganti dengan form inline
             const articleEl = reviewsContainer.querySelector(`[data-review-id-card="${escapeHTML(review.id_ulasan)}"]`);
             if (!articleEl) return;
+            reviewsContainer.closest(".review-section")?.classList.add("is-editing");
 
             const existingPhotoUrl = review.foto_url
               ? /^(https?:\/\/)/i.test(review.foto_url) ? review.foto_url : `${BASE_URL}/${review.foto_url.replace(/^\/+/, "")}`
               : "";
+            inlineEditPhoto = null;
+            inlineEditUploadedPhotoUrl = null;
+            inlineEditPhotoWasRemoved = false;
+            if (inlineEditPhotoPreviewUrl) {
+              URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+              inlineEditPhotoPreviewUrl = null;
+            }
 
             const starsHtml = [1,2,3,4,5].map(v => `
               <label class="review-rating-option inline-edit-star" title="${v} bintang" style="cursor:pointer;">
@@ -579,21 +607,84 @@
                   </div>
                 </div>
               </div>
-              ${existingPhotoUrl ? `<img class="review-photo" src="${escapeHTML(existingPhotoUrl)}" alt="Foto ulasan" loading="lazy" style="margin-bottom:8px;" />` : ""}
-              <textarea id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200"
-                style="width:100%;border:1px solid #ccc;border-radius:20px;padding:8px 14px;font-size:14px;resize:none;box-sizing:border-box;outline:none;"
-              >${escapeHTML(review.komentar || review.review_text || "")}</textarea>
-              <div style="font-size:12px;color:#888;margin:4px 0 8px;">Maksimal ulasan adalah 200 karakter</div>
-              <div style="display:flex;justify-content:flex-end;gap:8px;">
-                <button type="button" id="inlineCancelEdit_${review.id_ulasan}"
-                  style="padding:6px 20px;border:1px solid #001b7d;border-radius:4px;background:#fff;color:#001b7d;font-size:14px;cursor:pointer;">Batal</button>
-                <button type="button" id="inlineSaveEdit_${review.id_ulasan}"
-                  style="padding:6px 20px;border:none;border-radius:4px;background:#001b7d;color:#fff;font-size:14px;cursor:pointer;">Simpan</button>
+              <div class="inline-edit-content-row${existingPhotoUrl ? "" : " has-no-review-photo"}">
+                <div class="inline-edit-photo${existingPhotoUrl ? "" : " is-empty"}">
+                  <input id="inlineEditPhotoInput_${review.id_ulasan}" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+                  <button class="inline-edit-photo-trigger" id="inlineEditPhotoTrigger_${review.id_ulasan}" type="button" aria-label="${existingPhotoUrl ? "Ganti foto ulasan" : "Tambahkan foto ulasan"}">
+                    ${existingPhotoUrl
+                      ? `<img class="inline-edit-photo-preview" src="${escapeHTML(existingPhotoUrl)}" alt="Foto ulasan" />`
+                      : `<span class="inline-edit-photo-placeholder"><iconify-icon icon="material-symbols:add" aria-hidden="true"></iconify-icon></span>`}
+                  </button>
+                  ${existingPhotoUrl
+                    ? `<button class="inline-edit-photo-remove" id="inlineRemovePhoto_${review.id_ulasan}" type="button" aria-label="Hapus foto ulasan"><iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon></button>`
+                    : ""}
+                </div>
+                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(review.komentar || review.review_text || "")}</textarea>
               </div>
-            `;
+              <div class="inline-edit-hint">Maksimal ulasan adalah 200 karakter</div>
+                <div class="inline-edit-actions">
+                  <button class="inline-edit-cancel" type="button" id="inlineCancelEdit_${review.id_ulasan}">Batal</button>
+                  <button class="inline-edit-save" type="button" id="inlineSaveEdit_${review.id_ulasan}">Simpan</button>
+                </div>
+              `;
 
-            // Update ikon bintang saat dipilih
-            articleEl.querySelectorAll(`input[name="inline_rating_${review.id_ulasan}"]`).forEach(input => {
+              articleEl.classList.add("review-card-editing");
+              const inlinePhotoInput = document.getElementById(`inlineEditPhotoInput_${review.id_ulasan}`);
+              document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`).addEventListener("click", () => inlinePhotoInput.click());
+              inlinePhotoInput.addEventListener("change", () => {
+                const file = inlinePhotoInput.files[0];
+                if (!file) return;
+                if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                  inlinePhotoInput.value = "";
+                  showReviewFeedback("Pilih foto berformat JPG, PNG, atau WEBP.", null, true);
+                  return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                  inlinePhotoInput.value = "";
+                  showReviewFeedback("Ukuran foto maksimal 5 MB.", null, true);
+                  return;
+                }
+
+                inlineEditPhoto = file;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = false;
+                if (inlineEditPhotoPreviewUrl) URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                inlineEditPhotoPreviewUrl = URL.createObjectURL(file);
+                const trigger = document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`);
+                trigger.innerHTML = `<img class="inline-edit-photo-preview" src="${inlineEditPhotoPreviewUrl}" alt="Pratinjau foto ulasan" />`;
+                trigger.setAttribute("aria-label", "Ganti foto ulasan");
+                articleEl.querySelector(".inline-edit-content-row").classList.remove("has-no-review-photo");
+                articleEl.querySelector(".inline-edit-photo").classList.remove("is-empty");
+                if (!document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)) {
+                  const removeButton = document.createElement("button");
+                  removeButton.className = "inline-edit-photo-remove";
+                  removeButton.id = `inlineRemovePhoto_${review.id_ulasan}`;
+                  removeButton.type = "button";
+                  removeButton.setAttribute("aria-label", "Hapus foto ulasan");
+                  removeButton.innerHTML = '<iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon>';
+                  articleEl.querySelector(".inline-edit-photo").appendChild(removeButton);
+                  removeButton.addEventListener("click", removeInlineEditPhoto);
+                }
+              });
+              const removeInlineEditPhoto = () => {
+                inlineEditPhoto = null;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = true;
+                inlinePhotoInput.value = "";
+                if (inlineEditPhotoPreviewUrl) {
+                  URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                  inlineEditPhotoPreviewUrl = null;
+                }
+                document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`).innerHTML =
+                  '<span class="inline-edit-photo-placeholder"><iconify-icon icon="material-symbols:add" aria-hidden="true"></iconify-icon></span>';
+                articleEl.querySelector(".inline-edit-content-row").classList.add("has-no-review-photo");
+                document.querySelector(`[data-review-id-card="${CSS.escape(String(review.id_ulasan))}"] .inline-edit-photo`)?.classList.add("is-empty");
+                document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)?.remove();
+              };
+              document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)?.addEventListener("click", removeInlineEditPhoto);
+
+              // Update ikon bintang saat dipilih
+              articleEl.querySelectorAll(`input[name="inline_rating_${review.id_ulasan}"]`).forEach(input => {
               input.addEventListener("change", () => {
                 const val = Number(input.value);
                 articleEl.querySelectorAll(".inline-edit-star iconify-icon").forEach((icon, idx) => {
@@ -605,6 +696,14 @@
             // Batal
             document.getElementById(`inlineCancelEdit_${review.id_ulasan}`).addEventListener("click", () => {
               editingReviewId = null;
+              reviewsContainer.closest(".review-section")?.classList.remove("is-editing");
+              inlineEditPhoto = null;
+              inlineEditUploadedPhotoUrl = null;
+              inlineEditPhotoWasRemoved = false;
+              if (inlineEditPhotoPreviewUrl) {
+                URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                inlineEditPhotoPreviewUrl = null;
+              }
               renderReviews(ulasanList, reviewsContainer);
             });
 
@@ -613,15 +712,45 @@
               const saveBtn = document.getElementById(`inlineSaveEdit_${review.id_ulasan}`);
               const cancelBtn = document.getElementById(`inlineCancelEdit_${review.id_ulasan}`);
               const textarea = document.getElementById(`inlineEditTextarea_${review.id_ulasan}`);
+              const photoInput = document.getElementById(`inlineEditPhotoInput_${review.id_ulasan}`);
+              const removePhotoBtn = document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`);
               const selectedRating = Number(articleEl.querySelector(`input[name="inline_rating_${review.id_ulasan}"]:checked`)?.value || review.rating);
               const newKomentar = textarea.value.trim();
 
               saveBtn.disabled = true;
               cancelBtn.disabled = true;
+              photoInput.disabled = true;
+              if (removePhotoBtn) removePhotoBtn.disabled = true;
               saveBtn.textContent = "Menyimpan...";
 
               try {
                 const payload = { id_ulasan: review.id_ulasan, rating: selectedRating, komentar: newKomentar };
+                let newPhotoUrl = inlineEditUploadedPhotoUrl;
+                if (inlineEditPhoto) {
+                  if (!newPhotoUrl) {
+                    const supabaseConfig = window.SUPABASE_CONFIG;
+                    if (!window.supabase || !supabaseConfig || !supabaseConfig.anonKey) {
+                      throw new Error("Konfigurasi upload foto belum tersedia.");
+                    }
+                    const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+                    const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+                    const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                      ? crypto.randomUUID()
+                      : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    const photoPath = `ulasan/${uniqueId}.${extensionByType[inlineEditPhoto.type]}`;
+                    const { error: uploadError } = await supabaseClient.storage.from(supabaseConfig.reviewPhotoBucket).upload(photoPath, inlineEditPhoto, {
+                      contentType: inlineEditPhoto.type,
+                      upsert: false,
+                    });
+                    if (uploadError) throw new Error(`Foto gagal diunggah: ${uploadError.message}`);
+                    inlineEditUploadedPhotoUrl = supabaseClient.storage.from(supabaseConfig.reviewPhotoBucket).getPublicUrl(photoPath).data.publicUrl;
+                  }
+                  newPhotoUrl = inlineEditUploadedPhotoUrl;
+                  payload.foto_url = newPhotoUrl;
+                } else if (inlineEditPhotoWasRemoved) {
+                  payload.foto_url = "";
+                }
+
                 const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
                   method: "PUT",
                   credentials: "include",
@@ -635,17 +764,33 @@
                 // Update data lokal
                 const idx = ulasanList.findIndex(item => String(item.id_ulasan) === String(review.id_ulasan));
                 if (idx !== -1) {
-                  ulasanList[idx] = { ...ulasanList[idx], rating: selectedRating, komentar: newKomentar };
+                  ulasanList[idx] = {
+                    ...ulasanList[idx],
+                    rating: selectedRating,
+                    komentar: newKomentar,
+                    ...(newPhotoUrl ? { foto_url: newPhotoUrl } : {}),
+                    ...(inlineEditPhotoWasRemoved ? { foto_url: null } : {}),
+                  };
                 }
                 editingReviewId = null;
+                reviewsContainer.closest(".review-section")?.classList.remove("is-editing");
+                inlineEditPhoto = null;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = false;
+                if (inlineEditPhotoPreviewUrl) {
+                  URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                  inlineEditPhotoPreviewUrl = null;
+                }
                 renderReviews(ulasanList, reviewsContainer);
                 updateReviewSummary();
                 showReviewFeedback("Ulasan berhasil diubah");
               } catch (err) {
                 saveBtn.disabled = false;
                 cancelBtn.disabled = false;
+                photoInput.disabled = false;
+                if (removePhotoBtn) removePhotoBtn.disabled = false;
                 saveBtn.textContent = "Simpan";
-                showReviewFeedback("Ulasan gagal diubah, silakan coba lagi.", "error", () => {
+                showReviewFeedback(err.message || "Ulasan gagal diubah, silakan coba lagi.", () => {
                   document.getElementById(`inlineSaveEdit_${review.id_ulasan}`)?.click();
                 }, true);
               }
@@ -710,7 +855,8 @@
               );
             } catch (error) {
               console.error("Gagal menghapus ulasan:", error);
-              showReviewDeleteResult(false, "Ulasan gagal dihapus", error.message || "Silakan coba lagi.");
+              const errorDisplay = getReviewDeleteError(error);
+              showReviewDeleteResult(false, errorDisplay.message, errorDisplay.detail, errorDisplay.icon);
               action.disabled = false;
             } finally {
               reviewDeleteConfirmButton.disabled = false;
