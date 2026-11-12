@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      
+
       const result = await response.json();
       const categories = Array.isArray(result) ? result : result.data || [];
 
@@ -309,6 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const alamat = alamatInput.value.trim();
       const deskripsi = descInput.value.trim();
 
+      // 1. Validasi Kolom Wajib Kosong
       if (!nama || !latitudeVal || !hargaVal || !longitudeVal || !kategori || !alamat || !deskripsi) {
         if (!nama) namaInput.classList.add("input-error");
         if (!latitudeVal) latInput.classList.add("input-error");
@@ -323,15 +324,53 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // 2. Validasi Harga
+      // Validasi Harga
       const cleanHarga = hargaVal.replace(/\./g, "").replace(/,/g, ".");
       if (isNaN(cleanHarga) || Number(cleanHarga) <= 0) {
         hargaInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Harga harus berupa angka lebih dari 0.";
+        if (alertMessage) alertMessage.textContent = "Harga harus lebih dari 0.";
         if (alertBanner) alertBanner.hidden = false;
         hargaInput.focus();
         return;
       }
 
+      // Pastikan harga dikirim sebagai angka murni (integer) ke database
+      const finalHarga = parseInt(cleanHarga, 10);
+
+      // Validasi Latitude khusus wilayah operasional (Contoh: area Cirebon & sekitarnya)
+      const latRaw = latInput.value.trim();
+      const latNum = Number(latRaw);
+      
+      if (latRaw.includes(",") || !latRaw.includes(".") || isNaN(latNum) || latNum < -7.5 || latNum > -6.0) {
+        latInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        latInput.focus();
+        return;
+      }
+
+      // Validasi Longitude khusus wilayah operasional
+      const lonRaw = lonInput.value.trim();
+      const lonNum = Number(lonRaw);
+
+      if (lonRaw.includes(",") || !lonRaw.includes(".") || isNaN(lonNum) || lonNum < 108.0 || lonNum > 109.2) {
+        lonInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        lonInput.focus();
+        return;
+      }
+
+
+      // 5. Validasi Panjang Deskripsi Maksimal 300 Karakter
+      if (deskripsi.length > 300) {
+        descInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Deskripsi kuliner melebihi batas maksimal 300 karakter.";
+        if (alertBanner) alertBanner.hidden = false;
+        descInput.focus();
+        return;
+      }
       if (alertBanner) alertBanner.hidden = true;
 
       const id = document.getElementById("editIdKuliner").value;
@@ -356,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const saveBtn = document.getElementById("saveEditBtn");
       if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.textContent = "Menyimpan...";
+        saveBtn.textContent = "Menyimpan";
       }
 
       try {
