@@ -52,6 +52,11 @@
         box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
       }
 
+      .review-card[data-editing-review] {
+        padding: 22px 40px 40px 32px;
+        border-radius: 32px;
+      }
+
       .review-card-content {
         min-width: 0;
       }
@@ -85,6 +90,20 @@
         font-size: 21px;
       }
 
+      .review-card[data-editing-review] .review-avatar {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+      }
+
+      .review-card[data-editing-review] .review-author {
+        gap: 26px;
+      }
+
+      .review-card[data-editing-review] .review-avatar iconify-icon {
+        font-size: 25px;
+      }
+
       .review-author-details {
         min-width: 0;
       }
@@ -95,6 +114,10 @@
         color: #111;
         font-size: 12px;
         font-weight: 500;
+      }
+
+      .review-card[data-editing-review] .review-author-name {
+        font-size: 16px;
       }
 
       .review-rating-date {
@@ -116,6 +139,10 @@
         font-size: 9px;
       }
 
+      .review-card[data-editing-review] .review-date {
+        font-size: 11px;
+      }
+
       .review-place {
         display: none;
       }
@@ -127,6 +154,197 @@
         font-size: 11px;
         line-height: 1.5;
         white-space: pre-wrap;
+      }
+
+      .review-edit-rating {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .review-edit-rating label {
+        display: inline-flex;
+        cursor: pointer;
+      }
+
+      .review-edit-rating input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        clip-path: inset(50%);
+      }
+
+      .review-edit-rating iconify-icon {
+        color: #f2a900;
+        font-size: 20px;
+      }
+
+      .review-edit-rating input:focus-visible + iconify-icon {
+        outline: 2px solid #001b7d;
+        outline-offset: 2px;
+      }
+
+      .review-edit-photo {
+        position: relative;
+        width: 76px;
+        height: 76px;
+        margin: 16px 0 12px;
+      }
+
+      .review-card[data-editing-review] .review-edit-photo {
+        width: 74px;
+        height: 74px;
+        margin: 26px 0 15px;
+      }
+
+      .review-edit-photo-preview,
+      .review-edit-photo-placeholder {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #eee;
+        color: #777;
+      }
+
+      .review-edit-photo-preview {
+        object-fit: cover;
+      }
+
+      .review-edit-photo-placeholder iconify-icon {
+        font-size: 28px;
+      }
+
+      .review-edit-photo-button {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        padding: 0;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #001b7d;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .review-edit-photo-button iconify-icon {
+        font-size: 19px;
+      }
+
+      .review-edit-comment {
+        display: block;
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 14px;
+        border: 1px solid #777;
+        border-radius: 12px;
+        color: #222;
+        font: inherit;
+        font-size: 11px;
+        resize: vertical;
+      }
+
+      .review-card[data-editing-review] .review-edit-comment {
+        min-height: 38px;
+        border-radius: 12px;
+      }
+
+      .review-edit-comment:focus-visible {
+        outline: 2px solid rgb(0 27 125 / 35%);
+        border-color: #001b7d;
+      }
+
+      .review-edit-message {
+        margin: 7px 0 0;
+        color: #c62828;
+        font-size: 11px;
+      }
+
+      .review-edit-feedback {
+        display: flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin: 14px 22px 0;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: #001b7d;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .review-edit-feedback iconify-icon {
+        flex: 0 0 auto;
+        font-size: 16px;
+      }
+
+      .review-edit-feedback[hidden] {
+        display: none !important;
+      }
+
+      .review-edit-feedback button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .review-edit-feedback button:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+
+      .review-edit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .review-card[data-editing-review] .review-edit-actions {
+        margin-top: 15px;
+      }
+
+      .review-edit-actions button {
+        min-width: 105px;
+        min-height: 26px;
+        padding: 3px 14px;
+        border: 1px solid #001b7d;
+        border-radius: 6px;
+        font: inherit;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .review-edit-cancel {
+        background: #fff;
+        color: #001b7d;
+      }
+
+      .review-edit-save {
+        background: #001b7d;
+        color: #fff;
+      }
+
+      .review-edit-actions button:disabled,
+      .review-edit-photo-button:disabled {
+        cursor: wait;
+        opacity: 0.6;
       }
 
       .review-photo {
@@ -219,53 +437,109 @@
         text-align: center;
       }
 
+      .reviews-state-card {
+        display: grid;
+        justify-items: center;
+        width: min(100%, 520px);
+        margin: 24px auto 0;
+        padding: 28px 20px;
+        border: 1px solid #d1d1d1;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+      }
+
+      #reviewsEmpty .reviews-state-card {
+        width: 100%;
+        margin-top: 52px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      #reviewsError .reviews-state-card {
+        width: 100%;
+        margin-top: 52px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
       .reviews-empty-icon {
         display: block;
-        width: 32px;
-        height: 32px;
-        margin: 0 auto 10px;
-        color: #929292;
-        font-size: 32px;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        color: #888;
+        font-size: 48px;
       }
 
       .reviews-error-icon {
         display: block;
-        width: 32px;
-        height: 32px;
+        width: 48px;
+        height: 48px;
         margin: 0 auto 12px;
-        color: #929292;
-        font-size: 32px;
+        color: #888;
+        font-size: 48px;
       }
 
       .reviews-error-title {
-        margin: 0 0 5px;
+        margin: 16px 0 8px;
         color: #111;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 20px;
+        font-weight: 600;
       }
 
       .reviews-empty-title {
-        margin: 0 0 7px;
+        margin: 16px 0 8px;
         color: #111;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 20px;
+        font-weight: 600;
       }
 
       .reviews-empty-copy {
+        max-width: 360px;
         margin: 0;
+        color: #555;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      #reviewsEmpty .reviews-empty-copy {
+        max-width: none;
         color: #111;
-        font-size: 11px;
+        font-size: 16px;
+      }
+
+      #reviewsError .reviews-empty-copy {
+        max-width: none;
+        color: #111;
+        font-size: 16px;
       }
 
       .reviews-retry {
-        border: 0;
+        margin: 0;
         padding: 0;
-        background: none;
+        border: 0;
+        background: transparent;
         color: #001b7d;
         font: inherit;
-        font-size: 10px;
+        font-size: inherit;
         text-decoration: underline;
         cursor: pointer;
+      }
+
+      .reviews-retry:hover {
+        color: #00145f;
+      }
+
+      .reviews-retry:focus-visible {
+        outline: 2px solid #001b7d;
+        outline-offset: 2px;
       }
 
       .review-delete-overlay {
@@ -397,6 +671,14 @@
           padding: 104px 8px 32px;
         }
 
+        #reviewsEmpty .reviews-state-card {
+          margin-top: 40px;
+        }
+
+        #reviewsError .reviews-state-card {
+          margin-top: 40px;
+        }
+
         .review-card {
           padding: 13px 14px;
         }
@@ -421,6 +703,25 @@
         .review-food-address {
           font-size: 9px;
         }
+
+        .review-card {
+          padding: 14px 16px;
+        }
+
+        .review-card[data-editing-review] {
+          padding: 18px 16px 28px;
+          border-radius: 24px;
+        }
+
+        .review-card[data-editing-review] .review-author {
+          gap: 12px;
+        }
+
+        .review-edit-actions button {
+          min-width: 78px;
+          min-height: 30px;
+          font-size: 12px;
+        }
       }
     </style>
   </head>
@@ -430,17 +731,25 @@
       <h1 id="reviewsTitle" class="reviews-title">Riwayat Ulasan Anda <iconify-icon icon="codicon:code-review" aria-hidden="true"></iconify-icon></h1>
       <div id="reviewsLoading" class="reviews-state" role="status">Memuat ulasan...</div>
       <div id="reviewsEmpty" class="reviews-state" hidden>
-        <iconify-icon class="reviews-empty-icon" icon="fluent:comment-error-16-regular" aria-hidden="true"></iconify-icon>
-        <h2 class="reviews-empty-title">Belum Ada Ulasan</h2>
-        <p class="reviews-empty-copy">YUKKK, bagikan pengalamanmu setelah mencoba kuliner favoritmu!</p>
+        <section class="reviews-state-card" aria-labelledby="reviewsEmptyTitle">
+          <iconify-icon class="reviews-empty-icon" icon="fluent:comment-error-16-regular" aria-hidden="true"></iconify-icon>
+          <h2 id="reviewsEmptyTitle" class="reviews-empty-title">Belum Ada Ulasan</h2>
+          <p class="reviews-empty-copy">YUKKK, bagikan pengalamanmu setelah mencoba kuliner favoritmu!</p>
+        </section>
       </div>
       <div id="reviewsError" class="reviews-state" role="alert" hidden>
-        <iconify-icon class="reviews-error-icon" icon="fluent:comment-dismiss-24-regular" aria-hidden="true"></iconify-icon>
-        <h2 class="reviews-error-title">Gagal memuat halaman</h2>
-        <p id="reviewsErrorMessage" class="reviews-empty-copy"></p>
-        <button id="retryReviews" class="reviews-retry" type="button">Silahkan coba lagi</button>
+        <section class="reviews-state-card" aria-labelledby="reviewsErrorTitle">
+          <iconify-icon id="reviewsErrorIcon" class="reviews-error-icon" icon="fluent:comment-dismiss-24-regular" aria-hidden="true"></iconify-icon>
+          <h2 id="reviewsErrorTitle" class="reviews-error-title">Gagal memuat halaman</h2>
+          <p class="reviews-empty-copy">Silahkan <button id="retryReviews" class="reviews-retry" type="button">coba lagi</button></p>
+        </section>
       </div>
       <div id="reviewsList" class="reviews-list" hidden></div>
+      <div id="reviewEditFeedback" class="review-edit-feedback" role="alert" aria-live="assertive" hidden>
+        <span id="reviewEditFeedbackText"></span>
+        <iconify-icon id="reviewEditFeedbackIcon" aria-hidden="true" hidden></iconify-icon>
+        <button id="retryReviewEdit" type="button" hidden>coba lagi</button>
+      </div>
     </main>
     <div id="reviewDeleteModal" class="review-delete-overlay" hidden>
       <section class="review-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="reviewDeleteTitle">
@@ -462,11 +771,28 @@
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
     <script src="js/navbar.js?v=session-api"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
     <script>
+
+      let pendingReviewDelete = null;
+      let reviewsData = [];
+      let editingReviewId = null;
+      let selectedReviewPhoto = null;
+      let uploadedReviewPhotoUrl = null;
+      let reviewPhotoPreviewUrl = null;
+      let reviewLoadController = null;
 
       (() => {
         document.getElementById("retryReviews").addEventListener("click", loadReviews);
-        document.getElementById("reviewsList").addEventListener("click", handleReviewAction);
+        const reviewsList = document.getElementById("reviewsList");
+        reviewsList.addEventListener("click", handleReviewAction);
+        reviewsList.addEventListener("change", handleReviewEditChange);
+        reviewsList.addEventListener("input", handleReviewEditInput);
+        document.getElementById("retryReviewEdit").addEventListener("click", () => {
+          hideReviewEditFeedback();
+          saveReviewEdit();
+        });
         document.getElementById("reviewDeleteCancel").addEventListener("click", closeReviewDeleteModal);
         document.getElementById("reviewDeleteConfirmButton").addEventListener("click", deleteReview);
         document.getElementById("reviewDeleteResultAction").addEventListener("click", () => {
@@ -487,29 +813,50 @@
             closeReviewDeleteModal();
           }
         });
+        window.addEventListener("offline", () => {
+          reviewLoadController?.abort();
+          showReviewsLoadError();
+        });
         loadReviews();
       })();
+
+      function showReviewsLoadError() {
+        document.getElementById("reviewsTitle").hidden = true;
+        document.getElementById("reviewsLoading").hidden = true;
+        document.getElementById("reviewsEmpty").hidden = true;
+        document.getElementById("reviewsList").hidden = true;
+        document.getElementById("reviewEditFeedback").hidden = true;
+        document.getElementById("reviewsError").hidden = false;
+      }
 
       async function loadReviews() {
         const title = document.getElementById("reviewsTitle");
         const loading = document.getElementById("reviewsLoading");
         const empty = document.getElementById("reviewsEmpty");
         const error = document.getElementById("reviewsError");
-        const errorMessage = document.getElementById("reviewsErrorMessage");
         const list = document.getElementById("reviewsList");
+
+        if (!navigator.onLine) {
+          showReviewsLoadError();
+          return;
+        }
 
         title.hidden = false;
         loading.hidden = false;
         empty.hidden = true;
         error.hidden = true;
-        errorMessage.textContent = "";
         list.hidden = true;
         list.replaceChildren();
+
+        const controller = new AbortController();
+        reviewLoadController = controller;
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
 
         try {
           const response = await fetch(`${BASE_URL}/api/ulasan.php?milik_saya=1`, {
             method: "GET",
             credentials: "include",
+            signal: controller.signal,
           });
 
           if (response.status === 401) {
@@ -538,8 +885,12 @@
           }
 
           const reviews = Array.isArray(result.data) ? result.data : [];
+          reviewsData = reviews;
+          editingReviewId = null;
+          clearReviewPhotoPreview();
           loading.hidden = true;
           if (reviews.length === 0) {
+            title.hidden = true;
             empty.hidden = false;
             return;
           }
@@ -549,24 +900,30 @@
         } catch (requestError) {
           console.error("Gagal memuat daftar ulasan:", requestError);
           loading.hidden = true;
-          title.hidden = true;
-          errorMessage.textContent = requestError.message || "Periksa koneksi dan coba lagi.";
-          error.hidden = false;
+          showReviewsLoadError();
+        } finally {
+          window.clearTimeout(timeoutId);
+          if (reviewLoadController === controller) reviewLoadController = null;
         }
       }
 
       function renderReviews(reviews) {
         const list = document.getElementById("reviewsList");
-        list.innerHTML = reviews.map((review) => {
-          const foodName = review.nama_kuliner || review.nama_tempat || "Kuliner";
-          const foodPhoto = resolveFoodPhoto(review.photo_url);
-          const reviewPhoto = resolveReviewPhoto(review.foto_url);
-          const rating = Number(review.rating);
-          const reviewDate = formatReviewDate(review.created_at);
-          const reviewStars = rating >= 1 && rating <= 5 ? "★".repeat(rating) : "";
-          const address = review.alamat || review.nama_tempat || "";
+        list.innerHTML = reviews.map((review) => String(review.id_ulasan) === String(editingReviewId)
+          ? renderReviewEditor(review)
+          : renderReviewCard(review)).join("");
+      }
 
-          return `
+      function renderReviewCard(review) {
+        const foodName = review.nama_kuliner || review.nama_tempat || "Kuliner";
+        const foodPhoto = resolveFoodPhoto(review.photo_url);
+        const reviewPhoto = resolveReviewPhoto(review.foto_url);
+        const rating = Number(review.rating);
+        const reviewDate = formatReviewDate(review.created_at);
+        const reviewStars = rating >= 1 && rating <= 5 ? "★".repeat(rating) : "";
+        const address = review.alamat || review.nama_tempat || "";
+
+        return `
             <article class="review-card">
               <div class="review-card-content">
                 <div class="review-card-heading">
@@ -583,9 +940,9 @@
                     </div>
                   </div>
                   <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
-                    <a class="review-action" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}&edit_ulasan=${encodeURIComponent(review.id_ulasan)}" aria-label="Ubah ulasan">
+                    <button class="review-action" type="button" data-edit-review="${escapeHTML(review.id_ulasan)}" aria-label="Ubah ulasan">
                       <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
-                    </a>
+                    </button>
                     <button class="review-action" type="button" data-delete-review="${escapeHTML(review.id_ulasan)}" aria-label="Hapus ulasan">
                       <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
                     </button>
@@ -603,19 +960,298 @@
               </div>
             </article>
           `;
-        }).join("");
+      }
+
+      function renderReviewEditor(review) {
+        const rating = Number(review.rating);
+        const photo = resolveReviewPhoto(review.foto_url);
+        const preview = reviewPhotoPreviewUrl || photo;
+
+        return `
+          <article class="review-card" data-editing-review="${escapeHTML(review.id_ulasan)}">
+            <div class="review-card-content">
+              <div class="review-card-heading">
+                <div class="review-author">
+                  <span class="review-avatar" aria-hidden="true">
+                    <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
+                  </span>
+                  <div class="review-author-details">
+                    <strong class="review-author-name">${escapeHTML(review.nama_user || "Pengguna")}</strong>
+                    <div class="review-rating-date">
+                      <div class="review-edit-rating" role="radiogroup" aria-label="Ubah rating">
+                        ${[1, 2, 3, 4, 5].map((value) => `
+                          <label title="${value} bintang">
+                            <input type="radio" name="edit-rating-${escapeHTML(review.id_ulasan)}" value="${value}" aria-label="${value} bintang" ${rating === value ? "checked" : ""} />
+                            <iconify-icon icon="${rating >= value ? "material-symbols:star" : "material-symbols:star-outline"}" aria-hidden="true"></iconify-icon>
+                          </label>
+                        `).join("")}
+                      </div>
+                      <time class="review-date">${escapeHTML(formatReviewDate(review.created_at))}</time>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="review-edit-photo">
+                ${preview
+                  ? `<img class="review-edit-photo-preview" data-edit-photo-preview src="${escapeHTML(preview)}" alt="Foto ulasan" />`
+                  : `<span class="review-edit-photo-placeholder" data-edit-photo-placeholder><iconify-icon icon="material-symbols:image-outline" aria-hidden="true"></iconify-icon></span>`}
+                <input type="file" data-edit-photo-input accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+                <button class="review-edit-photo-button" type="button" data-choose-review-photo aria-label="Ganti foto ulasan">
+                  <iconify-icon icon="mdi:image-edit-outline" aria-hidden="true"></iconify-icon>
+                </button>
+              </div>
+              <textarea class="review-edit-comment" data-edit-comment maxlength="100" aria-label="Teks ulasan" placeholder="Tulis ulasan (maksimal 100 karakter)">${escapeHTML(review.review_text || "")}</textarea>
+              <p class="review-edit-message" data-edit-message role="alert" hidden></p>
+              <div class="review-edit-actions">
+                <button class="review-edit-cancel" type="button" data-cancel-review-edit>Batal</button>
+                <button class="review-edit-save" type="button" data-save-review-edit>Simpan</button>
+              </div>
+            </div>
+          </article>
+        `;
       }
 
       async function handleReviewAction(event) {
-        const button = event.target.closest("[data-delete-review]");
-        if (!button) return;
+        const target = event.target instanceof Element ? event.target : event.target.parentElement;
+        const editButton = target.closest("[data-edit-review]");
+        if (editButton) {
+          beginReviewEdit(editButton.dataset.editReview);
+          return;
+        }
 
+        if (target.closest("[data-choose-review-photo]")) {
+          document.querySelector("[data-edit-photo-input]")?.click();
+          return;
+        }
+
+        if (target.closest("[data-cancel-review-edit]")) {
+          cancelReviewEdit();
+          return;
+        }
+
+        if (target.closest("[data-save-review-edit]")) {
+          await saveReviewEdit();
+          return;
+        }
+
+        const button = target.closest("[data-delete-review]");
+        if (!button) return;
         pendingReviewDelete = button;
         document.getElementById("reviewDeleteConfirm").hidden = false;
         document.getElementById("reviewDeleteResult").hidden = true;
         document.getElementById("reviewDeleteResultAction").dataset.retry = "false";
         document.getElementById("reviewDeleteModal").hidden = false;
         document.getElementById("reviewDeleteCancel").focus();
+      }
+
+      function beginReviewEdit(reviewId) {
+        if (editingReviewId && String(editingReviewId) !== String(reviewId)) {
+          cancelReviewEdit();
+        }
+        hideReviewEditFeedback();
+        editingReviewId = String(reviewId);
+        selectedReviewPhoto = null;
+        uploadedReviewPhotoUrl = null;
+        clearReviewPhotoPreview();
+        renderReviews(reviewsData);
+        document.querySelector("[data-edit-comment]")?.focus();
+      }
+
+      function cancelReviewEdit() {
+        hideReviewEditFeedback();
+        editingReviewId = null;
+        selectedReviewPhoto = null;
+        uploadedReviewPhotoUrl = null;
+        clearReviewPhotoPreview();
+        renderReviews(reviewsData);
+      }
+
+      function clearReviewPhotoPreview() {
+        if (reviewPhotoPreviewUrl) {
+          URL.revokeObjectURL(reviewPhotoPreviewUrl);
+          reviewPhotoPreviewUrl = null;
+        }
+      }
+
+      function handleReviewEditInput(event) {
+        const target = event.target;
+        if (!(target instanceof HTMLTextAreaElement) || !target.matches("[data-edit-comment]")) return;
+        hideReviewEditFeedback();
+        const message = target.closest(".review-card-content").querySelector("[data-edit-message]");
+        message.hidden = true;
+        message.textContent = "";
+      }
+
+      function handleReviewEditChange(event) {
+        const target = event.target;
+        if (target instanceof HTMLInputElement && target.matches('.review-edit-rating input[type="radio"]')) {
+          hideReviewEditFeedback();
+          const selectedRating = Number(target.value);
+          target.closest(".review-edit-rating").querySelectorAll("label").forEach((label, index) => {
+            label.querySelector("iconify-icon").setAttribute(
+              "icon",
+              index < selectedRating ? "material-symbols:star" : "material-symbols:star-outline"
+            );
+          });
+          return;
+        }
+
+        if (!(target instanceof HTMLInputElement) || !target.matches("[data-edit-photo-input]")) return;
+        const file = target.files?.[0];
+        if (!file) return;
+        hideReviewEditFeedback();
+
+        const message = target.closest(".review-card-content").querySelector("[data-edit-message]");
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+          target.value = "";
+          showReviewEditMessage(message, "Pilih foto berformat JPG, PNG, atau WEBP.");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          target.value = "";
+          showReviewEditMessage(message, "Ukuran foto maksimal 5 MB.");
+          return;
+        }
+
+        selectedReviewPhoto = file;
+        uploadedReviewPhotoUrl = null;
+        clearReviewPhotoPreview();
+        reviewPhotoPreviewUrl = URL.createObjectURL(file);
+        const photoWrap = target.closest(".review-edit-photo");
+        let preview = photoWrap.querySelector("[data-edit-photo-preview]");
+        if (!preview) {
+          preview = document.createElement("img");
+          preview.className = "review-edit-photo-preview";
+          preview.dataset.editPhotoPreview = "";
+          preview.alt = "Pratinjau foto ulasan";
+          photoWrap.querySelector("[data-edit-photo-placeholder]")?.replaceWith(preview);
+        }
+        preview.src = reviewPhotoPreviewUrl;
+        message.hidden = true;
+        message.textContent = "";
+      }
+
+      function showReviewEditMessage(element, message) {
+        element.textContent = message;
+        element.hidden = false;
+      }
+
+      function hideReviewEditFeedback() {
+        document.getElementById("reviewEditFeedback").hidden = true;
+      }
+
+      function showReviewEditFeedback(success) {
+        const feedback = document.getElementById("reviewEditFeedback");
+        const retryButton = document.getElementById("retryReviewEdit");
+        document.getElementById("reviewEditFeedbackText").textContent = success
+          ? "Ulasan berhasil di perbarui"
+          : "Ulasan gagal diperbarui, silakan";
+        const icon = document.getElementById("reviewEditFeedbackIcon");
+        icon.setAttribute("icon", "material-symbols:check-circle");
+        icon.hidden = !success;
+        retryButton.hidden = success;
+        feedback.setAttribute("role", success ? "status" : "alert");
+        feedback.setAttribute("aria-live", success ? "polite" : "assertive");
+        feedback.hidden = false;
+      }
+
+      async function uploadReviewPhoto(file) {
+        const config = window.SUPABASE_CONFIG;
+        if (!window.supabase || !config || !config.anonKey || !config.reviewPhotoBucket) {
+          throw new Error("Konfigurasi upload foto belum tersedia.");
+        }
+
+        const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+        const supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const photoPath = `ulasan/${uniqueId}.${extensionByType[file.type]}`;
+        const { error } = await supabaseClient.storage.from(config.reviewPhotoBucket).upload(photoPath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+        if (error) throw new Error(`Foto gagal diunggah: ${error.message}`);
+
+        return supabaseClient.storage.from(config.reviewPhotoBucket).getPublicUrl(photoPath).data.publicUrl;
+      }
+
+      async function saveReviewEdit() {
+        if (!editingReviewId) return;
+        const card = document.querySelector(`[data-editing-review="${CSS.escape(editingReviewId)}"]`);
+        if (!card) return;
+
+        const saveButton = card.querySelector("[data-save-review-edit]");
+        const cancelButton = card.querySelector("[data-cancel-review-edit]");
+        const photoButton = card.querySelector("[data-choose-review-photo]");
+        const message = card.querySelector("[data-edit-message]");
+        const rating = Number(card.querySelector(`input[name="edit-rating-${CSS.escape(editingReviewId)}"]:checked`)?.value || 0);
+        const comment = card.querySelector("[data-edit-comment]").value.trim();
+        if (rating < 1 || rating > 5) {
+          showReviewEditMessage(message, "Pilih rating dari 1 sampai 5.");
+          return;
+        }
+        if (comment && Array.from(comment).length < 5) {
+          showReviewEditMessage(message, "Ulasan minimal 5 karakter.");
+          return;
+        }
+        if (Array.from(comment).length > 100) {
+          showReviewEditMessage(message, "Ulasan maksimal 100 karakter.");
+          return;
+        }
+
+        saveButton.disabled = true;
+        cancelButton.disabled = true;
+        photoButton.disabled = true;
+        saveButton.textContent = "Menyimpan...";
+        message.hidden = true;
+        hideReviewEditFeedback();
+
+        try {
+          if (selectedReviewPhoto && !uploadedReviewPhotoUrl) {
+            uploadedReviewPhotoUrl = await uploadReviewPhoto(selectedReviewPhoto);
+          }
+          const foto_url = selectedReviewPhoto ? uploadedReviewPhotoUrl : undefined;
+          const payload = { id_ulasan: editingReviewId, rating, komentar: comment };
+          if (foto_url) payload.foto_url = foto_url;
+
+          const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
+            method: "PUT",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json();
+          if (response.status === 401) {
+            window.location.href = `login.html?returnTo=${encodeURIComponent("reviews.html")}`;
+            return;
+          }
+          if (!response.ok || !result.status) {
+            throw new Error(result.message || "Ulasan gagal diubah.");
+          }
+
+          reviewsData = reviewsData.map((review) => String(review.id_ulasan) === String(editingReviewId)
+            ? {
+              ...review,
+              rating,
+              review_text: comment,
+              ...(foto_url ? { foto_url } : {}),
+            }
+            : review);
+          editingReviewId = null;
+          selectedReviewPhoto = null;
+          uploadedReviewPhotoUrl = null;
+          clearReviewPhotoPreview();
+          renderReviews(reviewsData);
+          showReviewEditFeedback(true);
+        } catch (error) {
+          console.error("Gagal mengubah ulasan:", error);
+          showReviewEditFeedback(false);
+          saveButton.disabled = false;
+          cancelButton.disabled = false;
+          photoButton.disabled = false;
+          saveButton.textContent = "Simpan";
+        }
       }
 
       function closeReviewDeleteModal() {
@@ -626,11 +1262,11 @@
         pendingReviewDelete = null;
       }
 
-      function showReviewDeleteResult(success, message, detail = "") {
+      function showReviewDeleteResult(success, message, detail = "", iconName = "") {
         document.getElementById("reviewDeleteConfirm").hidden = true;
         document.getElementById("reviewDeleteResult").hidden = false;
         const icon = document.getElementById("reviewDeleteResultIcon");
-        icon.setAttribute("icon", success ? "material-symbols:check-circle" : "material-symbols:error-outline");
+        icon.setAttribute("icon", iconName || (success ? "material-symbols:check-circle" : "material-symbols:error-outline"));
         icon.classList.toggle("is-error", !success);
         document.getElementById("reviewDeleteResultMessage").textContent = message;
         const detailElement = document.getElementById("reviewDeleteResultDetail");
@@ -641,6 +1277,22 @@
         action.dataset.retry = String(!success);
         action.disabled = false;
         action.focus();
+      }
+
+      function getReviewDeleteError(error) {
+        if (error instanceof TypeError) {
+          return {
+            message: "Koneksi ke server terputus",
+            detail: "Periksa koneksi internet Anda, lalu pilih Coba lagi.",
+            icon: "material-symbols:wifi-off-rounded",
+          };
+        }
+
+        return {
+          message: "Ulasan gagal dihapus",
+          detail: error.message || "Silakan coba lagi.",
+          icon: "material-symbols:error-outline",
+        };
       }
 
       async function deleteReview() {
@@ -669,15 +1321,18 @@
           }
 
           button.closest(".review-card")?.remove();
+          reviewsData = reviewsData.filter((review) => String(review.id_ulasan) !== String(button.dataset.deleteReview));
           if (!document.querySelector("#reviewsList .review-card")) {
             document.getElementById("reviewsList").hidden = true;
             document.getElementById("reviewsEmpty").hidden = false;
+            document.getElementById("reviewsTitle").hidden = true;
           }
           pendingReviewDelete = null;
           showReviewDeleteResult(true, "Ulasan berhasil dihapus");
         } catch (error) {
           console.error("Gagal menghapus ulasan:", error);
-          showReviewDeleteResult(false, "Ulasan gagal dihapus", error.message || "Silakan coba lagi.");
+          const errorDisplay = getReviewDeleteError(error);
+          showReviewDeleteResult(false, errorDisplay.message, errorDisplay.detail, errorDisplay.icon);
           button.disabled = false;
         } finally {
           document.getElementById("reviewDeleteConfirmButton").disabled = false;
