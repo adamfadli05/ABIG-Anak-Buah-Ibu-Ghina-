@@ -123,9 +123,10 @@ function initLogoutHandler() {
         throw new Error(result.message || "Gagal melakukan proses keluar dari server.");
       }
 
+      localStorage.removeItem("admin_logged_in");
       localStorage.removeItem("user");
       localStorage.removeItem("role");
-      localStorage.removeItem("admin_logged_in");
+      localStorage.clear();
       sessionStorage.clear();
       showState({ confirm: false, progress: false, success: true, error: false });
     } catch (error) {

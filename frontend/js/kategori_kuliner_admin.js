@@ -1,6 +1,43 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
+
+  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+    
+    // Jika di local/storage sudah ada role admin, langsung muat data tanpa loading screen
+    if (rawRole === "admin") {
+      fetchKategoriData();
+      return;
+    }
+
+    // Jika belum ada data lokal, lakukan verifikasi senyap ke server
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/me.php`, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+      
+      fetchKategoriData();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      window.location.replace("index.html");
+    }
+  }
+
   // --- DINAMIS API URL (TIDAK HARDCODE) ---
-  // Menggunakan relative path yang aman dan fleksibel untuk komputer lokal maupun hosting
   const API_URL = "../backend/api/admin/kategori.php";
 
   const tableCardContainer = document.getElementById("tableCardContainer");
@@ -334,5 +371,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  fetchKategoriData();
+  // Jalankan pemeriksaan akses secara senyap saat halaman dimuat
+  checkAdminAccessSilent();
 });

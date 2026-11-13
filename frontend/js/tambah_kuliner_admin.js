@@ -1,8 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const apiBaseUrl = (window.BASE_URL || window.location.origin).replace(/\/+$/, "");
+
+  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+    
+    // Jika di local/storage sudah ada role admin, langsung jalankan inisialisasi form
+    if (rawRole === "admin") {
+      initAdminForm();
+      return;
+    }
+
+    // Jika belum ada data lokal, lakukan verifikasi senyap ke server
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/me.php`, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+      
+      initAdminForm();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      window.location.replace("index.html");
+    }
+  }
+
   const form = document.getElementById("addCulinaryForm");
   if (!form) return;
 
-  const apiBaseUrl = (window.BASE_URL || window.location.origin).replace(/\/+$/, "");
   const photoInput = document.getElementById("culinaryPhoto");
   const photoPicker = document.getElementById("photoPicker");
   const photoPreview = document.getElementById("photoPreview");
@@ -405,5 +442,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "daftar_kuliner_admin.html";
   });
 
-  loadCategories();
+  function initAdminForm() {
+    loadCategories();
+  }
+
+  // Jalankan pengecekan akses secara senyap saat halaman dimuat
+  checkAdminAccessSilent();
 });

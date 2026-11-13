@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         navbarContainer.innerHTML = html;
         window.initNavbarState();
         
-        // Hanya sinkronkan sesi jika localStorage benar-benar menandakan ada sesi login
+        // Hanya sinkronkan sesi jika penyimpanan lokal menandakan ada sesi login aktif
         if (localStorage.getItem("user") || localStorage.getItem("role") || localStorage.getItem("admin_logged_in") === "true") {
           return syncNavbarSession();
         }
@@ -113,8 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawUser = localStorage.getItem("user");
     const rawRole = localStorage.getItem("role");
     const adminLoggedIn = localStorage.getItem("admin_logged_in") === "true";
-    
-    // Pastikan jika storage kosong, status login dipastikan false
+
     if (!rawUser && !rawRole && !adminLoggedIn) {
       return { user: null, role: "", isLoggedIn: false };
     }
@@ -134,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return { user, role, isLoggedIn };
   }
 
-  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL (BERANDA & MASUK)
+  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL
   window.initNavbarState = function () {
     const { user, role, isLoggedIn } = getAuthState();
     console.info("[Auth System] Navbar status", {
@@ -153,7 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
       if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
     } else {
-      // Jika belum login, tampilkan elemen guest (Beranda & Masuk) dan sembunyikan profil user/admin
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
     }
@@ -267,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Fungsi Eksekusi Hapus Sesi Logout secara Menyeluruh
+  // Fungsi Eksekusi Hapus Sesi Logout dengan Method POST & .then()
   function executeLogout() {
     clearAuthStorage();
 
@@ -276,8 +274,11 @@ document.addEventListener("DOMContentLoaded", function () {
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     })
-      .catch((err) => console.error("Logout backend error:", err))
-      .finally(() => {
+      .then(() => {
+        window.location.replace("index.html");
+      })
+      .catch((err) => {
+        console.error("Logout backend error:", err);
         window.location.replace("index.html");
       });
   }

@@ -1,9 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL = window.BASE_URL || window.location.origin;
   const authState = document.getElementById("authState");
-  const authTitle = document.getElementById("authTitle");
-  const authMessage = document.getElementById("authMessage");
-  const authRetryButton = document.getElementById("authRetryButton");
   const adminApp = document.getElementById("adminApp");
   const adminName = document.getElementById("adminName");
   const loading = document.getElementById("usersLoading");
@@ -76,13 +73,24 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.clear();
   }
 
-  async function checkAdminAccess() {
-    adminApp.hidden = true;
-    authState.hidden = false;
-    authRetryButton.hidden = true;
-    authTitle.textContent = "Memeriksa akses Admin...";
-    authMessage.textContent = "Mohon tunggu sebentar.";
+  // --- CEK AKSES DI BALIK LAYAR TANPA MENAMPILKAN LOADING SCREEN ---
+  async function checkAdminAccessSilent() {
+    // Pastikan langsung tampilkan panel admin tanpa layar "Memeriksa akses..."
+    if (authState) authState.hidden = true;
+    if (adminApp) adminApp.hidden = false;
 
+    // Ambil nama user dari localStorage jika ada untuk mempercepat render nama
+    const rawUser = localStorage.getItem("user");
+    if (rawUser) {
+      try {
+        const parsed = JSON.parse(rawUser);
+        if (adminName) adminName.textContent = parsed?.nama || parsed?.name || "Admin";
+      } catch (e) {
+        if (adminName) adminName.textContent = "Admin";
+      }
+    }
+
+    // Validasi tetap berjalan senyap ke server di latar belakang
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
       if (result.role !== "admin") {
@@ -94,18 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("user", JSON.stringify(result.data || {}));
       localStorage.setItem("role", result.role);
-      adminName.textContent = result.data?.nama || "Admin";
-      authState.hidden = true;
-      adminApp.hidden = false;
+      if (adminName) adminName.textContent = result.data?.nama || "Admin";
+      
+      // Muat data pengguna setelah sesi dipastikan valid
       await loadUsers();
     } catch (error) {
       if (redirectForAccessError(error)) return;
-
-      authTitle.textContent = !navigator.onLine || error instanceof TypeError
-        ? "Koneksi Internet Terputus"
-        : "Validasi halaman gagal dilakukan";
-      authMessage.textContent = error.message || "Gagal memeriksa akses Admin.";
-      authRetryButton.hidden = false;
+      // Jika terjadi error koneksi saat validasi senyap, biarkan loadUsers yang menangani error-nya
+      await loadUsers();
     }
   }
 
@@ -242,7 +246,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   searchInput.addEventListener("input", renderUsers);
   retryButton.addEventListener("click", loadUsers);
-  authRetryButton.addEventListener("click", checkAdminAccess);
   sidebarToggle.addEventListener("click", () => {
     setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
   });
@@ -251,9 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches ||
       adminApp.classList.contains("sidebar-collapsed");
   });
-  window.addEventListener("pageshow", (event) => {
-    if (event.persisted) checkAdminAccess();
-  });
 
-  checkAdminAccess();
+  // Langsung tampilkan panel admin tanpa jeda teks "Memeriksa akses Admin..."
+  checkAdminAccessSilent();
 });
