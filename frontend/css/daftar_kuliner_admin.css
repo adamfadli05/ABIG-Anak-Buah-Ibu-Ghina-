@@ -588,6 +588,22 @@ tbody tr:hover {
   background: #e83d32;
 }
 
+.delete-success-state {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.delete-success-state[hidden] {
+  display: none !important;
+}
+
+.delete-success-state .delete-link-button {
+  justify-self: center;
+}
+
 .delete-link-button {
   justify-self: end;
   padding: 4px 8px;

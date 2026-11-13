@@ -4,4 +4,5 @@ window.SUPABASE_CONFIG = Object.freeze({
   anonKey: "sb_publishable_AS98jRjt9p_-yXgQKVDepw_8ukearTW",
   reviewPhotoBucket: "foto-ulasan",
   profilePhotoBucket: "foto-profile",
+  culinaryPhotoBucket: "foto-tempat-kuliner",
 });
