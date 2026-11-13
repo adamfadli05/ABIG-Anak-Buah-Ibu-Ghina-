@@ -16,6 +16,19 @@ $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost';
 session_unset();
 session_destroy();
 
+// Hapus cookie session di browser
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(
+        session_name(),
+        '',
+        time() - 42000,
+        $params["path"],
+        $params["domain"],
+        $params["secure"],
+        $params["httponly"]
+    );
+}
 // Jika dipanggil via fetch (AJAX), kembalikan JSON
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ||
           str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
