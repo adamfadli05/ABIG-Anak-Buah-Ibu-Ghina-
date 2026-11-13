@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const pathArray = window.location.pathname.split('/');
-  const projectName = pathArray[1] && !pathArray[1].includes('.') ? '/' + pathArray[1] : '';
-  const API_URL = window.location.origin + projectName + '/backend/api/admin/kategori.php';
+  // --- DINAMIS API URL (TIDAK HARDCODE) ---
+  // Menggunakan relative path yang aman dan fleksibel untuk komputer lokal maupun hosting
+  const API_URL = "../backend/api/admin/kategori.php";
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");

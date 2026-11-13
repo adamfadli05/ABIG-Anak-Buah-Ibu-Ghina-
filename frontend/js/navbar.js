@@ -65,7 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((html) => {
         navbarContainer.innerHTML = html;
         window.initNavbarState();
-        return syncNavbarSession();
+        
+        // Hanya sinkronkan sesi jika localStorage benar-benar menandakan ada sesi login
+        if (localStorage.getItem("user") || localStorage.getItem("role") || localStorage.getItem("admin_logged_in") === "true") {
+          return syncNavbarSession();
+        }
       })
       .then(() => window.initNavbarState())
       .catch((error) => console.error("Gagal memuat navbar:", error));
@@ -77,9 +81,8 @@ document.addEventListener("DOMContentLoaded", function () {
         credentials: "include",
       });
 
-      if (response.status === 401) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
+      if (response.status === 401 || response.status === 403) {
+        clearAuthStorage();
         return;
       }
 
@@ -87,7 +90,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const result = await response.json();
       if (!result.status || !result.data || !result.role) {
-        throw new Error(result.message || "Respons sesi tidak valid.");
+        clearAuthStorage();
+        return;
       }
 
       localStorage.setItem("user", JSON.stringify(result.data));
@@ -97,11 +101,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function clearAuthStorage() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("admin_logged_in");
+    localStorage.clear();
+    sessionStorage.clear();
+  }
+
   function getAuthState() {
     const rawUser = localStorage.getItem("user");
     const rawRole = localStorage.getItem("role");
-    let user = null;
+    const adminLoggedIn = localStorage.getItem("admin_logged_in") === "true";
+    
+    // Pastikan jika storage kosong, status login dipastikan false
+    if (!rawUser && !rawRole && !adminLoggedIn) {
+      return { user: null, role: "", isLoggedIn: false };
+    }
 
+    let user = null;
     if (rawUser && rawUser !== "null" && rawUser !== "undefined") {
       try {
         const parsedUser = JSON.parse(rawUser);
@@ -112,10 +130,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const role = rawRole && rawRole !== "null" && rawRole !== "undefined" ? rawRole : "";
-    return { user, role, isLoggedIn: Boolean(user || role) };
+    const isLoggedIn = Boolean(user || role || adminLoggedIn);
+    return { user, role, isLoggedIn };
   }
 
-  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL LOGOUT
+  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL (BERANDA & MASUK)
   window.initNavbarState = function () {
     const { user, role, isLoggedIn } = getAuthState();
     console.info("[Auth System] Navbar status", {
@@ -131,21 +150,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isLoggedIn) {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "none", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
-      if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Pengguna";
+      if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
       if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
     } else {
+      // Jika belum login, tampilkan elemen guest (Beranda & Masuk) dan sembunyikan profil user/admin
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
     }
-
-    if (user) {
-      console.info("[Auth System] Status: User Terautentikasi");
-    } else {
-      console.log("[Auth System] Status: Belum ada sesi login (Guest).");
-    }
   };
 
-  // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
+  // 4. EVENT DELEGATION KLIK NAVBAR
   document.addEventListener("click", function (event) {
     const navMenuToggle = event.target.closest("#navMenuToggle");
     const navDropdownMenu = document.getElementById("navDropdownMenu");
@@ -156,7 +170,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const { isLoggedIn } = getAuthState();
 
-    // Toggle Dropdown Menu
     if (navMenuToggle) {
       event.preventDefault();
       event.stopPropagation();
@@ -170,7 +183,6 @@ document.addEventListener("DOMContentLoaded", function () {
       navDropdownMenu.classList.remove("show");
     }
 
-    // Proteksi Navigasi Halaman Profil
     if (profileButton) {
       if (!isLoggedIn) {
         event.preventDefault();
@@ -179,19 +191,14 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
     if (savedButton) {
       if (!isLoggedIn) {
-        // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
         event.preventDefault();
         window.location.href = "login.html";
       }
-      // Jika SUDAH LOGIN, biarkan kosong!
-      // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
       return;
     }
 
-    // Proteksi Navigasi Halaman Reviews
     if (reviewButton) {
       event.preventDefault();
       if (!isLoggedIn) {
@@ -260,14 +267,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Fungsi Eksekusi Hapus Sesi Logout
+  // Fungsi Eksekusi Hapus Sesi Logout secara Menyeluruh
   function executeLogout() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    localStorage.clear();
+    clearAuthStorage();
 
     fetch(AUTH_API_BASE + "/logout.php", {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     })

@@ -39,12 +39,12 @@
             <h1 style="margin: 0; font-size: 1.5rem;">Tambah Kuliner</h1>
           </div>
 
-          <form id="addCulinaryForm" class="add-culinary-form">
+          <form id="addCulinaryForm" class="add-culinary-form" novalidate>
             <div class="photo-field">
               <input id="culinaryPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden required />
               <button id="photoPicker" class="photo-picker" type="button" aria-label="Pilih foto kuliner">
                 <span id="photoPlaceholder" class="photo-placeholder">
-                  <iconify-icon icon="lucide:image-plus" aria-hidden="true"></iconify-icon>
+                  <iconify-icon icon="fluent-mdl2:photo-2-add" aria-hidden="true"></iconify-icon>
                   <span>Tambah Foto Kuliner</span>
                 </span>
                 <img id="photoPreview" class="photo-preview" alt="Pratinjau foto kuliner" hidden />
@@ -53,27 +53,36 @@
               <button id="removePhoto" class="remove-photo" type="button" hidden>Hapus foto</button>
             </div>
 
+            <!-- Banner Peringatan Validasi (Muncul di bawah foto) -->
+            <div id="formAlertBanner" class="form-alert-banner" hidden>
+              <iconify-icon icon="lucide:alert-circle" aria-hidden="true"></iconify-icon>
+              <span id="formAlertMessage">Pesan peringatan...</span>
+            </div>
+
             <div class="form-grid">
+              <!-- Kolom Kiri -->
               <div class="form-field">
                 <label for="namaKuliner">Nama Kuliner <span>*</span></label>
                 <input id="namaKuliner" name="nama_kuliner" type="text" placeholder="Masukan nama kuliner" required />
               </div>
+              <!-- Kolom Kanan -->
+              <div class="form-field">
+                <label for="latitude">Latitude <span>*</span></label>
+                <input id="latitude" name="latitude" type="number" step="0.000001" min="-90" max="90" placeholder="Masukan latitude" required />
+              </div>
+
+              <!-- Kolom Kiri -->
               <div class="form-field">
                 <label for="harga">Harga Kuliner <span>*</span></label>
                 <input id="harga" name="harga" type="number" min="0" placeholder="Masukan harga kuliner" required />
               </div>
+              <!-- Kolom Kanan -->
               <div class="form-field">
-                <label for="deskripsi">Deskripsi Kuliner <span>*</span></label>
-                <textarea id="deskripsi" name="deskripsi" rows="2" placeholder="Masukan deskripsi singkat kuliner" required></textarea>
+                <label for="longitude">Longitude <span>*</span></label>
+                <input id="longitude" name="longitude" type="number" step="0.000001" min="-180" max="180" placeholder="Masukan longitude" required />
               </div>
-              <div class="form-field">
-                <label>Jam Operasional</label>
-                <div class="operating-hours">
-                  <input id="jamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
-                  <span>sampai</span>
-                  <input id="jamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
-                </div>
-              </div>
+
+              <!-- Kolom Kiri -->
               <div class="form-field">
                 <label for="kategori">Kategori Kuliner <span>*</span></label>
                 <select id="kategori" name="kategori" required>
@@ -83,32 +92,38 @@
                   <option value="Cemilan">Cemilan</option>
                 </select>
               </div>
+              <!-- Kolom Kanan -->
+              <div class="form-field">
+                <label>Jam Operasional</label>
+                <div class="operating-hours">
+                  <input id="jamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
+                  <span>sampai</span>
+                  <input id="jamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
+                </div>
+              </div>
+
+              <!-- Kolom Kiri -->
+              <div class="form-field">
+                <label for="alamat">Alamat Kuliner <span>*</span></label>
+                <input id="alamat" name="alamat" type="text" placeholder="Masukan alamat kuliner" required />
+              </div>
+              <!-- Kolom Kanan -->
               <div class="form-field">
                 <label for="telepon">Nomor Telepon</label>
                 <input id="telepon" name="no_telepon" type="tel" placeholder="Masukan nomor telepon" />
               </div>
-              <div class="form-field form-field-wide">
-                <label for="alamat">Alamat Kuliner</label>
-                <input id="alamat" name="alamat" type="text" placeholder="Masukan alamat kuliner" />
-              </div>
 
-              <!-- Latitude & Longitude (wajib) -->
-              <div class="form-grid" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-field">
-                  <label for="latitude">Latitude *</label>
-                  <input id="latitude" name="latitude" type="number" step="0.000001" min="-90" max="90" placeholder="-6.7321" required />
-                </div>
-                <div class="form-field">
-                  <label for="longitude">Longitude *</label>
-                  <input id="longitude" name="longitude" type="number" step="0.000001" min="-180" max="180" placeholder="108.5521" required />
-                </div>
+              <!-- Deskripsi Kuliner (Melebar penuh ke bawah menutupi ruang kosong) -->
+              <div class="form-field form-field-wide" style="grid-column: span 2;">
+                <label for="deskripsi">Deskripsi Kuliner <span>*</span></label>
+                <textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Masukan deskripsi singkat kuliner" required></textarea>
               </div>
             </div>
-
+            
             <p id="formMessage" class="form-message" role="status" aria-live="polite" hidden></p>
             <div class="form-actions">
               <a class="button button-cancel" href="daftar_kuliner_admin.html">Batal</a>
-              <button class="button button-primary" type="submit">Simpan Kuliner</button>
+              <button class="button button-primary" type="submit">Simpan</button>
             </div>
           </form>
         </main>
