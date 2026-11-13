@@ -1,49 +1,71 @@
+/* Container Utama Tambah Kuliner */
 .add-culinary-content {
-  max-width: 1080px;
+  width: 100%;
+  max-width: 100% !important;
+  padding: 24px 32px;
 }
 
 .add-culinary-content > h1 {
-  margin-bottom: 22px;
-  font-size: 24px;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .add-culinary-form {
   display: grid;
-  max-width: 800px;
-  margin: 0 auto;
-  gap: 22px;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  gap: 20px;
 }
 
+/* Bagian Upload Foto */
 .photo-field {
   display: grid;
   justify-items: center;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 .photo-picker {
   display: grid;
-  width: min(100%, 328px);
-  min-height: 132px;
+  width: min(100%, 420px);
+  height: 200px;
   place-items: center;
   overflow: hidden;
   padding: 14px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 16px;
   background: #ededed;
   color: #141414;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .photo-picker:hover {
   background: #e4e8f5;
 }
 
+/* Menghilangkan background abu-abu dan padding saat foto sudah terisi */
+.photo-picker:has(#photoPreview:not([hidden])) {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Border merah saat foto wajib belum diisi */
+.photo-picker.input-error {
+  border: 2px solid #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
 .photo-picker:focus-visible,
 .remove-photo:focus-visible,
-.form-actions .button:focus-visible,
-.back-link:focus-visible {
-  outline: 3px solid #6b8cf5;
-  outline-offset: 3px;
+.button-cancel:focus-visible,
+.button-primary:focus-visible {
+  outline: 2px solid #001b7d;
+  outline-offset: 2px;
 }
 
 .photo-placeholder {
@@ -51,6 +73,7 @@
   justify-items: center;
   gap: 8px;
   font-size: 15px;
+  font-weight: 500;
 }
 
 .photo-placeholder iconify-icon {
@@ -59,13 +82,14 @@
 
 .photo-preview {
   width: 100%;
-  height: 190px;
+  height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+  display: block;
+  border-radius: 16px;
 }
 
 .photo-help {
-  color: #788294;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -73,16 +97,53 @@
   padding: 4px 8px;
   border: 0;
   background: transparent;
-  color: #b42318;
+  color: #ef4444;
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
+.remove-photo:hover {
+  text-decoration: underline;
+}
+
+/* Banner Peringatan Validasi */
+.form-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ef4444 !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.form-alert-banner[hidden] {
+  display: none !important;
+}
+
+.form-alert-banner iconify-icon {
+  font-size: 1.4rem;
+  color: #ef4444 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.form-alert-banner span {
+  color: #ef4444 !important;
+}
+
+/* Layout Grid Form 2 Kolom Seimbang */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 28px;
+  gap: 18px 30px;
+  width: 100%;
 }
 
 .form-field {
@@ -93,63 +154,95 @@
 }
 
 .form-field > label {
-  color: #242424;
-  font-size: 14px;
-  font-weight: 500;
+  color: #0f172a;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .form-field > label span {
-  color: #e34b4b;
+  color: #ef4444;
 }
 
+/* Styling Input, Select, Textarea */
 .form-field input,
 .form-field select,
 .form-field textarea {
   width: 100%;
-  min-height: 42px;
-  padding: 10px 16px;
-  border: 1px solid #d5d5d5;
+  min-height: 46px;
+  padding: 11px 18px;
+  border: 1px solid #cbd5e1;
   border-radius: 24px;
-  background: #fff;
-  color: #202020;
+  background: #ffffff;
+  color: #0f172a;
   font: inherit;
-  font-size: 14px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
 }
 
 .form-field textarea {
-  min-height: 42px;
+  min-height: 84px;
+  border-radius: 16px;
   resize: vertical;
 }
 
+/* Efek Hover & Focus Biru Primary */
+.form-field input:hover,
+.form-field select:hover,
+.form-field textarea:hover,
 .form-field input:focus,
 .form-field select:focus,
 .form-field textarea:focus {
-  border-color: #397ee8;
-  outline: 2px solid rgb(57 126 232 / 18%);
+  border-color: #001b7d !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
+/* Border Merah Terang saat Input Error */
+.form-field input.input-error,
+.form-field textarea.input-error,
+.form-field select.input-error {
+  border: 1.5px solid #ef4444 !important;
+  background-color: #ffffff;
+  outline: none;
+}
+
+/* Menghilangkan Panah Spinner (Tambah/Kurang) di Input Number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Input Jam Operasional */
 .operating-hours {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.operating-hours input {
+.operating-hours input[type="time"] {
+  flex: 1;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 11px 16px;
+  border-radius: 24px;
 }
 
 .operating-hours span {
   flex: 0 0 auto;
-  color: #788294;
-  font-size: 12px;
+  color: #475569;
+  font-size: 0.9rem;
 }
 
 .form-field-wide {
   grid-column: 1 / -1;
 }
 
+/* Pesan Status Form */
 .form-message {
   margin: 0;
   padding: 12px 16px;
@@ -159,60 +252,59 @@
   font-size: 13px;
 }
 
+/* Tombol Aksi Batal & Simpan */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-}
-
-.form-actions .button {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .button-cancel {
-  background: #eef0f4;
-  color: #384152;
+  background-color: #ffffff !important;
+  color: #001b7d !important;
+  border: 1px solid #001b7d !important;
+  padding: 10px 28px;
+  min-height: 42px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-cancel:hover {
+  background-color: #f8fafc !important;
 }
 
 .button-primary {
-  background: #001b7d;
-  color: #fff;
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  border: 1px solid #001b7d !important;
+  padding: 10px 28px;
+  min-height: 42px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button-primary:hover {
-  background: #092caa;
+  background-color: #00145c !important;
 }
 
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #4b5565;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.back-link iconify-icon {
-  font-size: 20px;
-}
-
-@media (max-width: 700px) {
+/* Responsif Layar Kecil */
+@media (max-width: 768px) {
   .add-culinary-content {
-    padding: 28px 18px 36px;
-  }
-
-  .add-culinary-content > h1 {
-    font-size: 22px;
+    padding: 20px 16px;
   }
 
   .form-grid {
@@ -224,8 +316,13 @@
     grid-column: auto;
   }
 
-  .form-actions .button {
+  .form-actions {
+    width: 100%;
+  }
+
+  .button-cancel,
+  .button-primary {
     flex: 1;
-    padding: 0 12px;
+    padding: 10px 16px;
   }
 }

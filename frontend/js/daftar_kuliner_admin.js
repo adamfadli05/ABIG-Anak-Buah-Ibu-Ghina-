@@ -51,6 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let pendingDeleteId = null;
   let deleteInProgress = false;
 
+  // --- DINAMIS BASE URL (TIDAK HARDCODE) ---
+  // Menyesuaikan otomatis apakah berjalan di root atau subfolder
+  const getApiUrl = (endpoint) => {
+    // Jika path admin berada di /frontend/admin/, naik dua tingkat ke root lalu ke backend/api/admin/
+    // Atau gunakan relative path yang aman
+    return `../backend/api/admin/${endpoint}`;
+  };
+
   async function fetchKulinerData() {
     if (tableLoading) tableLoading.hidden = false;
     if (tableError) tableError.hidden = true;
@@ -58,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableEmpty) tableEmpty.hidden = true;
 
     try {
-      const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php", {
+      const response = await fetch(getApiUrl("kuliner.php"), {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -81,10 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Mengambil opsi kategori untuk dropdown form edit
+  // Mengambil opsi kategori untuk dropdown form edit (Tanpa Hardcode)
   async function fetchKategoriOptions(selectedCategoryId = "") {
     try {
-      const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kategori.php", {
+      const response = await fetch(getApiUrl("kategori.php"), {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -276,13 +284,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Fungsi pembantu untuk mengambil URL foto yang konsisten
   function editPhotoPreviewUrlOrExisting() {
     const previewImg = document.getElementById("editPhotoPreview");
     return previewImg && previewImg.src && !previewImg.src.startsWith("data:") ? previewImg.src : null;
   }
 
-  // Submit Form Edit & Validasi Sesuai Figma
+  // Submit Form Edit & Validasi
   if (editCulinaryForm) {
     editCulinaryForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -309,7 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const alamat = alamatInput.value.trim();
       const deskripsi = descInput.value.trim();
 
-      // 1. Validasi Kolom Wajib Kosong
       if (!nama || !latitudeVal || !hargaVal || !longitudeVal || !kategori || !alamat || !deskripsi) {
         if (!nama) namaInput.classList.add("input-error");
         if (!latitudeVal) latInput.classList.add("input-error");
@@ -324,8 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 2. Validasi Harga
-      // Validasi Harga
       const cleanHarga = hargaVal.replace(/\./g, "").replace(/,/g, ".");
       if (isNaN(cleanHarga) || Number(cleanHarga) <= 0) {
         hargaInput.classList.add("input-error");
@@ -335,10 +339,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Pastikan harga dikirim sebagai angka murni (integer) ke database
       const finalHarga = parseInt(cleanHarga, 10);
 
-      // Validasi Latitude khusus wilayah operasional (Contoh: area Cirebon & sekitarnya)
       const latRaw = latInput.value.trim();
       const latNum = Number(latRaw);
       
@@ -350,7 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Validasi Longitude khusus wilayah operasional
       const lonRaw = lonInput.value.trim();
       const lonNum = Number(lonRaw);
 
@@ -362,8 +363,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-
-      // 5. Validasi Panjang Deskripsi Maksimal 300 Karakter
       if (deskripsi.length > 300) {
         descInput.classList.add("input-error");
         if (alertMessage) alertMessage.textContent = "Deskripsi kuliner melebihi batas maksimal 300 karakter.";
@@ -386,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alamat: alamat,
         latitude: latitudeVal,
         longitude: longitudeVal,
-        harga: cleanHarga,
+        harga: finalHarga,
         jam_operasional: jamOperasionalVal,
         no_telepon: document.getElementById("editNoTelepon").value || null,
         photo_url: editPhotoPreviewUrlOrExisting(),
@@ -399,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const response = await fetch(`/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php?id=${encodeURIComponent(id)}`, {
+        const response = await fetch(`${getApiUrl("kuliner.php")}?id=${encodeURIComponent(id)}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -447,7 +446,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Event Listener Modal Sukses
   if (closeSuccessEditBtn) {
     closeSuccessEditBtn.addEventListener("click", () => {
       if (successEditModal) successEditModal.hidden = true;
@@ -474,12 +472,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getFilteredCulinaryData() {
-    const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    const rawKeyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    if (!rawKeyword) return culinaryData;
+
+    const keywords = rawKeyword.split(/\s+/);
+
     return culinaryData.filter((item) => {
       const name = (item.nama_kuliner || item.name || "").toLowerCase();
       const category = (item.nama_kategori || item.kategori || "").toLowerCase();
       const address = (item.alamat || item.address || "").toLowerCase();
-      return name.includes(keyword) || category.includes(keyword) || address.includes(keyword);
+      
+      const combinedText = `${name} ${category} ${address}`;
+      return keywords.every((kw) => combinedText.includes(kw));
     });
   }
 
@@ -509,7 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showDeleteState("progress");
 
     try {
-      const response = await fetch(`/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php?id=${encodeURIComponent(pendingDeleteId)}`, {
+      const response = await fetch(`${getApiUrl("kuliner.php")}?id=${encodeURIComponent(pendingDeleteId)}`, {
         method: "DELETE",
         headers: { Accept: "application/json" },
         credentials: "include",
