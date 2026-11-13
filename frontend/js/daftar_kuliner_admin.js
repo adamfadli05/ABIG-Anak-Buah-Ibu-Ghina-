@@ -1,10 +1,50 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Bypass tampilan auth di local
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
+
+  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+    
+    // Jika di local/storage sudah ada role admin, langsung buka aplikasi tanpa loading screen
+    if (rawRole === "admin") {
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
+      return;
+    }
+
+    // Jika belum ada data lokal, lakukan verifikasi senyap ke server
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/me.php`, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+      
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      // Jika gagal/terputus, arahkan kembali ke halaman utama atau login
+      window.location.replace("index.html");
+    }
+  }
+
+  // Bypass tampilan auth di local / elemen penampung
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
-
-  if (authState) authState.hidden = true;
-  if (adminApp) adminApp.hidden = false;
 
   const contentHeaderFlex = document.querySelector(".content-header-flex");
   const searchToolbar = document.querySelector(".search-toolbar");
@@ -52,10 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let deleteInProgress = false;
 
   // --- DINAMIS BASE URL (TIDAK HARDCODE) ---
-  // Menyesuaikan otomatis apakah berjalan di root atau subfolder
   const getApiUrl = (endpoint) => {
-    // Jika path admin berada di /frontend/admin/, naik dua tingkat ke root lalu ke backend/api/admin/
-    // Atau gunakan relative path yang aman
     return `../backend/api/admin/${endpoint}`;
   };
 
@@ -560,5 +597,11 @@ document.addEventListener("DOMContentLoaded", () => {
     tableRetryButton.addEventListener("click", fetchKulinerData);
   }
 
-  fetchKulinerData();
+  // Fungsi Inisialisasi Utama Aplikasi Kuliner Admin
+  function initAdminApp() {
+    fetchKulinerData();
+  }
+
+  // Jalankan pemeriksaan akses secara senyap saat halaman dimuat
+  checkAdminAccessSilent();
 });

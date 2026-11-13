@@ -38,23 +38,16 @@
     return result;
   }
 
+  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) TANPA LOADING SCREEN ---
   async function checkAdminAccess() {
-    // Jika sudah pernah terverifikasi sebagai admin di session/local storage
-    const cachedRole = localStorage.getItem("role");
-    if (cachedRole === "admin") {
-      authState.hidden = true;
-      adminApp.hidden = false;
-      loadDashboardSummary();
-      return;
-    }
+    // Langsung tampilkan panel admin terlebih dahulu agar tidak ada jeda loading
+    if (authState) authState.hidden = true;
+    if (adminApp) adminApp.hidden = false;
+    
+    // Muat data dashboard langsung
+    loadDashboardSummary();
 
-    authRetryButton.hidden = true;
-    if (authErrorIcon) authErrorIcon.hidden = true;
-    if (authOfflineIcon) authOfflineIcon.toggleAttribute("hidden", true);
-    if (authIconify) authIconify.hidden = false;
-    authTitle.textContent = "Memeriksa akses Admin...";
-    authMessage.textContent = "Mohon tunggu sebentar.";
-
+    // Validasi sesi ke server di latar belakang secara senyap
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
 
@@ -71,9 +64,6 @@
 
       localStorage.setItem("user", JSON.stringify(result.data || {}));
       localStorage.setItem("role", result.role);
-      authState.hidden = true;
-      adminApp.hidden = false;
-      await loadDashboardSummary();
     } catch (error) {
       if (error.status === 401) {
         localStorage.removeItem("user");
@@ -83,17 +73,8 @@
         return;
       }
 
-      const isOffline = !navigator.onLine || error instanceof TypeError;
-
-      authTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Validasi halaman gagal dilakukan";
-      authMessage.textContent = isOffline
-        ? "Periksa kembali jaringan internet Anda dan silakan muat ulang halaman."
-        : error.message || "Gagal memeriksa akses Admin.";
-      if (authIconify) authIconify.hidden = isOffline;
-      if (authOfflineIcon) authOfflineIcon.toggleAttribute("hidden", !isOffline);
-      if (authErrorIcon) authErrorIcon.hidden = false;
-      authRetryLabel.textContent = isOffline ? "Muat Ulang" : "Coba lagi";
-      authRetryButton.hidden = false;
+      // Jika terjadi error selain 401 (misal offline), biarkan dashboard tetap berjalan atau tangani sesuai kondisi
+      console.error("Validasi sesi senyap gagal:", error);
     }
   }
 
@@ -186,7 +167,6 @@
 
       // 2. Langsung sinkronkan angka ke elemen ringkasan di dashboard
       if (totalCulinary) {
-        // Gunakan total_tempat (jumlah kuliner yang dikelola & ditampilkan di daftar kuliner)
         const culinaryCount = data.total_tempat !== undefined && data.total_tempat !== null
           ? data.total_tempat
           : data.total_kuliner;
