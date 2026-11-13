@@ -585,7 +585,38 @@ tbody tr:hover {
 }
 
 .delete-icon-error {
+  width: 32px;
+  height: 32px;
   background: #e83d32;
+  font-size: 20px;
+}
+
+.delete-result-state {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.delete-result-state[hidden] {
+  display: none !important;
+}
+
+.delete-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #d8d8d8;
+  border-top-color: #777;
+  border-right-color: #777;
+  border-radius: 50%;
+  animation: delete-spinner-rotation 0.8s linear infinite;
+}
+
+@keyframes delete-spinner-rotation {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .delete-success-state {
@@ -601,7 +632,23 @@ tbody tr:hover {
 }
 
 .delete-success-state .delete-link-button {
-  justify-self: center;
+  justify-self: end;
+}
+
+.delete-error-state {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.delete-error-state[hidden] {
+  display: none !important;
+}
+
+.delete-error-state .delete-link-button {
+  justify-self: end;
 }
 
 .delete-link-button {
