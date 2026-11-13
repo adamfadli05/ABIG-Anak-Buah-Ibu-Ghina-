@@ -54,14 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function redirectForAccessError(error) {
     if (error.status === 401) {
-      localStorage.removeItem("user");
-      localStorage.removeItem("role");
+      clearAuthStorage();
       const returnTo = encodeURIComponent("pengguna_admin.html");
       window.location.replace(`login.html?returnTo=${returnTo}`);
       return true;
     }
 
     if (error.status === 403) {
+      clearAuthStorage();
       window.location.replace("index.html");
       return true;
     }
@@ -69,32 +69,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
-  async function checkAdminAccess() {
-    // Jika sudah pernah terverifikasi sebagai admin di session/local storage
-    const cachedRole = localStorage.getItem("role");
-    if (cachedRole === "admin") {
-      authState.hidden = true;
-      adminApp.hidden = false;
-      loadUsers();
-      return;
-    }
+  function clearAuthStorage() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("admin_logged_in");
+    sessionStorage.clear();
+  }
 
+  async function checkAdminAccess() {
+    adminApp.hidden = true;
+    authState.hidden = false;
     authRetryButton.hidden = true;
     authTitle.textContent = "Memeriksa akses Admin...";
     authMessage.textContent = "Mohon tunggu sebentar.";
 
-    if (!navigator.onLine) {
-      // Jika sejak awal sudah offline, tampilkan dashboard dengan panel offline sesuai Figma
-      authState.hidden = true;
-      adminApp.hidden = false;
-      showOfflineState();
-      return;
-    }
-
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
       if (result.role !== "admin") {
-        localStorage.removeItem("user");
+        localStorage.setItem("user", JSON.stringify(result.data || {}));
         localStorage.setItem("role", result.role);
         window.location.replace("index.html");
         return;
@@ -248,10 +240,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showOfflineState();
   });
 
-  window.addEventListener("online", () => {
-    loadUsers();
-  });
-
   searchInput.addEventListener("input", renderUsers);
   retryButton.addEventListener("click", loadUsers);
   authRetryButton.addEventListener("click", checkAdminAccess);
@@ -262,6 +250,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches ||
       adminApp.classList.contains("sidebar-collapsed");
+  });
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) checkAdminAccess();
   });
 
   checkAdminAccess();

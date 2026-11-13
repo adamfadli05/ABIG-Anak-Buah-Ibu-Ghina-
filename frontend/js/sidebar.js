@@ -108,27 +108,32 @@ function initLogoutHandler() {
   async function executeLogout() {
     showState({ confirm: false, progress: true, success: false, error: false });
     const API_BASE_URL = window.BASE_URL || window.location.origin;
+    if (confirmBtn) confirmBtn.disabled = true;
+    if (retryBtn) retryBtn.disabled = true;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/logout.php`, {
+      const response = await fetch(`${API_BASE_URL}/logout.php`, {
         method: "POST",
         headers: { "Accept": "application/json" },
         credentials: "include"
       });
 
-      // Hapus juga penanda sesi lokal jika ada (localStorage/sessionStorage)
+      const result = await response.json();
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Gagal melakukan proses keluar dari server.");
+      }
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
       localStorage.removeItem("admin_logged_in");
       sessionStorage.clear();
-
-      if (response.ok) {
-        showState({ confirm: false, progress: false, success: true, error: false });
-      } else {
-        throw new Error("Gagal melakukan proses keluar dari server.");
-      }
+      showState({ confirm: false, progress: false, success: true, error: false });
     } catch (error) {
       console.error("Logout error:", error);
-      // Tetap lanjutkan ke sukses agar user bisa kembali ke index.html
-      showState({ confirm: false, progress: false, success: true, error: false });
+      showState({ confirm: false, progress: false, success: false, error: true });
+    } finally {
+      if (confirmBtn) confirmBtn.disabled = false;
+      if (retryBtn) retryBtn.disabled = false;
     }
   }
 
@@ -152,3 +157,14 @@ function initLogoutHandler() {
     });
   }
 }
+
+window.addEventListener("storage", (event) => {
+  const authWasRemoved = event.key === null ||
+    (["user", "role", "admin_logged_in"].includes(event.key) && event.newValue === null) ||
+    (event.key === "role" && event.newValue !== "admin");
+  if (!authWasRemoved) return;
+  if (localStorage.getItem("role") === "admin" && localStorage.getItem("user")) return;
+
+  const currentPage = window.location.pathname.split("/").pop() || "Dashboard_Admin.html";
+  window.location.replace(`login.html?returnTo=${encodeURIComponent(currentPage)}`);
+});

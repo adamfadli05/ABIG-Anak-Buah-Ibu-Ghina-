@@ -1,5 +1,5 @@
 const PROFILE_API_BASE = window.PROFILE_API_BASE || window.BASE_URL || window.location.origin;
-const OFFLINE_ERROR = "Periksa koneksi internet anda.";
+const OFFLINE_ERROR = "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi.";
 const SERVER_CONNECTION_ERROR = "Server profil tidak dapat dihubungi. Pastikan Apache dan backend berjalan, lalu coba lagi.";
 
 // Fallback UUID generator — crypto.randomUUID() hanya tersedia di HTTPS/localhost
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("removePhotoButton").addEventListener("click", removeProfilePhoto);
   document.getElementById("cancelRemovePhotoButton").addEventListener("click", closeRemovePhotoModal);
   document.getElementById("confirmRemovePhotoButton").addEventListener("click", confirmRemovePhoto);
-  document.getElementById("finishRemovePhotoButton").addEventListener("click", closeRemovePhotoModal);
+  document.getElementById("finishRemovePhotoButton").addEventListener("click", finishRemovePhoto);
   document.getElementById("photoFileInput").addEventListener("change", handlePhotoFileSelection);
   document.getElementById("togglePasswordButton").addEventListener("click", togglePasswordEditor);
   document.getElementById("cancelPasswordEdit").addEventListener("click", closePasswordEditor);
@@ -146,12 +146,17 @@ async function saveName(event) {
   const nameLength = Array.from(name).length;
 
   if (!/\p{L}/u.test(name)) {
-    showNameValidation(message, "Nama pengguna tidak valid");
+    showNameValidation(message, "Username harus mengandung minimal satu huruf dan tidak boleh kosong atau hanya berisi spasi.");
     input.focus();
     return;
   }
-  if (nameLength < 2 || nameLength > 100) {
-    showNameValidation(message, "Nama pengguna tidak valid");
+  if (nameLength < 2) {
+    showNameValidation(message, "Username minimal 2 karakter.");
+    input.focus();
+    return;
+  }
+  if (nameLength > 100) {
+    showNameValidation(message, "Username maksimal 100 karakter.");
     input.focus();
     return;
   }
@@ -205,13 +210,13 @@ async function changePassword(event) {
     newPassword.focus();
     return;
   }
-  if (newPassword.value.length < 8) {
+  if (Array.from(newPassword.value).length < 8) {
     setPasswordFieldError("newPassword", "Kata sandi baru minimal 8 karakter.");
     newPassword.focus();
     return;
   }
   if (newPassword.value !== confirmPassword.value) {
-    setPasswordFieldError("confirmPassword", "Konfirmasi sandi tidak cocok.");
+    setPasswordFieldError("confirmPassword", "Konfirmasi kata sandi tidak cocok.");
     confirmPassword.focus();
     return;
   }
@@ -261,30 +266,44 @@ async function logout() {
   document.getElementById("cancelLogoutButton").disabled = true;
   error.hidden = true;
 
-  // Clear localStorage dulu — logout di sisi client selalu berhasil
-  localStorage.clear();
-
-  // Coba destroy session di backend (best-effort, tidak block logout)
   try {
-    await fetch(`${PROFILE_API_BASE}/logout.php`, {
+    const response = await fetch(`${PROFILE_API_BASE}/logout.php`, {
       method: "GET",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     });
-  } catch (_) {
-    // Abaikan error jaringan — session di server akan expired sendiri
-  }
+    const result = await response.json();
+    if (!response.ok || !result.status) {
+      throw new Error(result.message || "Gagal mengakhiri sesi. Silakan coba lagi.");
+    }
 
-  document.getElementById("logoutConfirmDialog").hidden = true;
-  document.getElementById("logoutSuccessDialog").hidden = false;
-  document.getElementById("finishLogoutButton").focus();
+    localStorage.clear();
+    sessionStorage.clear();
+    document.getElementById("logoutConfirmDialog").hidden = true;
+    document.getElementById("logoutSuccessDialog").hidden = false;
+    document.getElementById("finishLogoutButton").focus();
+  } catch (logoutError) {
+    error.textContent = !navigator.onLine
+      ? "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi."
+      : getRequestErrorMessage(logoutError, "Gagal mengakhiri sesi. Silakan coba lagi.");
+    error.hidden = false;
+    button.textContent = "Coba lagi";
+    button.focus();
+  } finally {
+    button.disabled = false;
+    document.getElementById("cancelLogoutButton").disabled = false;
+  }
 }
 
 function openLogoutConfirmation() {
   const modal = document.getElementById("logoutModal");
+  const confirmButton = document.getElementById("confirmLogoutButton");
   document.getElementById("logoutConfirmDialog").hidden = false;
   document.getElementById("logoutSuccessDialog").hidden = true;
   document.getElementById("logoutErrorMessage").hidden = true;
+  confirmButton.textContent = "OKE";
+  confirmButton.disabled = false;
+  document.getElementById("cancelLogoutButton").disabled = false;
   modal.hidden = false;
   document.getElementById("cancelLogoutButton").focus();
 }
@@ -515,6 +534,7 @@ async function handlePhotoFileSelection(event) {
   document.getElementById("editPhotoButton").disabled = true;
   document.getElementById("removePhotoButton").disabled = true;
   message.hidden = true;
+
   try {
     const supabaseConfig = window.SUPABASE_CONFIG;
     if (!window.supabase) {
@@ -557,30 +577,58 @@ async function handlePhotoFileSelection(event) {
 
 async function removeProfilePhoto() {
   closePhotoMenu();
-  // Tampilkan modal konfirmasi
+  openRemovePhotoModal();
+}
+
+function openRemovePhotoModal() {
   const modal = document.getElementById("removePhotoModal");
-  document.getElementById("removePhotoConfirmDialog").hidden = false;
-  document.getElementById("removePhotoResultDialog").hidden = true;
+  const confirmDialog = document.getElementById("removePhotoConfirmDialog");
+  const resultDialog = document.getElementById("removePhotoResultDialog");
+  const confirmButton = document.getElementById("confirmRemovePhotoButton");
+  const resultButton = document.getElementById("finishRemovePhotoButton");
+  const resultSub = document.getElementById("removePhotoResultSub");
+
+  document.getElementById("removePhotoConfirmMessage").textContent =
+    "Apakah Anda yakin ingin menghapus foto profil?";
+  confirmButton.textContent = "OKE";
+  confirmButton.disabled = false;
+  document.getElementById("cancelRemovePhotoButton").disabled = false;
+  resultButton.textContent = "Oke";
+  resultButton.disabled = false;
+  resultSub.textContent = "";
+  resultSub.hidden = true;
   modal.hidden = false;
+  delete modal.dataset.success;
+  confirmDialog.hidden = false;
+  resultDialog.hidden = true;
   document.getElementById("cancelRemovePhotoButton").focus();
 }
 
 function closeRemovePhotoModal() {
-  document.getElementById("removePhotoModal").hidden = true;
+  const modal = document.getElementById("removePhotoModal");
+  modal.hidden = true;
+  delete modal.dataset.success;
   document.getElementById("removePhotoConfirmDialog").hidden = true;
   document.getElementById("removePhotoResultDialog").hidden = true;
+  document.getElementById("editPhotoButton").focus();
 }
 
 async function confirmRemovePhoto() {
+  if (isProfilePhotoUploading) return;
+
   const confirmBtn = document.getElementById("confirmRemovePhotoButton");
   const cancelBtn = document.getElementById("cancelRemovePhotoButton");
+  const resultBtn = document.getElementById("finishRemovePhotoButton");
+  const editButton = document.getElementById("editPhotoButton");
+  const removeButton = document.getElementById("removePhotoButton");
+  isProfilePhotoUploading = true;
   confirmBtn.disabled = true;
   cancelBtn.disabled = true;
+  resultBtn.disabled = true;
+  editButton.disabled = true;
+  removeButton.disabled = true;
 
   try {
-    const button = document.getElementById("removePhotoButton");
-    button.disabled = true;
-
     const response = await fetch(`${PROFILE_API_BASE}/api/profil.php`, {
       method: "PUT",
       credentials: "include",
@@ -593,40 +641,45 @@ async function confirmRemovePhoto() {
     }
 
     renderProfile(result.data);
-
-    // Tampilkan dialog sukses
-    const icon = document.getElementById("removePhotoResultIcon");
-    const msg = document.getElementById("removePhotoResultMessage");
-    const sub = document.getElementById("removePhotoResultSub");
-    icon.className = "fa-solid fa-circle-check logout-success-icon";
-    icon.style.color = "";
-    msg.textContent = "Foto profil berhasil dihapus";
-    sub.hidden = true;
-    document.getElementById("removePhotoConfirmDialog").hidden = true;
-    document.getElementById("removePhotoResultDialog").hidden = false;
-    document.getElementById("finishRemovePhotoButton").focus();
-    button.disabled = false;
-
-  } catch (err) {
-    // Tampilkan dialog gagal
-    const icon = document.getElementById("removePhotoResultIcon");
-    const msg = document.getElementById("removePhotoResultMessage");
-    const sub = document.getElementById("removePhotoResultSub");
-    icon.className = "fa-solid fa-circle-xmark logout-success-icon";
-    icon.style.color = "#e53e3e";
-    msg.textContent = "Foto profil gagal dihapus";
-    sub.textContent = getRequestErrorMessage(err, "Silakan coba lagi.");
-    sub.style.marginTop = "8px";
-    sub.style.display = "block";
-    sub.hidden = false;
-    document.getElementById("removePhotoConfirmDialog").hidden = true;
-    document.getElementById("removePhotoResultDialog").hidden = false;
-    document.getElementById("finishRemovePhotoButton").focus();
-    document.getElementById("removePhotoButton").disabled = false;
+    showPhotoRemoveResult(true);
+  } catch (removeError) {
+    console.error("[Profile] Gagal menghapus foto profil:", removeError);
+    showPhotoRemoveResult(false, getRequestErrorMessage(removeError, "Silakan coba lagi."));
   } finally {
+    isProfilePhotoUploading = false;
+    editButton.disabled = false;
+    removeButton.disabled = false;
     confirmBtn.disabled = false;
     cancelBtn.disabled = false;
+    resultBtn.disabled = false;
+    if (!document.getElementById("removePhotoResultDialog").hidden) resultBtn.focus();
   }
+}
+
+function showPhotoRemoveResult(success, detail = "") {
+  const modal = document.getElementById("removePhotoModal");
+  const icon = document.getElementById("removePhotoResultIcon");
+  const message = document.getElementById("removePhotoResultMessage");
+  const sub = document.getElementById("removePhotoResultSub");
+  const actionButton = document.getElementById("finishRemovePhotoButton");
+
+  icon.className = `fa-solid ${success ? "fa-circle-check" : "fa-circle-xmark"} logout-success-icon`;
+  icon.style.color = success ? "" : "#e53e3e";
+  message.textContent = `Foto profil ${success ? "berhasil" : "gagal"} dihapus`;
+  sub.textContent = detail;
+  sub.hidden = !detail;
+  actionButton.textContent = success ? "Oke" : "Coba lagi";
+  modal.dataset.success = String(success);
+  document.getElementById("removePhotoConfirmDialog").hidden = true;
+  document.getElementById("removePhotoResultDialog").hidden = false;
+}
+
+function finishRemovePhoto() {
+  if (document.getElementById("removePhotoModal").dataset.success === "false") {
+    confirmRemovePhoto();
+    return;
+  }
+  closeRemovePhotoModal();
 }
 
 function setProfilePhoto(photoUrl) {

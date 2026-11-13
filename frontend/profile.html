@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Pengguna | Mangan Yukkk</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/profile.css?v=7" />
+  <link rel="stylesheet" href="css/profile.css?v=18" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
@@ -70,7 +70,7 @@
         <section class="profile-main" aria-labelledby="profileTitle">
           <div class="profile-summary">
             <p id="nameUpdateMessage" class="profile-toast" role="status" aria-live="polite" hidden>
-              <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Nama pengguna berhasil diubah.
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Username berhasil diperbarui.
             </p>
             <h1 id="profileTitle">Profile Saya</h1>
             <p id="nameDisplayRow" class="profile-detail-line">
@@ -95,74 +95,79 @@
           <p id="photoActionMessage" class="photo-action-message" role="status" aria-live="polite" hidden>
           </p>
 
-          <button id="togglePasswordButton" class="password-toggle-button" type="button" aria-expanded="false"
-            aria-controls="passwordForm"><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Kelola Kata Sandi
-            Anda</button>
-          <form id="passwordForm" class="profile-form password-panel" hidden novalidate>
+          <section class="password-area" aria-label="Kelola kata sandi">
+            <button id="togglePasswordButton" class="password-toggle-button" type="button" aria-expanded="false"
+              aria-controls="passwordForm"><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Kelola Kata Sandi
+              Anda</button>
+            <form id="passwordForm" class="profile-form password-panel" hidden novalidate>
             <div class="password-panel-heading"><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Kelola Kata
               Sandi Anda</div>
-            <div class="password-fields">
-              <div class="password-field-row">
-                <label class="password-field-label" for="currentPassword">Kata Sandi Lama Anda</label>
-                <div class="password-input-wrap">
-                  <div class="password-input-control">
-                    <svg class="password-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <circle cx="7.5" cy="15.5" r="5.5" stroke="currentColor" stroke-width="2.2" />
-                      <path d="m11.5 11.5 9-9m-3 3 3 3-3.5 3.5-3-3" stroke="currentColor" stroke-width="2.2"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <input id="currentPassword" name="current_password" type="password" autocomplete="current-password"
-                      placeholder="Masukkan kata sandi lama Anda" required aria-describedby="currentPasswordError" />
-                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi lama">
-                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
-                    </button>
+              <div class="password-fields">
+                <div class="password-field-row">
+                  <label class="password-field-label" for="currentPassword">Kata Sandi Lama Anda</label>
+                  <div class="password-input-wrap">
+                    <div class="password-input-control">
+                      <svg class="password-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="7.5" cy="15.5" r="5.5" stroke="currentColor" stroke-width="2.2" />
+                        <path d="m11.5 11.5 9-9m-3 3 3 3-3.5 3.5-3-3" stroke="currentColor" stroke-width="2.2"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      <input id="currentPassword" name="current_password" type="password"
+                        autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda" required
+                        aria-describedby="currentPasswordError" />
+                      <button class="password-visibility-toggle" type="button"
+                        aria-label="Tampilkan kata sandi lama">
+                        <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                      </button>
+                    </div>
+                    <span id="currentPasswordError" class="password-field-error" role="alert" hidden></span>
                   </div>
-                  <span id="currentPasswordError" class="password-field-error" role="alert" hidden></span>
+                </div>
+                <div class="password-field-row">
+                  <label class="password-field-label" for="newPassword">Ubah Kata Sandi Anda</label>
+                  <div class="password-input-wrap">
+                    <div class="password-input-control">
+                      <input id="newPassword" name="new_password" type="password" autocomplete="new-password"
+                        minlength="8" placeholder="Masukan kata sandi baru anda" required
+                        aria-describedby="passwordHint newPasswordError" />
+                      <button class="password-visibility-toggle" type="button"
+                        aria-label="Tampilkan kata sandi baru">
+                        <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                      </button>
+                    </div>
+                    <span id="passwordHint" class="password-field-hint">Minimal 8 karakter</span>
+                    <span id="newPasswordError" class="password-field-error" role="alert" hidden></span>
+                  </div>
+                </div>
+                <div class="password-field-row">
+                  <label class="password-field-label" for="confirmPassword">Konfirmasi Kata Sandi Baru</label>
+                  <div class="password-input-wrap">
+                    <div class="password-input-control">
+                      <input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password"
+                        placeholder="Masukan ulang kata sandi baru anda" required
+                        aria-describedby="confirmPasswordError" />
+                      <button class="password-visibility-toggle" type="button"
+                        aria-label="Tampilkan konfirmasi kata sandi">
+                        <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
+                      </button>
+                    </div>
+                    <span id="confirmPasswordError" class="password-field-error" role="alert" hidden></span>
+                  </div>
                 </div>
               </div>
-              <div class="password-field-row">
-                <label class="password-field-label" for="newPassword">Ubah Kata Sandi Anda</label>
-                <div class="password-input-wrap">
-                  <div class="password-input-control">
-                    <input id="newPassword" name="new_password" type="password" autocomplete="new-password"
-                      minlength="8" placeholder="Masukan kata sandi baru anda" required
-                      aria-describedby="passwordHint newPasswordError" />
-                    <button class="password-visibility-toggle" type="button" aria-label="Tampilkan kata sandi baru">
-                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
-                    </button>
-                  </div>
-                  <span id="passwordHint" class="password-field-hint">Minimal 8 karakter</span>
-                  <span id="newPasswordError" class="password-field-error" role="alert" hidden></span>
-                </div>
+              <div class="password-form-actions">
+                <button id="cancelPasswordEdit" class="password-cancel-button" type="button">Batal</button>
+                <button class="password-save-button" type="submit">Simpan</button>
               </div>
-              <div class="password-field-row">
-                <label class="password-field-label" for="confirmPassword">Konfirmasi Kata Sandi Baru</label>
-                <div class="password-input-wrap">
-                  <div class="password-input-control">
-                    <input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password"
-                      placeholder="Masukan ulang kata sandi baru anda" required
-                      aria-describedby="confirmPasswordError" />
-                    <button class="password-visibility-toggle" type="button"
-                      aria-label="Tampilkan konfirmasi kata sandi">
-                      <iconify-icon icon="codicon:eye-closed" aria-hidden="true"></iconify-icon>
-                    </button>
-                  </div>
-                  <span id="confirmPasswordError" class="password-field-error" role="alert" hidden></span>
-                </div>
-              </div>
-            </div>
-            <div class="password-form-actions">
-              <button id="cancelPasswordEdit" class="password-cancel-button" type="button">Batal</button>
-              <button class="password-save-button" type="submit">Simpan</button>
-            </div>
-          </form>
+            </form>
+          </section>
           <div class="profile-logout-row"><button id="logoutButton" class="logout-button" type="button">Keluar <i
                 class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button></div>
         </section>
       </div>
   </main>
   <div id="logoutModal" class="logout-modal-overlay" hidden>
-    <section id="logoutConfirmDialog" class="logout-dialog" role="dialog" aria-modal="true"
+    <section id="logoutConfirmDialog" class="logout-dialog logout-confirm-dialog" role="dialog" aria-modal="true"
       aria-labelledby="logoutConfirmMessage" hidden>
       <p id="logoutConfirmMessage" class="logout-dialog-message">Apakah anda yakin<br />ingin keluar ?</p>
       <p id="logoutErrorMessage" class="logout-error-message" role="alert" hidden></p>
@@ -181,7 +186,7 @@
 
   <!-- Modal Hapus Foto Profil -->
   <div id="removePhotoModal" class="logout-modal-overlay" hidden>
-    <section id="removePhotoConfirmDialog" class="logout-dialog" role="dialog" aria-modal="true"
+    <section id="removePhotoConfirmDialog" class="logout-dialog photo-remove-dialog" role="dialog" aria-modal="true"
       aria-labelledby="removePhotoConfirmMessage" hidden>
       <p id="removePhotoConfirmMessage" class="logout-dialog-message">Apakah anda yakin<br />ingin menghapus foto profil ?</p>
       <div class="logout-dialog-actions">
@@ -189,8 +194,8 @@
         <button id="confirmRemovePhotoButton" class="logout-confirm-button" type="button">OKE</button>
       </div>
     </section>
-    <section id="removePhotoResultDialog" class="logout-dialog logout-success-dialog" role="dialog" aria-modal="true"
-      aria-labelledby="removePhotoResultMessage" hidden>
+    <section id="removePhotoResultDialog" class="logout-dialog logout-success-dialog photo-remove-result-dialog"
+      role="dialog" aria-modal="true" aria-labelledby="removePhotoResultMessage" hidden>
       <i id="removePhotoResultIcon" class="fa-solid fa-circle-check logout-success-icon" aria-hidden="true"></i>
       <p id="removePhotoResultMessage" class="logout-dialog-message">Foto profil berhasil dihapus</p>
       <p id="removePhotoResultSub" class="logout-error-message" role="alert" hidden></p>
@@ -218,7 +223,7 @@
   <script src="js/env.js"></script>
   <script src="js/config.js"></script>
   <script src="js/navbar.js?v=session-api"></script>
-  <script src="js/profile.js?v=8"></script>
+  <script src="js/profile.js?v=13"></script>
 </body>
 
 </html>

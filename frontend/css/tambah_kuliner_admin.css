@@ -93,6 +93,10 @@
   font-size: 12px;
 }
 
+.photo-help.input-error-text {
+  color: #ef4444;
+}
+
 .remove-photo {
   padding: 4px 8px;
   border: 0;
@@ -119,6 +123,7 @@
   margin-top: 4px;
   margin-bottom: 8px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .form-alert-banner[hidden] {
@@ -135,7 +140,31 @@
 }
 
 .form-alert-banner span {
+  flex: 1;
   color: #ef4444 !important;
+}
+
+.form-alert-banner .button-secondary,
+.form-message .button-secondary {
+  padding: 6px 12px;
+  min-height: 34px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #001b7d;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form-alert-banner .button-secondary {
+  color: #b42318;
+}
+
+.form-alert-banner .button-secondary[hidden],
+.form-message .button-secondary[hidden] {
+  display: none !important;
 }
 
 /* Layout Grid Form 2 Kolom Seimbang */
@@ -180,9 +209,15 @@
 }
 
 .form-field textarea {
-  min-height: 84px;
-  border-radius: 16px;
+  min-height: 46px;
+  border-radius: 24px;
   resize: vertical;
+}
+
+.character-limit-hint {
+  margin-top: -4px;
+  color: #64748b;
+  font-size: 9px;
 }
 
 /* Efek Hover & Focus Biru Primary */
@@ -217,39 +252,8 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Input Jam Operasional */
-.operating-hours {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-}
-
-.operating-hours input[type="time"] {
-  flex: 1;
-  min-width: 0;
-  padding: 11px 16px;
-  border-radius: 24px;
-}
-
-.operating-hours span {
-  flex: 0 0 auto;
-  color: #475569;
-  font-size: 0.9rem;
-}
-
 .form-field-wide {
   grid-column: 1 / -1;
-}
-
-/* Pesan Status Form */
-.form-message {
-  margin: 0;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #fff8e6;
-  color: #805b00;
-  font-size: 13px;
 }
 
 /* Tombol Aksi Batal & Simpan */
@@ -299,6 +303,88 @@ input[type="number"] {
 
 .button-primary:hover {
   background-color: #00145c !important;
+}
+
+.save-result-overlay {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.save-result-overlay[hidden] {
+  display: none !important;
+}
+
+.save-result-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 400px);
+  padding: 32px 24px 20px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  gap: 12px;
+}
+
+.save-result-dialog h2 {
+  margin: 0;
+  color: #001b7d;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.save-success-icon,
+.save-error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #ffffff;
+}
+
+.save-success-icon {
+  width: 32px;
+  height: 32px;
+  background: #2e9b4b;
+  font-size: 20px;
+}
+
+.save-error-icon {
+  width: 32px;
+  height: 32px;
+  background: #e83d32;
+  font-size: 20px;
+}
+
+.save-error-dialog p {
+  margin: 0;
+  color: #001b7d;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.save-result-action {
+  align-self: flex-end;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #001b7d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  text-decoration: underline;
+}
+
+.save-result-action:hover {
+  opacity: 0.75;
 }
 
 /* Responsif Layar Kecil */

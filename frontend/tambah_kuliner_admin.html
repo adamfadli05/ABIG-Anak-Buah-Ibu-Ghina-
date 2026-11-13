@@ -6,16 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tambah Kuliner | Mangan Yukkk</title>
     <link rel="stylesheet" href="css/Dashboard_Admin.css" />
-    <link rel="stylesheet" href="css/tambah_kuliner_admin.css" />
+    <link rel="stylesheet" href="css/tambah_kuliner_admin.css?v=5" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js?v=culinary-photo-1"></script>
     <!-- Script Sidebar Terpusat -->
-    <script src="js/sidebar.js?v=2" defer></script>
-    <script src="js/tambah_kuliner_admin.js" defer></script>
+    <script src="js/sidebar.js?v=4" defer></script>
+    <script src="js/tambah_kuliner_admin.js?v=7" defer></script>
   </head>
   <body>
     <!-- App Utama -->
@@ -41,7 +43,7 @@
 
           <form id="addCulinaryForm" class="add-culinary-form" novalidate>
             <div class="photo-field">
-              <input id="culinaryPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden required />
+              <input id="culinaryPhoto" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden required />
               <button id="photoPicker" class="photo-picker" type="button" aria-label="Pilih foto kuliner">
                 <span id="photoPlaceholder" class="photo-placeholder">
                   <iconify-icon icon="fluent-mdl2:photo-2-add" aria-hidden="true"></iconify-icon>
@@ -49,14 +51,15 @@
                 </span>
                 <img id="photoPreview" class="photo-preview" alt="Pratinjau foto kuliner" hidden />
               </button>
-              <span class="photo-help">Unggah foto JPG, PNG, atau WebP (maks. 5 MB).</span>
+              <span class="photo-help">Unggah foto JPG atau PNG (maks. 5 MB).</span>
               <button id="removePhoto" class="remove-photo" type="button" hidden>Hapus foto</button>
             </div>
 
             <!-- Banner Peringatan Validasi (Muncul di bawah foto) -->
-            <div id="formAlertBanner" class="form-alert-banner" hidden>
+            <div id="formAlertBanner" class="form-alert-banner" role="alert" hidden>
               <iconify-icon icon="lucide:alert-circle" aria-hidden="true"></iconify-icon>
               <span id="formAlertMessage">Pesan peringatan...</span>
+              <button id="retryCategories" class="button button-secondary" type="button" hidden>Coba lagi</button>
             </div>
 
             <div class="form-grid">
@@ -68,38 +71,31 @@
               <!-- Kolom Kanan -->
               <div class="form-field">
                 <label for="latitude">Latitude <span>*</span></label>
-                <input id="latitude" name="latitude" type="number" step="0.000001" min="-90" max="90" placeholder="Masukan latitude" required />
+                <input id="latitude" name="latitude" type="text" inputmode="decimal" placeholder="Masukan latitude kuliner" required />
               </div>
 
               <!-- Kolom Kiri -->
               <div class="form-field">
                 <label for="harga">Harga Kuliner <span>*</span></label>
-                <input id="harga" name="harga" type="number" min="0" placeholder="Masukan harga kuliner" required />
+                <input id="harga" name="harga" type="text" inputmode="numeric" placeholder="Masukan harga kuliner" required />
               </div>
               <!-- Kolom Kanan -->
               <div class="form-field">
                 <label for="longitude">Longitude <span>*</span></label>
-                <input id="longitude" name="longitude" type="number" step="0.000001" min="-180" max="180" placeholder="Masukan longitude" required />
+                <input id="longitude" name="longitude" type="text" inputmode="decimal" placeholder="Masukan longitude kuliner" required />
               </div>
 
               <!-- Kolom Kiri -->
               <div class="form-field">
                 <label for="kategori">Kategori Kuliner <span>*</span></label>
-                <select id="kategori" name="kategori" required>
+                <select id="kategori" name="kategori" required disabled>
                   <option value="" selected disabled>Atur kategori kuliner</option>
-                  <option value="Makanan">Makanan</option>
-                  <option value="Minuman">Minuman</option>
-                  <option value="Cemilan">Cemilan</option>
                 </select>
               </div>
               <!-- Kolom Kanan -->
               <div class="form-field">
-                <label>Jam Operasional</label>
-                <div class="operating-hours">
-                  <input id="jamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
-                  <span>sampai</span>
-                  <input id="jamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
-                </div>
+                <label for="jamOperasional">Jam Operasional</label>
+                <input id="jamOperasional" name="jam_operasional" type="text" placeholder="Masukan jam operasional" />
               </div>
 
               <!-- Kolom Kiri -->
@@ -116,17 +112,38 @@
               <!-- Deskripsi Kuliner (Melebar penuh ke bawah menutupi ruang kosong) -->
               <div class="form-field form-field-wide" style="grid-column: span 2;">
                 <label for="deskripsi">Deskripsi Kuliner <span>*</span></label>
-                <textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Masukan deskripsi singkat kuliner" required></textarea>
+                <textarea id="deskripsi" name="deskripsi" rows="1" placeholder="Masukan deskripsi singkat kuliner" required></textarea>
+                <small class="character-limit-hint">Deskripsi Kuliner (Maksimal 300 karakter)</small>
               </div>
             </div>
             
-            <p id="formMessage" class="form-message" role="status" aria-live="polite" hidden></p>
             <div class="form-actions">
               <a class="button button-cancel" href="daftar_kuliner_admin.html">Batal</a>
               <button class="button button-primary" type="submit">Simpan</button>
             </div>
           </form>
         </main>
+      </section>
+    </div>
+
+    <div id="saveSuccessModal" class="save-result-overlay" hidden>
+      <section class="save-result-dialog save-success-dialog" role="dialog" aria-modal="true" aria-labelledby="saveSuccessTitle">
+        <div class="save-success-icon" aria-hidden="true">
+          <iconify-icon icon="mdi:check"></iconify-icon>
+        </div>
+        <h2 id="saveSuccessTitle">Kuliner berhasil disimpan</h2>
+        <button id="closeSaveSuccess" class="save-result-action" type="button">Oke</button>
+      </section>
+    </div>
+
+    <div id="saveErrorModal" class="save-result-overlay" hidden>
+      <section class="save-result-dialog save-error-dialog" role="alertdialog" aria-modal="true" aria-labelledby="saveErrorTitle" aria-describedby="saveErrorMessage">
+        <div class="save-error-icon" aria-hidden="true">
+          <iconify-icon icon="mdi:close"></iconify-icon>
+        </div>
+        <h2 id="saveErrorTitle">Kuliner gagal disimpan</h2>
+        <p id="saveErrorMessage">Periksa koneksi internet anda</p>
+        <button id="retrySave" class="save-result-action" type="button">Coba lagi</button>
       </section>
     </div>
   </body>

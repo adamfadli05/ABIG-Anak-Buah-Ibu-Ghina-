@@ -1,257 +1,409 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("addCulinaryForm");
+  if (!form) return;
+
+  const apiBaseUrl = (window.BASE_URL || window.location.origin).replace(/\/+$/, "");
   const photoInput = document.getElementById("culinaryPhoto");
   const photoPicker = document.getElementById("photoPicker");
   const photoPreview = document.getElementById("photoPreview");
   const photoPlaceholder = document.getElementById("photoPlaceholder");
+  const photoHelp = document.querySelector(".photo-help");
   const removePhotoButton = document.getElementById("removePhoto");
-  const kategoriSelect = document.getElementById("kategori");
-  const hargaInput = document.getElementById("harga");
-
   const alertBanner = document.getElementById("formAlertBanner");
   const alertMessage = document.getElementById("formAlertMessage");
+  const retryCategoriesButton = document.getElementById("retryCategories");
+  const saveSuccessModal = document.getElementById("saveSuccessModal");
+  const closeSaveSuccessButton = document.getElementById("closeSaveSuccess");
+  const saveErrorModal = document.getElementById("saveErrorModal");
+  const saveErrorMessage = document.getElementById("saveErrorMessage");
+  const retrySaveButton = document.getElementById("retrySave");
+  const saveButton = form.querySelector('button[type="submit"]');
+  const namaInput = document.getElementById("namaKuliner");
+  const hargaInput = document.getElementById("harga");
+  const kategoriSelect = document.getElementById("kategori");
+  const alamatInput = document.getElementById("alamat");
+  const deskripsiInput = document.getElementById("deskripsi");
+  const latitudeInput = document.getElementById("latitude");
+  const longitudeInput = document.getElementById("longitude");
+  const jamOperasionalInput = document.getElementById("jamOperasional");
+  const teleponInput = document.getElementById("telepon");
+  const photoHelpText = photoHelp.textContent;
 
+  let uploadedFile = null;
   let previewUrl = "";
-  let uploadedFile = null; // Menyimpan referensi file yang dipilih
+  let uploadedPhotoUrl = "";
+  let photoValidationMessage = "";
+  let categoryLoadFailed = false;
+  let categoryLoading = false;
+  let isSubmitting = false;
+  let redirectingAfterSave = false;
 
-  // --- Fetch Data Kategori dari kategori.php ---
-  async function loadKategori() {
-    try {
-      const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kategori.php", {
-        method: "GET",
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-
-      const textRes = await response.text();
-      let result;
-      try {
-        result = JSON.parse(textRes);
-      } catch (err) {
-        console.error("Gagal parsing JSON kategori:", textRes);
-        return;
-      }
-
-      const dataKategori = Array.isArray(result) ? result : (result.data || result.kategori || []);
-
-      if (kategoriSelect && dataKategori.length > 0) {
-        kategoriSelect.innerHTML = '<option value="" selected disabled>Atur kategori kuliner</option>';
-        
-        dataKategori.forEach((kat) => {
-          const option = document.createElement("option");
-          option.value = kat.id_kategori || kat.id;
-          option.textContent = kat.nama_kategori || kat.nama;
-          kategoriSelect.appendChild(option);
-        });
-      }
-    } catch (err) {
-      console.error("Gagal memuat kategori:", err);
-    }
+  function showFormAlert(message, retryCategories) {
+    alertMessage.textContent = message;
+    retryCategoriesButton.hidden = !retryCategories;
+    alertBanner.hidden = false;
   }
 
-  loadKategori();
+  function hideFormAlert() {
+    alertBanner.hidden = true;
+    retryCategoriesButton.hidden = true;
+  }
 
-  // --- Auto Format Titik Ribuan pada Input Harga ---
-  if (hargaInput) {
-    hargaInput.addEventListener("input", (e) => {
-      let value = e.target.value.replace(/\D/g, "");
-      if (value) {
-        value = parseInt(value, 10).toLocaleString("id-ID");
-      }
-      e.target.value = value;
-    });
+  function showPhotoValidation(message) {
+    photoValidationMessage = message;
+    photoPicker.classList.add("input-error");
+    photoHelp.classList.add("input-error-text");
+    photoHelp.textContent = message;
+  }
+
+  function clearPhotoValidation() {
+    photoValidationMessage = "";
+    photoPicker.classList.remove("input-error");
+    photoHelp.classList.remove("input-error-text");
+    photoHelp.textContent = photoHelpText;
+  }
+
+  function showSaveSuccess() {
+    saveSuccessModal.hidden = false;
+    closeSaveSuccessButton.focus();
+  }
+
+  function showSaveError(message) {
+    saveErrorMessage.textContent = message;
+    saveErrorModal.hidden = false;
+    retrySaveButton.focus();
   }
 
   function setPhoto(file) {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    uploadedFile = file; // Simpan file ke variabel global
-    previewUrl = file ? URL.createObjectURL(file) : "";
-    photoPreview.hidden = !file;
-    photoPlaceholder.hidden = Boolean(file);
-    removePhotoButton.hidden = !file;
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = "";
+    }
+
+    uploadedFile = file;
+    uploadedPhotoUrl = "";
+    clearPhotoValidation();
+
     if (file) {
+      previewUrl = URL.createObjectURL(file);
       photoPreview.src = previewUrl;
-      if (photoPicker) photoPicker.classList.remove("input-error");
+      photoPreview.hidden = false;
+      photoPlaceholder.hidden = true;
+      removePhotoButton.hidden = false;
+      photoPicker.classList.add("has-photo");
+    } else {
+      photoPreview.removeAttribute("src");
+      photoPreview.hidden = true;
+      photoPlaceholder.hidden = false;
+      removePhotoButton.hidden = true;
+      photoPicker.classList.remove("has-photo");
     }
   }
 
-  // --- Foto picker & preview ---
-  if (photoPicker && photoInput) {
-    photoPicker.addEventListener("click", () => photoInput.click());
+  function photoMimeType(file) {
+    const extension = file.name.split(".").pop().toLowerCase();
+    const allowedTypes = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+    };
+    const expectedType = allowedTypes[extension];
 
-    photoInput.addEventListener("change", () => {
-      const file = photoInput.files?.[0];
-      if (!file) return;
-
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        photoInput.value = "";
-        setPhoto(null);
-        if (alertMessage) alertMessage.textContent = "Pilih foto dengan format JPG, PNG, atau WebP.";
-        if (alertBanner) alertBanner.hidden = false;
-        if (photoPicker) photoPicker.classList.add("input-error");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        photoInput.value = "";
-        setPhoto(null);
-        if (alertMessage) alertMessage.textContent = "Ukuran foto maksimal 5 MB.";
-        if (alertBanner) alertBanner.hidden = false;
-        if (photoPicker) photoPicker.classList.add("input-error");
-        return;
-      }
-
-      if (alertBanner) alertBanner.hidden = true;
-      if (photoPicker) photoPicker.classList.remove("input-error");
-      setPhoto(file);
-    });
+    if (!expectedType || (file.type && file.type !== expectedType)) return null;
+    return { extension: extension === "jpeg" ? "jpg" : extension, mimeType: expectedType };
   }
 
-  if (removePhotoButton) {
-    removePhotoButton.addEventListener("click", () => {
+  photoPicker.addEventListener("click", () => photoInput.click());
+
+  photoInput.addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const fileType = photoMimeType(file);
+    if (!fileType) {
       photoInput.value = "";
-      uploadedFile = null;
       setPhoto(null);
+      showPhotoValidation("Format foto harus JPG atau PNG.");
+      if (!categoryLoadFailed) hideFormAlert();
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      photoInput.value = "";
+      setPhoto(null);
+      showPhotoValidation("Ukuran foto maksimal 5 MB.");
+      if (!categoryLoadFailed) hideFormAlert();
+      return;
+    }
+
+    setPhoto(file);
+    if (!categoryLoadFailed) hideFormAlert();
+  });
+
+  removePhotoButton.addEventListener("click", () => {
+    photoInput.value = "";
+    setPhoto(null);
+    if (!categoryLoadFailed) hideFormAlert();
+  });
+
+  async function loadCategories() {
+    if (categoryLoading) return;
+    categoryLoading = true;
+    kategoriSelect.disabled = true;
+    kategoriSelect.replaceChildren(new Option("Memuat kategori...", "", true, true));
+    retryCategoriesButton.disabled = true;
+    retryCategoriesButton.hidden = true;
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/admin/kategori.php`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || !Array.isArray(result.data)) {
+        throw new Error(result.message || "Respons kategori tidak valid.");
+      }
+
+      const categories = result.data.filter(
+        (category) =>
+          category &&
+          category.id_kategori !== null &&
+          category.id_kategori !== undefined &&
+          /^\d+$/.test(String(category.id_kategori)) &&
+          category.nama_kategori
+      );
+      if (!categories.length) throw new Error("Belum ada kategori yang dapat dipilih.");
+
+      const placeholder = new Option("Atur kategori kuliner", "", true, true);
+      placeholder.disabled = true;
+      kategoriSelect.replaceChildren(placeholder);
+
+      categories.forEach((category) => {
+        kategoriSelect.add(new Option(category.nama_kategori, String(category.id_kategori)));
+      });
+      kategoriSelect.disabled = false;
+
+      if (categoryLoadFailed || alertMessage.textContent === "Kategori masih dimuat. Coba lagi sebentar.") {
+        hideFormAlert();
+      }
+      categoryLoadFailed = false;
+    } catch (error) {
+      console.error("Gagal memuat kategori:", error);
+      categoryLoadFailed = true;
+      kategoriSelect.replaceChildren(new Option("Kategori tidak tersedia", "", true, true));
+      showFormAlert("Gagal memuat kategori. Periksa koneksi lalu coba lagi.", true);
+    } finally {
+      categoryLoading = false;
+      retryCategoriesButton.disabled = false;
+    }
+  }
+
+  retryCategoriesButton.addEventListener("click", loadCategories);
+
+  function generateFileId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+      const random = Math.random() * 16;
+      const value = character === "x" ? random : (random & 0x3) | 0x8;
+      return Math.floor(value).toString(16);
     });
   }
 
-  // --- Submit & Validasi ---
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  async function uploadPhoto(file) {
+    const config = window.SUPABASE_CONFIG;
+    if (
+      !window.supabase ||
+      typeof window.supabase.createClient !== "function" ||
+      !config ||
+      !config.url ||
+      !config.anonKey ||
+      !config.culinaryPhotoBucket
+    ) {
+      throw new Error("Konfigurasi unggah foto belum tersedia.");
+    }
 
-      // Bersihkan semua error merah sebelumnya
-      const allInputs = form.querySelectorAll("input, textarea, select");
-      allInputs.forEach((el) => el.classList.remove("input-error"));
-      if (photoPicker) photoPicker.classList.remove("input-error");
+    const fileType = photoMimeType(file);
+    if (!fileType) throw new Error("Format foto harus JPG atau PNG.");
 
-      const namaInput = document.getElementById("namaKuliner");
-      const descInput = document.getElementById("deskripsi");
-      const katInput = document.getElementById("kategori");
-      const alamatInput = document.getElementById("alamat");
-      const latInput = document.getElementById("latitude");
-      const lonInput = document.getElementById("longitude");
+    const client = window.supabase.createClient(config.url, config.anonKey);
+    const filePath = `kuliner/${generateFileId()}.${fileType.extension}`;
+    const { error } = await client.storage
+      .from(config.culinaryPhotoBucket)
+      .upload(filePath, file, { contentType: fileType.mimeType, upsert: false });
 
-      const nama = namaInput ? namaInput.value.trim() : "";
-      const hargaVal = hargaInput ? hargaInput.value.trim() : "";
-      const deskripsi = descInput ? descInput.value.trim() : "";
-      const kategori = katInput ? katInput.value : "";
-      const alamat = alamatInput ? alamatInput.value.trim() : "";
-      const latitudeVal = latInput ? latInput.value.trim() : "";
-      const longitudeVal = lonInput ? lonInput.value.trim() : "";
-      
-      // Cek apakah foto sudah ada (melalui variabel uploadedFile atau elemen preview)
-      const hasPhoto = uploadedFile !== null || (photoPreview && !photoPreview.hidden);
+    if (error) throw new Error(error.message || "Foto gagal diunggah.");
 
-      let hasError = false;
+    const { data } = client.storage.from(config.culinaryPhotoBucket).getPublicUrl(filePath);
+    if (!data || !data.publicUrl) throw new Error("URL foto yang diunggah tidak tersedia.");
+    return data.publicUrl;
+  }
 
-     // 1. Validasi Foto Wajib Diisi
-      if (!hasPhoto) {
-        if (photoPicker) photoPicker.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Unggah foto kuliner terlebih dahulu.";
-        if (alertBanner) alertBanner.hidden = false;
-        return;
-      }
-
-      // 2. Validasi Kolom Teks & Kategori Wajib Diisi
-      if (!nama || !hargaVal || !deskripsi || !kategori.toString().trim() || !alamat || !latitudeVal || !longitudeVal) {
-        if (!nama && namaInput) namaInput.classList.add("input-error");
-        if (!hargaVal && hargaInput) hargaInput.classList.add("input-error");
-        if (!deskripsi && descInput) descInput.classList.add("input-error");
-        if (!kategori.toString().trim() && katInput) katInput.classList.add("input-error");
-        if (!alamat && alamatInput) alamatInput.classList.add("input-error");
-        if (!latitudeVal && latInput) latInput.classList.add("input-error");
-        if (!longitudeVal && lonInput) lonInput.classList.add("input-error");
-        
-        if (alertMessage) alertMessage.textContent = "Semua field wajib diisi";
-        if (alertBanner) alertBanner.hidden = false;
-        return;
-      }
-
-      // 3. Validasi & Pembersihan Harga (Hilangkan titik ribuan sebelum dikirim ke backend)
-      const cleanHarga = hargaVal.replace(/\./g, "").replace(/,/g, ".");
-      if (isNaN(cleanHarga) || Number(cleanHarga) <= 0) {
-        if (hargaInput) hargaInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Harga harus berupa angka lebih dari 0.";
-        if (alertBanner) alertBanner.hidden = false;
-        if (hargaInput) hargaInput.focus();
-        return;
-      }
-      const finalHarga = parseInt(cleanHarga, 10);
-
-      // 4. Validasi Panjang Deskripsi Maksimal 300 Karakter
-      if (deskripsi.length > 300) {
-        if (descInput) descInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Deskripsi kuliner melebihi batas maksimal 300 karakter.";
-        if (alertBanner) alertBanner.hidden = false;
-        if (descInput) descInput.focus();
-        return;
-      }
-
-      if (alertBanner) alertBanner.hidden = true;
-
-      const jamBukaVal = document.getElementById("jamBuka")?.value || "";
-      const jamTutupVal = document.getElementById("jamTutup")?.value || "";
-      const jamOperasionalVal = jamBukaVal && jamTutupVal ? `${jamBukaVal} - ${jamTutupVal}` : null;
-
-      // Siapkan FormData untuk dikirim ke kuliner.php
-      const formData = new FormData();
-      formData.append("nama_kuliner", nama);
-      formData.append("nama_tempat", nama);
-      formData.append("deskripsi", deskripsi);
-      formData.append("id_kategori", kategori);
-      formData.append("alamat", alamat);
-      formData.append("latitude", latitudeVal);
-      formData.append("longitude", longitudeVal);
-      formData.append("harga", finalHarga);
-      if (jamOperasionalVal) formData.append("jam_operasional", jamOperasionalVal);
-      const telVal = document.getElementById("telepon")?.value;
-      if (telVal) formData.append("no_telepon", telVal);
-      
-      // Masukkan file foto yang valid ke FormData
-      if (uploadedFile) {
-        formData.append("photo", uploadedFile);
-        formData.append("foto", uploadedFile);
-      }
-
-      const submitBtn = form.querySelector("button[type='submit']");
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Menyimpan";
-      }
-
-      try {
-        const response = await fetch("/ABIG-Anak-Buah-Ibu-Ghina-/backend/api/admin/kuliner.php", {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        });
-
-        const textResponse = await response.text();
-        let result;
-        try {
-          result = JSON.parse(textResponse);
-        } catch (err) {
-          throw new Error("Server mengembalikan respons yang tidak valid.");
-        }
-
-        if (!response.ok || !result.status) {
-          throw new Error(result.message || "Gagal menambahkan kuliner");
-        }
-
-        window.location.href = "daftar_kuliner_admin.html";
-      } catch (error) {
-        console.error("Error adding culinary:", error);
-        if (alertMessage) {
-          alertMessage.textContent = !navigator.onLine || error instanceof TypeError ? "Periksa koneksi internet anda" : error.message || "Gagal menambahkan kuliner";
-        }
-        if (alertBanner) alertBanner.hidden = false;
-      } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Simpan";
-        }
+  function setSubmitting(submitting) {
+    form.querySelectorAll("input, select, textarea, button").forEach((control) => {
+      if (submitting) {
+        control.disabled = true;
+      } else {
+        control.disabled = control === kategoriSelect && (categoryLoadFailed || categoryLoading);
       }
     });
+    saveButton.textContent = submitting ? "Menyimpan..." : "Simpan";
   }
+
+  function showValidationError(message, input) {
+    showFormAlert(message, false);
+    if (input) {
+      input.classList.add("input-error");
+      input.focus();
+    }
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isSubmitting || redirectingAfterSave) return;
+
+    if (categoryLoadFailed) {
+      showFormAlert("Gagal memuat kategori. Periksa koneksi lalu coba lagi.", true);
+      return;
+    }
+    if (categoryLoading) {
+      showFormAlert("Kategori masih dimuat. Coba lagi sebentar.", false);
+      return;
+    }
+
+    hideFormAlert();
+    form.querySelectorAll(".input-error").forEach((input) => {
+      if (input !== photoPicker) input.classList.remove("input-error");
+    });
+
+    if (photoValidationMessage) {
+      showPhotoValidation(photoValidationMessage);
+      showFormAlert(photoValidationMessage, false);
+      return;
+    }
+
+    clearPhotoValidation();
+
+    const namaKuliner = namaInput.value.trim();
+    const harga = hargaInput.value.trim();
+    const idKategori = kategoriSelect.value;
+    const alamat = alamatInput.value.trim();
+    const deskripsi = deskripsiInput.value.trim();
+    const latitudeValue = latitudeInput.value.trim();
+    const longitudeValue = longitudeInput.value.trim();
+    const latitude = Number(latitudeValue);
+    const longitude = Number(longitudeValue);
+    const missingFields = [];
+
+    const photoMissing = !uploadedFile;
+    if (!namaKuliner) missingFields.push(namaInput);
+    if (!harga) missingFields.push(hargaInput);
+    if (!idKategori) missingFields.push(kategoriSelect);
+    if (!alamat) missingFields.push(alamatInput);
+    if (!deskripsi) missingFields.push(deskripsiInput);
+    if (!latitudeValue) missingFields.push(latitudeInput);
+    if (!longitudeValue) missingFields.push(longitudeInput);
+
+    if (missingFields.length || photoMissing) {
+      missingFields.forEach((field) => field.classList.add("input-error"));
+      showFormAlert("Mohon lengkapi data kuliner sebelum menyimpan.", false);
+      (missingFields[0] || photoPicker).focus();
+      return;
+    }
+
+    const hargaValue = Number(harga);
+    if (!/^-?\d+$/.test(harga) || !Number.isFinite(hargaValue)) {
+      return showValidationError("Harga harus berupa angka", hargaInput);
+    }
+    if (hargaValue <= 0) {
+      return showValidationError("Harga harus lebih dari 0", hargaInput);
+    }
+    if (Array.from(deskripsi).length > 300) {
+      return showValidationError("Deskripsi kuliner melebihi batas maksimal 300 karakter.", deskripsiInput);
+    }
+    const jamOperasional = jamOperasionalInput.value.trim();
+    if (
+      jamOperasional &&
+      !/^(?:[01]\d|2[0-3]):[0-5]\d\s*-\s*(?:[01]\d|2[0-3]):[0-5]\d$/.test(jamOperasional)
+    ) {
+      return showValidationError("Format jam operasional harus HH:MM - HH:MM.", jamOperasionalInput);
+    }
+    if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(latitudeValue) || !Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      return showValidationError(
+        "Latitude harus berupa angka antara -90 sampai 90.",
+        latitudeInput
+      );
+    }
+    if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(longitudeValue) || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return showValidationError(
+        "Longitude harus berupa angka antara -180 sampai 180.",
+        longitudeInput
+      );
+    }
+
+    isSubmitting = true;
+    setSubmitting(true);
+
+    try {
+      if (!uploadedPhotoUrl) uploadedPhotoUrl = await uploadPhoto(uploadedFile);
+
+      const payload = {
+        nama_kuliner: namaKuliner,
+        nama_tempat: namaKuliner,
+        deskripsi,
+        id_kategori: Number(idKategori),
+        alamat,
+        latitude: latitudeValue,
+        longitude: longitudeValue,
+        harga,
+        jam_operasional: jamOperasional || null,
+        no_telepon: teleponInput.value.trim() || null,
+        photo_url: uploadedPhotoUrl,
+      };
+
+      const response = await fetch(`${apiBaseUrl}/api/admin/kuliner.php`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Data kuliner gagal disimpan.");
+      }
+
+      redirectingAfterSave = true;
+      showSaveSuccess();
+    } catch (error) {
+      console.error("Gagal menyimpan kuliner:", error);
+      const message =
+        !navigator.onLine || error instanceof TypeError
+          ? "Periksa koneksi internet anda"
+          : error.message || "Periksa koneksi internet anda";
+      showSaveError(message);
+    } finally {
+      isSubmitting = false;
+      if (!redirectingAfterSave) setSubmitting(false);
+    }
+  });
+
+  retrySaveButton.addEventListener("click", () => {
+    if (isSubmitting) return;
+    saveErrorModal.hidden = true;
+    form.requestSubmit();
+  });
+
+  closeSaveSuccessButton.addEventListener("click", () => {
+    saveSuccessModal.hidden = true;
+    window.location.href = "daftar_kuliner_admin.html";
+  });
+
+  loadCategories();
 });

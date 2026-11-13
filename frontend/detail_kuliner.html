@@ -212,7 +212,9 @@
           </div>
         </div>
         <div id="reviewDeleteResult" class="review-delete-result" hidden>
-          <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          <div id="reviewDeleteResultIconWrapper">
+            <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          </div>
           <p id="reviewDeleteResultMessage" class="review-delete-message"></p>
           <p id="reviewDeleteResultDetail" class="review-delete-detail" hidden></p>
           <button id="reviewDeleteResultAction" class="review-delete-result-action" type="button">Oke</button>
@@ -380,11 +382,14 @@
         function showReviewDeleteResult(success, message, detail = "", iconName = "") {
           reviewDeleteConfirm.hidden = true;
           reviewDeleteResult.hidden = false;
-          document.getElementById("reviewDeleteResultIcon").setAttribute(
-            "icon",
-            iconName || (success ? "material-symbols:check-circle" : "material-symbols:error-outline")
-          );
-          document.getElementById("reviewDeleteResultIcon").classList.toggle("is-error", !success);
+          const iconWrapper = document.getElementById("reviewDeleteResultIconWrapper");
+          if (iconWrapper) {
+            if (success) {
+              iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="38" height="38" style="color: #28a745; margin-bottom: 8px;"><path fill="currentColor" d="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>`;
+            } else {
+              iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="38" height="38" style="color: #ea3829; margin-bottom: 8px;"><path fill="currentColor" d="M10 1.6a8.4 8.4 0 1 0 0 16.8 8.4 8.4 0 0 0 0-16.8zm4.789 11.461L13.06 14.79 10 11.729l-3.061 3.06L5.21 13.06 8.272 10 5.211 6.939 6.94 5.211 10 8.271l3.061-3.061 1.729 1.729L11.728 10l3.061 3.061z"/></svg>`;
+            }
+          }
           document.getElementById("reviewDeleteResultMessage").textContent = message;
           const resultDetail = document.getElementById("reviewDeleteResultDetail");
           resultDetail.textContent = detail;
@@ -396,18 +401,10 @@
         }
 
         function getReviewDeleteError(error) {
-          if (error instanceof TypeError) {
-            return {
-              message: "Koneksi ke server terputus",
-              detail: "Periksa koneksi internet Anda, lalu pilih Coba lagi.",
-              icon: "material-symbols:wifi-off-rounded",
-            };
-          }
-
           return {
-            message: "Ulasan gagal dihapus",
-            detail: error.message || "Silakan coba lagi.",
-            icon: "material-symbols:error-outline",
+            message: "Ulasan gagal di hapus",
+            detail: "",
+            icon: "entypo:circle-with-cross",
           };
         }
 
@@ -840,19 +837,12 @@
               ulasanList = ulasanList.filter((item) => String(item.id_ulasan) !== String(reviewId));
               renderReviews(ulasanList, reviewsContainer);
               updateReviewSummary();
-              let refreshFailed = false;
               try {
                 await refreshReviewData();
               } catch (error) {
                 console.error("Ulasan terhapus, tetapi daftar gagal diperbarui:", error);
-                refreshFailed = true;
               }
-              showReviewDeleteResult(
-                true,
-                refreshFailed
-                  ? "Ulasan berhasil dihapus, tetapi daftar belum diperbarui. Muat ulang halaman."
-                  : "Ulasan berhasil dihapus."
-              );
+              showReviewDeleteResult(true, "Ulasan berhasil dihapus");
             } catch (error) {
               console.error("Gagal menghapus ulasan:", error);
               const errorDisplay = getReviewDeleteError(error);
