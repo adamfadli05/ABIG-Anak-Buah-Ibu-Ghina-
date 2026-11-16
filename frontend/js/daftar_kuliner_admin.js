@@ -233,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (jamTutupInput) jamTutupInput.value = jamTutupVal;
 
     document.getElementById("editAlamat").value = item.alamat || item.address || "";
-    document.getElementById("editNoTelepon").value = item.nomor_telepon || item.phone_number || item.no_telp || "";
+    document.getElementById("editNoTelepon").value = item.no_telepon || item.nomor_telepon || item.phone_number || "";
     document.getElementById("editDeskripsi").value = item.deskripsi || item.description || "";
 
     await fetchKategoriOptions(item.id_kategori || item.category_id || item.kategori_id);
@@ -353,11 +353,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const alamat = alamatInput.value.trim();
       const deskripsi = descInput.value.trim();
 
-      if (!nama || !latitudeVal || !hargaVal || !longitudeVal || !kategori || !alamat || !deskripsi) {
+      const latNum = Number(latitudeVal);
+      if (!/^-?\d+\.\d+$/.test(latitudeVal) || !Number.isFinite(latNum) || latNum < -7.5 || latNum > -6.0) {
+        latInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        latInput.focus();
+        return;
+      }
+
+      const lonNum = Number(longitudeVal);
+      if (!/^-?\d+\.\d+$/.test(longitudeVal) || !Number.isFinite(lonNum) || lonNum < 108.0 || lonNum > 109.2) {
+        lonInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        lonInput.focus();
+        return;
+      }
+
+      if (!nama || !hargaVal || !kategori || !alamat || !deskripsi) {
         if (!nama) namaInput.classList.add("input-error");
-        if (!latitudeVal) latInput.classList.add("input-error");
         if (!hargaVal) hargaInput.classList.add("input-error");
-        if (!longitudeVal) lonInput.classList.add("input-error");
         if (!kategori) katInput.classList.add("input-error");
         if (!alamat) alamatInput.classList.add("input-error");
         if (!deskripsi) descInput.classList.add("input-error");
@@ -377,28 +393,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const finalHarga = parseInt(cleanHarga, 10);
-
-      const latRaw = latInput.value.trim();
-      const latNum = Number(latRaw);
-      
-      if (latRaw.includes(",") || !latRaw.includes(".") || isNaN(latNum) || latNum < -7.5 || latNum > -6.0) {
-        latInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)";
-        if (alertBanner) alertBanner.hidden = false;
-        latInput.focus();
-        return;
-      }
-
-      const lonRaw = lonInput.value.trim();
-      const lonNum = Number(lonRaw);
-
-      if (lonRaw.includes(",") || !lonRaw.includes(".") || isNaN(lonNum) || lonNum < 108.0 || lonNum > 109.2) {
-        lonInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)";
-        if (alertBanner) alertBanner.hidden = false;
-        lonInput.focus();
-        return;
-      }
 
       if (deskripsi.length > 300) {
         descInput.classList.add("input-error");
