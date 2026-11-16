@@ -268,7 +268,7 @@ async function logout() {
 
   try {
     const response = await fetch(`${PROFILE_API_BASE}/logout.php`, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     });
