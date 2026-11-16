@@ -214,6 +214,72 @@
   resize: vertical;
 }
 
+.operating-hours {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.time-input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.time-input-wrap input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 42px 11px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.9rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: border-color 0.2s;
+  text-align: center;
+  letter-spacing: 0.12em;
+}
+
+.time-input-wrap input::placeholder {
+  color: #64748b;
+  letter-spacing: 0.08em;
+}
+
+.time-field-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.time-input-wrap input:hover,
+.time-input-wrap input:focus {
+  border-color: #001b7d !important;
+  outline: none;
+  box-shadow: none;
+}
+
+.time-input-wrap input.input-error {
+  border: 1.5px solid #ef4444 !important;
+  background-color: #ffffff;
+  outline: none;
+}
+
+.time-range-separator {
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .character-limit-hint {
   margin-top: -4px;
   color: #64748b;

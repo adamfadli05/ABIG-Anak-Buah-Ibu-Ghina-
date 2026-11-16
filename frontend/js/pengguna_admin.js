@@ -119,17 +119,32 @@ document.addEventListener("DOMContentLoaded", () => {
     return Number.isNaN(date.getTime()) ? "Tidak tersedia" : dateFormatter.format(date);
   }
 
+  function matchesUserSearch(user, keyword) {
+    const normalizedKeyword = keyword.trim().toLocaleLowerCase("id");
+    if (!normalizedKeyword) return true;
+
+    const userName = (user.nama || "").toLocaleLowerCase("id");
+    const userEmail = (user.email || "").toLocaleLowerCase("id");
+    const searchTerms = normalizedKeyword.split(/\s+/).filter(Boolean);
+    const emailTerms = searchTerms.filter((term) => term.includes("@"));
+    const nameTerms = searchTerms.filter((term) => !term.includes("@"));
+
+    if (emailTerms.length > 0) {
+      return emailTerms.every((term) => userEmail.includes(term)) &&
+        nameTerms.every((term) => userName.includes(term));
+    }
+
+    return searchTerms.every((term) =>
+      userName.includes(term) || userEmail.includes(term)
+    );
+  }
+
   function renderUsers() {
     if (!usersLoaded) return;
 
-    const keyword = searchInput.value.trim().toLocaleLowerCase("id");
-    const searchTerms = keyword.split(/\s+/).filter(Boolean);
+    const keyword = searchInput.value.trim();
 
-    const filteredUsers = users.filter((user) => {
-      if (searchTerms.length === 0) return true;
-      const combined = `${user.nama || ""} ${user.email || ""}`.toLocaleLowerCase("id");
-      return searchTerms.every((term) => combined.includes(term));
-    });
+    const filteredUsers = users.filter((user) => matchesUserSearch(user, keyword));
 
     tableBody.replaceChildren();
     loading.hidden = true;
