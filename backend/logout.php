@@ -11,6 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Content-Type: application/json');
+    http_response_code(405);
+    echo json_encode(["status" => false, "message" => "Method harus POST"]);
+    exit;
+}
+
 $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost';
 
 session_unset();
@@ -29,17 +36,8 @@ if (ini_get("session.use_cookies")) {
         $params["httponly"]
     );
 }
-// Jika dipanggil via fetch (AJAX), kembalikan JSON
-$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ||
-          str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
-
-if ($isAjax) {
-    header('Content-Type: application/json');
-    http_response_code(200);
-    echo json_encode(["status" => true, "message" => "Berhasil keluar."]);
-    exit;
-}
-
-// Jika akses langsung (bukan fetch), redirect ke index
-header('Location: ' . $frontendUrl . '/index.html');
+// Selalu return JSON untuk POST request
+header('Content-Type: application/json');
+http_response_code(200);
+echo json_encode(["status" => true, "message" => "Berhasil keluar."]);
 exit;
