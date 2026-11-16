@@ -62,8 +62,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const deskripsiInput = document.getElementById("deskripsi");
   const latitudeInput = document.getElementById("latitude");
   const longitudeInput = document.getElementById("longitude");
-  const jamOperasionalInput = document.getElementById("jamOperasional");
+  const jamOperasionalBukaInput = document.getElementById("jamOperasionalBuka");
+  const jamOperasionalTutupInput = document.getElementById("jamOperasionalTutup");
   const teleponInput = document.getElementById("telepon");
+
+  function formatTimeInputValue(input) {
+    const digitsOnly = (input.value || "").replace(/\D/g, "").slice(0, 4);
+    if (!digitsOnly) {
+      input.value = "";
+      return;
+    }
+
+    const hours = digitsOnly.slice(0, 2);
+    const minutes = digitsOnly.slice(2, 4);
+    input.value = minutes ? `${hours}:${minutes}` : hours;
+  }
+
+  [jamOperasionalBukaInput, jamOperasionalTutupInput].forEach((input) => {
+    if (!input) return;
+    input.addEventListener("input", () => formatTimeInputValue(input));
+    input.addEventListener("blur", () => {
+      const value = input.value.trim();
+      if (!value) return;
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+        input.value = "";
+      }
+    });
+  });
   const photoHelpText = photoHelp.textContent;
 
   let uploadedFile = null;
@@ -333,6 +358,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const longitudeValue = longitudeInput.value.trim();
     const latitude = Number(latitudeValue);
     const longitude = Number(longitudeValue);
+    const jamBukaValue = jamOperasionalBukaInput.value.trim();
+    const jamTutupValue = jamOperasionalTutupInput.value.trim();
     const missingFields = [];
 
     const photoMissing = !uploadedFile;
@@ -361,22 +388,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (Array.from(deskripsi).length > 300) {
       return showValidationError("Deskripsi kuliner melebihi batas maksimal 300 karakter.", deskripsiInput);
     }
-    const jamOperasional = jamOperasionalInput.value.trim();
-    if (
-      jamOperasional &&
-      !/^(?:[01]\d|2[0-3]):[0-5]\d\s*-\s*(?:[01]\d|2[0-3]):[0-5]\d$/.test(jamOperasional)
-    ) {
-      return showValidationError("Format jam operasional harus HH:MM - HH:MM.", jamOperasionalInput);
+    const isJamBukaValid = /^([01]\d|2[0-3]):[0-5]\d$/.test(jamBukaValue);
+    const isJamTutupValid = /^([01]\d|2[0-3]):[0-5]\d$/.test(jamTutupValue);
+
+    if ((jamBukaValue && !jamTutupValue) || (!jamBukaValue && jamTutupValue)) {
+      return showValidationError("Jam operasional harus diisi lengkap dengan jam buka dan jam tutup.", jamBukaValue ? jamOperasionalTutupInput : jamOperasionalBukaInput);
     }
-    if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(latitudeValue) || !Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    if (jamBukaValue && !isJamBukaValid) {
+      return showValidationError("Format jam buka harus HH:MM.", jamOperasionalBukaInput);
+    }
+    if (jamTutupValue && !isJamTutupValid) {
+      return showValidationError("Format jam tutup harus HH:MM.", jamOperasionalTutupInput);
+    }
+
+    const jamOperasional = jamBukaValue && jamTutupValue ? `${jamBukaValue} - ${jamTutupValue}` : null;
+    if (jamBukaValue && jamTutupValue && jamBukaValue >= jamTutupValue) {
+      return showValidationError("Jam tutup harus lebih besar dari jam buka.", jamOperasionalTutupInput);
+    }
+
+    if (latitudeValue.includes(",") || !/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(latitudeValue) || !Number.isFinite(latitude) || latitude < -7.5 || latitude > -6.0) {
       return showValidationError(
-        "Latitude harus berupa angka antara -90 sampai 90.",
+        "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)",
         latitudeInput
       );
     }
-    if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(longitudeValue) || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    if (longitudeValue.includes(",") || !/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(longitudeValue) || !Number.isFinite(longitude) || longitude < 108.0 || longitude > 109.2) {
       return showValidationError(
-        "Longitude harus berupa angka antara -180 sampai 180.",
+        "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)",
         longitudeInput
       );
     }

@@ -94,8 +94,18 @@
               </div>
               <!-- Kolom Kanan -->
               <div class="form-field">
-                <label for="jamOperasional">Jam Operasional</label>
-                <input id="jamOperasional" name="jam_operasional" type="text" placeholder="Masukan jam operasional" />
+                <label>Jam Operasional</label>
+                <div class="operating-hours" aria-label="Jam operasional">
+                  <div class="time-input-wrap">
+                    <input id="jamOperasionalBuka" name="jam_buka" type="text" inputmode="numeric" maxlength="5" placeholder="--:--" aria-label="Jam buka" />
+                    <iconify-icon class="time-field-icon" icon="akar-icons:clock" aria-hidden="true"></iconify-icon>
+                  </div>
+                  <span class="time-range-separator">sampai</span>
+                  <div class="time-input-wrap">
+                    <input id="jamOperasionalTutup" name="jam_tutup" type="text" inputmode="numeric" maxlength="5" placeholder="--:--" aria-label="Jam tutup" />
+                    <iconify-icon class="time-field-icon" icon="akar-icons:clock" aria-hidden="true"></iconify-icon>
+                  </div>
+                </div>
               </div>
 
               <!-- Kolom Kiri -->
