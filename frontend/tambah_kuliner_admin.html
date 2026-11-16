@@ -17,7 +17,7 @@
     <script src="js/supabase-config.js?v=culinary-photo-1"></script>
     <!-- Script Sidebar Terpusat -->
     <script src="js/sidebar.js?v=4" defer></script>
-    <script src="js/tambah_kuliner_admin.js?v=7" defer></script>
+    <script src="js/tambah_kuliner_admin.js?v=12" defer></script>
   </head>
   <body>
     <!-- App Utama -->
@@ -43,7 +43,7 @@
 
           <form id="addCulinaryForm" class="add-culinary-form" novalidate>
             <div class="photo-field">
-              <input id="culinaryPhoto" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden required />
+              <input id="culinaryPhoto" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden required />
               <button id="photoPicker" class="photo-picker" type="button" aria-label="Pilih foto kuliner">
                 <span id="photoPlaceholder" class="photo-placeholder">
                   <iconify-icon icon="fluent-mdl2:photo-2-add" aria-hidden="true"></iconify-icon>
@@ -51,7 +51,7 @@
                 </span>
                 <img id="photoPreview" class="photo-preview" alt="Pratinjau foto kuliner" hidden />
               </button>
-              <span class="photo-help">Unggah foto JPG atau PNG (maks. 5 MB).</span>
+              <span class="photo-help">Unggah foto JPG, PNG, atau WebP (maks. 5 MB).</span>
               <button id="removePhoto" class="remove-photo" type="button" hidden>Hapus foto</button>
             </div>
 

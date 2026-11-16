@@ -65,6 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const jamOperasionalBukaInput = document.getElementById("jamOperasionalBuka");
   const jamOperasionalTutupInput = document.getElementById("jamOperasionalTutup");
   const teleponInput = document.getElementById("telepon");
+  const coordinatePattern = /^-?\d+\.\d+$/;
+
+  function isOperationalCoordinate(value, minimum, maximum) {
+    const coordinate = Number(value);
+    return coordinatePattern.test(value) &&
+      Number.isFinite(coordinate) &&
+      coordinate >= minimum &&
+      coordinate <= maximum;
+  }
 
   function formatTimeInputValue(input) {
     const digitsOnly = (input.value || "").replace(/\D/g, "").slice(0, 4);
@@ -130,8 +139,15 @@ document.addEventListener("DOMContentLoaded", () => {
     closeSaveSuccessButton.focus();
   }
 
-  function showSaveError(message) {
+  function showSaveError(message = "") {
     saveErrorMessage.textContent = message;
+    saveErrorMessage.hidden = !message;
+    const dialog = saveErrorModal.querySelector(".save-result-dialog");
+    if (message) {
+      dialog.setAttribute("aria-describedby", "saveErrorMessage");
+    } else {
+      dialog.removeAttribute("aria-describedby");
+    }
     saveErrorModal.hidden = false;
     retrySaveButton.focus();
   }
@@ -168,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
       jpg: "image/jpeg",
       jpeg: "image/jpeg",
       png: "image/png",
+      webp: "image/webp",
     };
     const expectedType = allowedTypes[extension];
 
@@ -185,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!fileType) {
       photoInput.value = "";
       setPhoto(null);
-      showPhotoValidation("Format foto harus JPG atau PNG.");
+      showPhotoValidation("Format foto harus JPG, PNG, atau WebP.");
       if (!categoryLoadFailed) hideFormAlert();
       return;
     }
@@ -356,8 +373,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const deskripsi = deskripsiInput.value.trim();
     const latitudeValue = latitudeInput.value.trim();
     const longitudeValue = longitudeInput.value.trim();
-    const latitude = Number(latitudeValue);
-    const longitude = Number(longitudeValue);
     const jamBukaValue = jamOperasionalBukaInput.value.trim();
     const jamTutupValue = jamOperasionalTutupInput.value.trim();
     const missingFields = [];
@@ -373,14 +388,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (missingFields.length || photoMissing) {
       missingFields.forEach((field) => field.classList.add("input-error"));
-      showFormAlert("Mohon lengkapi data kuliner sebelum menyimpan.", false);
+      if (photoMissing && missingFields.length === 0) {
+        photoPicker.classList.add("input-error");
+        photoHelp.classList.add("input-error-text");
+      }
+      showFormAlert(
+        photoMissing && missingFields.length === 0
+          ? "Mohon unggah foto kuliner sebelum menyimpan."
+          : "Mohon lengkapi data kuliner sebelum menyimpan.",
+        false
+      );
       (missingFields[0] || photoPicker).focus();
       return;
     }
 
+    if (!isOperationalCoordinate(latitudeValue, -7.5, -6.0)) {
+      return showValidationError(
+        "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)",
+        latitudeInput
+      );
+    }
+    if (!isOperationalCoordinate(longitudeValue, 108.0, 109.2)) {
+      return showValidationError(
+        "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)",
+        longitudeInput
+      );
+    }
+
     const hargaValue = Number(harga);
-    if (!/^-?\d+$/.test(harga) || !Number.isFinite(hargaValue)) {
+    if (!/^-?\d+$/.test(harga)) {
       return showValidationError("Harga harus berupa angka", hargaInput);
+    }
+    if (!Number.isFinite(hargaValue)) {
+      showSaveError();
+      return;
     }
     if (hargaValue <= 0) {
       return showValidationError("Harga harus lebih dari 0", hargaInput);
@@ -404,19 +445,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const jamOperasional = jamBukaValue && jamTutupValue ? `${jamBukaValue} - ${jamTutupValue}` : null;
     if (jamBukaValue && jamTutupValue && jamBukaValue >= jamTutupValue) {
       return showValidationError("Jam tutup harus lebih besar dari jam buka.", jamOperasionalTutupInput);
-    }
-
-    if (latitudeValue.includes(",") || !/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(latitudeValue) || !Number.isFinite(latitude) || latitude < -7.5 || latitude > -6.0) {
-      return showValidationError(
-        "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)",
-        latitudeInput
-      );
-    }
-    if (longitudeValue.includes(",") || !/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(longitudeValue) || !Number.isFinite(longitude) || longitude < 108.0 || longitude > 109.2) {
-      return showValidationError(
-        "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)",
-        longitudeInput
-      );
     }
 
     isSubmitting = true;
@@ -458,11 +486,8 @@ document.addEventListener("DOMContentLoaded", () => {
       showSaveSuccess();
     } catch (error) {
       console.error("Gagal menyimpan kuliner:", error);
-      const message =
-        !navigator.onLine || error instanceof TypeError
-          ? "Periksa koneksi internet anda"
-          : error.message || "Periksa koneksi internet anda";
-      showSaveError(message);
+      const isConnectionError = !navigator.onLine || error instanceof TypeError;
+      showSaveError(isConnectionError ? "Periksa koneksi internet anda" : "");
     } finally {
       isSubmitting = false;
       if (!redirectingAfterSave) setSubmitting(false);
