@@ -76,7 +76,7 @@ function initLogoutHandler() {
   const cancelBtn = document.getElementById("cancelLogoutBtn");
   const confirmBtn = document.getElementById("confirmLogoutBtn");
   const retryBtn = document.getElementById("retryLogoutBtn");
-  const okSuccessBtn = document.getElementById("closeSuccessBtn"); // Diperbaiki dari closeSuccessBtn agar sesuai
+  const okSuccessBtn = document.getElementById("closeSuccessBtn");
 
   function showState({ confirm, success, error }) {
     if (confirmDialog) confirmDialog.hidden = !confirm;
@@ -96,9 +96,9 @@ function initLogoutHandler() {
   }
 
   async function executeLogout() {
-    const API_BASE_URL = window.BASE_URL || window.location.origin;
-    // Sesuaikan path jika file logout.php berada di dalam folder backend (misal: `${API_BASE_URL}/backend/logout.php`)
-    const logoutUrl = `${API_BASE_URL}/backend/logout.php`;
+    const baseOrigin = window.location.origin;
+    // Sesuaikan path folder backend jika logout.php berada di dalam subfolder backend (misal: `${baseOrigin}/ABIG-Anak-Buah-Ibu-Ghina-/backend/logout.php`)
+    const logoutUrl = `${baseOrigin}/logout.php`;
 
     if (confirmBtn) confirmBtn.disabled = true;
     if (retryBtn) retryBtn.disabled = true;
