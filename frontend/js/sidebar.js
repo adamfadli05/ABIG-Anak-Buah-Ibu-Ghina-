@@ -54,7 +54,6 @@ function initLogoutHandler() {
               <button id="confirmLogoutBtn" class="button button-secondary" type="button">OKE</button>
             </div>
           </div>
-          <!-- logoutProgressDialog telah dihilangkan di sini -->
           <div id="logoutSuccessDialog" class="logout-dialog logout-success-dialog" hidden>
             <iconify-icon icon="mdi:check-circle" class="logout-success-icon" aria-hidden="true"></iconify-icon>
             <p class="logout-dialog-message">Anda berhasil keluar</p>
@@ -77,7 +76,7 @@ function initLogoutHandler() {
   const cancelBtn = document.getElementById("cancelLogoutBtn");
   const confirmBtn = document.getElementById("confirmLogoutBtn");
   const retryBtn = document.getElementById("retryLogoutBtn");
-  const okSuccessBtn = document.getElementById("closeLogoutSuccessBtn");
+  const okSuccessBtn = document.getElementById("closeSuccessBtn"); // Diperbaiki dari closeSuccessBtn agar sesuai
 
   function showState({ confirm, success, error }) {
     if (confirmDialog) confirmDialog.hidden = !confirm;
@@ -97,7 +96,9 @@ function initLogoutHandler() {
   }
 
   async function executeLogout() {
-    const logoutUrl = "../backend/logout.php";
+    const API_BASE_URL = window.BASE_URL || window.location.origin;
+    // Sesuaikan path jika file logout.php berada di dalam folder backend (misal: `${API_BASE_URL}/backend/logout.php`)
+    const logoutUrl = `${API_BASE_URL}/backend/logout.php`;
 
     if (confirmBtn) confirmBtn.disabled = true;
     if (retryBtn) retryBtn.disabled = true;
@@ -119,7 +120,6 @@ function initLogoutHandler() {
       localStorage.removeItem("admin_logged_in");
       sessionStorage.clear();
       
-      // Langsung lompat ke status sukses tanpa menampilkan progress dialog
       showState({ confirm: false, success: true, error: false });
     } catch (error) {
       console.error("Logout error:", error);
