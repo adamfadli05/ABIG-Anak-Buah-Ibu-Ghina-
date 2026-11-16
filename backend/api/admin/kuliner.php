@@ -211,6 +211,13 @@ if ($method === 'POST') {
     $harga        = trim((string)($body['harga']       ?? ''));
     $jam_operasional = trim($body['jam_operasional'] ?? '') ?: null;
     $no_telepon      = trim($body['no_telepon']      ?? '') ?: null;
+
+    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
+    if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
+        exit;
+    }
     $photo_url       = trim($body['photo_url']       ?? '') ?: null;
 
     // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
@@ -406,6 +413,13 @@ if ($method === 'PUT') {
     }
 
     $no_telepon   = array_key_exists('no_telepon', $body) ? ($body['no_telepon'] ?: null) : $lama['no_telepon'];
+
+    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
+    if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
+        exit;
+    }
 
     // Foto: kalau dikirim pakai photo_url baru, kalau tidak pertahankan lama
     $photo_url = array_key_exists('photo_url', $body)
