@@ -5,13 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
   async function checkAdminAccessSilent() {
     const rawRole = localStorage.getItem("role");
     
-    // Jika di local/storage sudah ada role admin, langsung muat data tanpa loading screen
     if (rawRole === "admin") {
       fetchKategoriData();
       return;
     }
 
-    // Jika belum ada data lokal, lakukan verifikasi senyap ke server
     try {
       const response = await fetch(`${API_BASE_URL}/api/me.php`, {
         credentials: "include",
@@ -33,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchKategoriData();
     } catch (error) {
       console.error("Gagal memeriksa sesi admin:", error);
-      window.location.replace("index.html");
+      fetchKategoriData();
     }
   }
 
@@ -46,6 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableWrapper = document.getElementById("tableWrapper");
   const tableEmpty = document.getElementById("tableEmpty");
   const kategoriTableBody = document.getElementById("kategoriTableBody");
+  const tableErrorState = document.getElementById("tableErrorState");
+  const tableErrorTitle = document.getElementById("tableErrorTitle");
+  const tableErrorDesc = document.getElementById("tableErrorDesc");
+  const btnReloadKategori = document.getElementById("btnReloadKategori");
 
   const btnAddKategori = document.getElementById("btnAddKategori");
   
@@ -79,13 +81,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let kategoriData = [];
   let selectedDeleteId = null;
+  let activeErrorAction = null; // Melacak aksi terakhir untuk tombol Coba Lagi
 
-  // Mengambil Data dari kategori.php
+  // Fungsi menampilkan UI Koneksi Terputus Sesuai Figma
+  function showTableErrorUI(isOffline) {
+    if (tableCardContainer) tableCardContainer.hidden = true;
+    if (btnAddKategori) btnAddKategori.hidden = true;
+    if (tableErrorState) {
+      if (tableErrorTitle) {
+        tableErrorTitle.textContent = isOffline ? "Koneksi Internet Terputus" : "Gagal Memuat Data";
+      }
+      if (tableErrorDesc) {
+        tableErrorDesc.textContent = isOffline
+          ? "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman"
+          : "Terjadi kesalahan saat memuat daftar kategori dari server.";
+      }
+      tableErrorState.hidden = false;
+    }
+  }
+
+  // Mengambil Data dari kategori.php dengan Desain Koneksi Terputus
   async function fetchKategoriData() {
+    if (tableErrorState) tableErrorState.hidden = true;
+    if (tableCardContainer) tableCardContainer.hidden = false;
+    if (btnAddKategori) btnAddKategori.hidden = false;
     if (tableLoading) tableLoading.hidden = false;
     if (tableError) tableError.hidden = true;
     if (tableWrapper) tableWrapper.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
+
+    if (!navigator.onLine) {
+      showTableErrorUI(true);
+      return;
+    }
 
     try {
       const response = await fetch(API_URL, {
@@ -112,14 +140,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTable(kategoriData);
     } catch (error) {
       console.error("Gagal mengambil data kategori:", error);
-      if (tableLoading) tableLoading.hidden = true;
-      if (tableError) tableError.hidden = false;
+      const isOffline = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
+      showTableErrorUI(isOffline);
     }
+  }
+
+  if (btnReloadKategori) {
+    btnReloadKategori.addEventListener("click", fetchKategoriData);
   }
 
   // Render Tabel Kategori & Jumlah Kuliner dari Database
   function renderTable(data) {
     if (tableLoading) tableLoading.hidden = true;
+    if (tableErrorState) tableErrorState.hidden = true;
+    if (btnAddKategori) btnAddKategori.hidden = false;
 
     if (!data || data.length === 0) {
       if (tableCardContainer) tableCardContainer.hidden = false;
@@ -240,35 +274,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Fungsi Proses Hapus Kategori
+  async function executeDelete() {
+    if (!selectedDeleteId) return;
+
+    try {
+      const response = await fetch(`${API_URL}?id=${encodeURIComponent(selectedDeleteId)}`, {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Gagal menghapus kategori.");
+      }
+      
+      selectedDeleteId = null;
+      if (successMessageText) successMessageText.textContent = "Kategori berhasil di hapus";
+      if (successModal) successModal.hidden = false;
+      fetchKategoriData();
+    } catch (error) {
+      console.error(error);
+      activeErrorAction = "delete";
+      if (errorModalTitle) errorModalTitle.textContent = "Kategori gagal di hapus";
+      
+      const isConnectionError = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
+      if (errorMessageText) {
+        errorMessageText.textContent = isConnectionError ? "Periksa koneksi internet anda" : (error.message || "Periksa koneksi internet anda");
+      }
+      if (errorModal) errorModal.hidden = false;
+    }
+  }
+
   // Tombol Hapus (Konfirmasi)
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener("click", async () => {
-      if (!selectedDeleteId) return;
-
       if (deleteConfirmModal) deleteConfirmModal.hidden = true;
-
-      try {
-        const response = await fetch(`${API_URL}?id=${encodeURIComponent(selectedDeleteId)}`, {
-          method: "DELETE",
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
-        const result = await response.json();
-        if (!response.ok || !result.status) {
-          throw new Error(result.message || "Gagal menghapus kategori.");
-        }
-        
-        if (successMessageText) successMessageText.textContent = "Kategori berhasil di hapus";
-        if (successModal) successModal.hidden = false;
-        fetchKategoriData();
-      } catch (error) {
-        console.error(error);
-        if (errorModalTitle) errorModalTitle.textContent = "Kategori gagal di hapus";
-        if (errorMessageText) errorMessageText.textContent = error.message || "Periksa koneksi internet anda";
-        if (errorModal) errorModal.hidden = false;
-      } finally {
-        selectedDeleteId = null;
-      }
+      await executeDelete();
     });
   }
 
@@ -279,80 +321,87 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Fungsi Proses Submit Form (Tambah/Edit)
+  async function executeFormSubmit() {
+    const id = editIdKategori.value;
+    const nama_kategori = namaKategoriInput.value.trim();
+    const alertBanner = document.getElementById("formAlertBanner");
+    const alertMessage = document.getElementById("formAlertMessage");
+
+    if (!nama_kategori) {
+      namaKategoriInput.classList.add("input-error");
+      if (alertMessage) alertMessage.textContent = "Mohon isi nama kategori sebelum menyimpan";
+      if (alertBanner) alertBanner.hidden = false;
+      return;
+    }
+
+    const currentId = id ? String(id) : null;
+    const isDuplicate = kategoriData.some(item => {
+      const itemId = String(item.id_kategori || item.id || "");
+      const itemName = (item.nama_kategori || item.name || "").trim().toLowerCase();
+      return itemName === nama_kategori.toLowerCase() && itemId !== currentId;
+    });
+
+    if (isDuplicate) {
+      namaKategoriInput.classList.add("input-error");
+      if (alertMessage) alertMessage.textContent = "Kategori sudah tersedia, silahkan gunakan nama lain.";
+      if (alertBanner) alertBanner.hidden = false;
+      return;
+    }
+
+    namaKategoriInput.classList.remove("input-error");
+    if (alertBanner) alertBanner.hidden = true;
+
+    const formData = new FormData();
+    formData.append("nama_kategori", nama_kategori);
+    if (id) {
+      formData.append("id", id);
+      formData.append("_method", "PUT");
+    }
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: formData,
+        credentials: "include",
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Gagal menyimpan kategori.");
+      }
+
+      closeModal();
+
+      if (successMessageText) {
+        successMessageText.textContent = id ? "Kategori berhasil di perbarui" : "Kategori berhasil disimpan";
+      }
+
+      if (successModal) successModal.hidden = false;
+      fetchKategoriData();
+    } catch (error) {
+      console.error(error);
+      closeModal();
+      activeErrorAction = "submit";
+
+      if (errorModalTitle) {
+        errorModalTitle.textContent = id ? "Kategori gagal di perbarui" : "Kategori gagal disimpan";
+      }
+
+      const isConnectionError = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
+      if (errorMessageText) {
+        errorMessageText.textContent = isConnectionError ? "Periksa koneksi internet anda" : (error.message || "Periksa koneksi internet anda");
+      }
+      if (errorModal) errorModal.hidden = false;
+    }
+  }
+
   // Submit Form dengan Validasi Kosong & Cek Duplikat Nama
   if (kategoriForm) {
     kategoriForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const id = editIdKategori.value;
-      const nama_kategori = namaKategoriInput.value.trim();
-      const alertBanner = document.getElementById("formAlertBanner");
-      const alertMessage = document.getElementById("formAlertMessage");
-
-      if (!nama_kategori) {
-        namaKategoriInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Mohon isi nama kategori sebelum menyimpan";
-        if (alertBanner) alertBanner.hidden = false;
-        return;
-      }
-
-      const currentId = id ? String(id) : null;
-      const isDuplicate = kategoriData.some(item => {
-        const itemId = String(item.id_kategori || item.id || "");
-        const itemName = (item.nama_kategori || item.name || "").trim().toLowerCase();
-        return itemName === nama_kategori.toLowerCase() && itemId !== currentId;
-      });
-
-      if (isDuplicate) {
-        namaKategoriInput.classList.add("input-error");
-        if (alertMessage) alertMessage.textContent = "Nama kategori sudah ada, gunakan nama lain";
-        if (alertBanner) alertBanner.hidden = false;
-        return;
-      }
-
-      namaKategoriInput.classList.remove("input-error");
-      if (alertBanner) alertBanner.hidden = true;
-
-      const formData = new FormData();
-      formData.append("nama_kategori", nama_kategori);
-      if (id) {
-        formData.append("id", id);
-        formData.append("_method", "PUT");
-      }
-
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { Accept: "application/json" },
-          body: formData,
-          credentials: "include",
-        });
-
-        const result = await response.json();
-        if (!response.ok || !result.status) {
-          throw new Error(result.message || "Gagal menyimpan kategori.");
-        }
-
-        closeModal();
-
-        // Atur teks sukses sesuai mode (Tambah / Edit)
-        if (successMessageText) {
-          successMessageText.textContent = id ? "Kategori berhasil di perbarui" : "Kategori berhasil disimpan";
-        }
-
-        if (successModal) successModal.hidden = false;
-        fetchKategoriData();
-      } catch (error) {
-        console.error(error);
-        closeModal();
-
-        // Atur teks gagal sesuai mode (Tambah / Edit)
-        if (errorModalTitle) {
-          errorModalTitle.textContent = id ? "Kategori gagal di di perbarui" : "Kategori gagal disimpan";
-        }
-
-        if (errorMessageText) errorMessageText.textContent = error.message || "Periksa koneksi internet anda";
-        if (errorModal) errorModal.hidden = false;
-      }
+      await executeFormSubmit();
     });
   }
 
@@ -365,9 +414,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Tombol Coba lagi pada pop-up gagal
   if (retryErrorBtn) {
-    retryErrorBtn.addEventListener("click", () => {
+    retryErrorBtn.addEventListener("click", async () => {
       if (errorModal) errorModal.hidden = true;
-      if (kategoriModal) kategoriModal.hidden = false;
+      if (activeErrorAction === "delete") {
+        await executeDelete();
+      } else {
+        if (kategoriModal) kategoriModal.hidden = false;
+      }
     });
   }
 

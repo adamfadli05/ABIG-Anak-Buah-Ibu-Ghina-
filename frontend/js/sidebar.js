@@ -107,12 +107,15 @@ function initLogoutHandler() {
 
   async function executeLogout() {
     showState({ confirm: false, progress: true, success: false, error: false });
-    const API_BASE_URL = window.BASE_URL || window.location.origin;
+    
+    // UBAH BAGIAN INI: Menggunakan path relatif yang mengarah ke folder backend
+    const logoutUrl = "../backend/logout.php";
+
     if (confirmBtn) confirmBtn.disabled = true;
     if (retryBtn) retryBtn.disabled = true;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/logout.php`, {
+      const response = await fetch(logoutUrl, {
         method: "POST",
         headers: { "Accept": "application/json" },
         credentials: "include"
@@ -123,10 +126,9 @@ function initLogoutHandler() {
         throw new Error(result.message || "Gagal melakukan proses keluar dari server.");
       }
 
-      localStorage.removeItem("admin_logged_in");
       localStorage.removeItem("user");
       localStorage.removeItem("role");
-      localStorage.clear();
+      localStorage.removeItem("admin_logged_in");
       sessionStorage.clear();
       showState({ confirm: false, progress: false, success: true, error: false });
     } catch (error) {
