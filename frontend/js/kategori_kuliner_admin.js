@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- DINAMIS API URL (TIDAK HARDCODE) ---
-  const API_URL = "../backend/api/admin/kategori.php";
+  const API_URL = `${API_BASE_URL}/api/admin/kategori.php`;
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");

@@ -267,6 +267,10 @@ async function logout() {
   error.hidden = true;
 
   try {
+    if (!navigator.onLine) {
+      throw new Error(OFFLINE_ERROR);
+    }
+
     const response = await fetch(`${PROFILE_API_BASE}/logout.php`, {
       method: "POST",
       credentials: "include",
@@ -283,9 +287,14 @@ async function logout() {
     document.getElementById("logoutSuccessDialog").hidden = false;
     document.getElementById("finishLogoutButton").focus();
   } catch (logoutError) {
-    error.textContent = !navigator.onLine
-      ? "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi."
-      : getRequestErrorMessage(logoutError, "Gagal mengakhiri sesi. Silakan coba lagi.");
+    const isOffline = !navigator.onLine;
+    if (isOffline) {
+      closeLogoutConfirmation();
+      showConnectionError(OFFLINE_ERROR);
+      return;
+    }
+
+    error.textContent = getRequestErrorMessage(logoutError, "Gagal mengakhiri sesi. Silakan coba lagi.");
     error.hidden = false;
     button.textContent = "Coba lagi";
     button.focus();
@@ -522,13 +531,38 @@ function requestPhotoFile() {
   document.getElementById("photoFileInput").click();
 }
 
+function validateProfilePhotoFile(file) {
+  if (!file) return "Pilih foto profil terlebih dahulu.";
+
+  const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+  const extension = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+
+  const isAllowedMimeType = allowedMimeTypes.includes(file.type);
+  const isAllowedExtension = allowedExtensions.includes(extension);
+
+  if (!isAllowedMimeType && !isAllowedExtension) {
+    return "Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP.";
+  }
+
+  return "";
+}
+
 async function handlePhotoFileSelection(event) {
   const input = event.currentTarget;
   if (isProfilePhotoUploading) return;
   const file = input.files[0];
   if (!file) return;
-  input.value = "";
+
   const message = document.getElementById("photoActionMessage");
+  const fileValidationError = validateProfilePhotoFile(file);
+  if (fileValidationError) {
+    input.value = "";
+    showMessage(message, fileValidationError, "error");
+    return;
+  }
+
+  input.value = "";
   const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
   isProfilePhotoUploading = true;
   document.getElementById("editPhotoButton").disabled = true;

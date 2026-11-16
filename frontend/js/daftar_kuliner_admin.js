@@ -92,9 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let deleteInProgress = false;
 
   // --- DINAMIS BASE URL (TIDAK HARDCODE) ---
-  const getApiUrl = (endpoint) => {
-    return `../backend/api/admin/${endpoint}`;
-  };
+ const getApiUrl = (endpoint) => {
+    return `${API_BASE_URL}/api/admin/${endpoint}`;
+};
 
   async function fetchKulinerData() {
     if (tableLoading) tableLoading.hidden = false;
