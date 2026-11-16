@@ -38,6 +38,17 @@
             </button>
           </div>
 
+          <!-- TANDA TAMBAHAN: Tampilan Koneksi Terputus Sesuai Figma -->
+          <div id="tableErrorState" class="offline-state-container" hidden>
+            <iconify-icon icon="fluent:wifi-warning-20-filled" class="offline-wifi-icon" aria-hidden="true"></iconify-icon>
+            <h3 id="tableErrorTitle" class="offline-title">Koneksi Internet Terputus</h3>
+            <p id="tableErrorDesc" class="offline-desc">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+            <button type="button" id="btnReloadKategori" class="btn-reload-figma">
+              <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon>
+              <span>Muat Ulang</span>
+            </button>
+          </div>
+
           <!-- Tabel Daftar Kategori -->
           <div class="table-card" id="tableCardContainer">
             <div id="tableLoading" class="table-status-msg">Memuat data kategori...</div>
@@ -71,7 +82,7 @@
         <form id="kategoriForm" novalidate>
           <input type="hidden" id="editIdKategori" />
           <div class="form-group">
-            <label for="namaKategoriInput">Nama Kategori</label>
+            <label for="namaKategoriInput">Nama Kategori <span style="color: #ef4444;">*</span></label>
             <input type="text" id="namaKategoriInput" placeholder="Masukan nama kategori" />
 
             <!-- BANNER PERINGATAN VALIDASI BERADA DI DALAM FORM-GROUP -->

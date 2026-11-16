@@ -176,7 +176,7 @@ td:nth-child(3) { text-align: center !important; }
 .modal-dialog h3 {
   margin-bottom: 20px !important;
   font-size: 1.25rem !important;
-  font-weight: 400 !important;
+  font-weight: 600 !important; /* Dibuat Bold sesuai temuan SQA */
   color: #001b7d !important;
 }
 
@@ -246,7 +246,7 @@ td:nth-child(3) { text-align: center !important; }
   background: #00145c !important;
 }
 
-/* POP-UP VALIDASI SUKSES & GAGAL (Disesuaikan agar pas & presisi dengan Figma) */
+/* POP-UP VALIDASI SUKSES & GAGAL */
 .success-modal-overlay,
 .error-modal-overlay {
   position: fixed !important;
@@ -268,8 +268,8 @@ td:nth-child(3) { text-align: center !important; }
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  width: min(100%, 360px) !important; /* Ukuran lebar dikurangi agar lebih pas */
-  padding: 26px 24px 20px 24px !important; /* Padding disesuaikan */
+  width: min(100%, 360px) !important;
+  padding: 26px 24px 20px 24px !important;
   border-radius: 16px !important;
   background: #ffffff !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
@@ -282,7 +282,7 @@ td:nth-child(3) { text-align: center !important; }
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 38px !important; /* Ukuran ikon diperkecil agar proporsional */
+  width: 38px !important;
   height: 38px !important;
   border-radius: 50% !important;
   background-color: #22c55e !important;
@@ -306,7 +306,7 @@ td:nth-child(3) { text-align: center !important; }
 .error-modal-dialog h3 {
   margin: 0 !important;
   color: #001b7d !important;
-  font-size: 1.15rem !important; /* Ukuran font judul disesuaikan */
+  font-size: 1.15rem !important;
   font-weight: 400 !important;
 }
 
@@ -317,15 +317,9 @@ td:nth-child(3) { text-align: center !important; }
   opacity: 0.85 !important;
 }
 
-/* Tombol Aksi diatur agar posisinya merata ke kanan (flex end) */
-.success-modal-dialog, 
-.error-modal-dialog {
-  align-items: center !important;
-}
-
 .btn-success-ok,
 .btn-error-retry {
-  align-self: flex-end !important; /* Posisi tombol bergeser ke kanan bawah */
+  align-self: flex-end !important;
   background-color: transparent !important;
   color: #001b7d !important;
   border: none !important;
@@ -350,7 +344,7 @@ td:nth-child(3) { text-align: center !important; }
   outline: none !important;
 }
 
-/* Banner Peringatan Validasi (Persis Figma) */
+/* Banner Peringatan Validasi */
 .form-alert-banner {
   display: flex !important;
   align-items: center !important;
@@ -439,4 +433,63 @@ td:nth-child(3) { text-align: center !important; }
 
 .btn-delete-figma:hover {
   background: #00145c !important;
+}
+
+/* TANDA TAMBAHAN: Styling Tampilan Koneksi Terputus (Figma) */
+.offline-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 20px;
+  width: 100%;
+}
+
+.offline-state-container[hidden] {
+  display: none !important;
+}
+
+.offline-wifi-icon {
+  font-size: 4.5rem;
+  color: #737373;
+  margin-bottom: 16px;
+}
+
+.offline-title {
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: #000000;
+  margin-bottom: 8px;
+}
+
+.offline-desc {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 28px;
+  max-width: 520px;
+}
+
+.btn-reload-figma {
+  background-color: #001b7d;
+  color: #ffffff;
+  border: none;
+  padding: 11px 32px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-reload-figma:hover {
+  background-color: #00145c;
+}
+
+.btn-reload-figma iconify-icon {
+  font-size: 1.35rem;
 }
