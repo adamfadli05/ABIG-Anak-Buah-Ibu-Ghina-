@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sidebarContainer = document.getElementById("sidebar-container");
   if (!sidebarContainer) return;
 
-  // Dapatkan path folder tempat file HTML berada (misal: /ABIG-Anak-Buah-Ibu-Ghina-/frontend/)
   const currentDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
   const sidebarUrl = `${window.location.origin}${currentDir}components/sidebar.html`;
 
@@ -20,12 +19,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ... sisa kode selanjutnya tetap sama ...
-
   try {
     sidebarContainer.innerHTML = sidebarHtml;
 
-    // Deteksi halaman aktif berdasarkan nama file URL saat ini
     const currentPath = window.location.pathname.split("/").pop() || "Dashboard_Admin.html";
     const navLinks = sidebarContainer.querySelectorAll(".nav-link");
 
@@ -37,7 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // Inisialisasi Logika Logout
     initLogoutHandler();
 
   } catch (error) {
@@ -59,9 +54,7 @@ function initLogoutHandler() {
               <button id="confirmLogoutBtn" class="button button-secondary" type="button">OKE</button>
             </div>
           </div>
-          <div id="logoutProgressDialog" class="logout-dialog logout-success-dialog" role="status" aria-live="polite" hidden>
-            <p class="logout-dialog-message">Keluar dari akun...</p>
-          </div>
+          <!-- logoutProgressDialog telah dihilangkan di sini -->
           <div id="logoutSuccessDialog" class="logout-dialog logout-success-dialog" hidden>
             <iconify-icon icon="mdi:check-circle" class="logout-success-icon" aria-hidden="true"></iconify-icon>
             <p class="logout-dialog-message">Anda berhasil keluar</p>
@@ -78,7 +71,6 @@ function initLogoutHandler() {
 
   const overlay = document.getElementById("logoutModalOverlay");
   const confirmDialog = document.getElementById("logoutConfirmDialog");
-  const progressDialog = document.getElementById("logoutProgressDialog");
   const successDialog = document.getElementById("logoutSuccessDialog");
   const errorDialog = document.getElementById("logoutErrorDialog");
 
@@ -87,16 +79,15 @@ function initLogoutHandler() {
   const retryBtn = document.getElementById("retryLogoutBtn");
   const okSuccessBtn = document.getElementById("closeLogoutSuccessBtn");
 
-  function showState({ confirm, progress, success, error }) {
+  function showState({ confirm, success, error }) {
     if (confirmDialog) confirmDialog.hidden = !confirm;
-    if (progressDialog) progressDialog.hidden = !progress;
     if (successDialog) successDialog.hidden = !success;
     if (errorDialog) errorDialog.hidden = !error;
   }
 
   logoutButton.addEventListener("click", () => {
     if (overlay) overlay.hidden = false;
-    showState({ confirm: true, progress: false, success: false, error: false });
+    showState({ confirm: true, success: false, error: false });
   });
 
   if (cancelBtn) {
@@ -106,9 +97,6 @@ function initLogoutHandler() {
   }
 
   async function executeLogout() {
-    showState({ confirm: false, progress: true, success: false, error: false });
-    
-    // UBAH BAGIAN INI: Menggunakan path relatif yang mengarah ke folder backend
     const logoutUrl = "../backend/logout.php";
 
     if (confirmBtn) confirmBtn.disabled = true;
@@ -130,10 +118,12 @@ function initLogoutHandler() {
       localStorage.removeItem("role");
       localStorage.removeItem("admin_logged_in");
       sessionStorage.clear();
-      showState({ confirm: false, progress: false, success: true, error: false });
+      
+      // Langsung lompat ke status sukses tanpa menampilkan progress dialog
+      showState({ confirm: false, success: true, error: false });
     } catch (error) {
       console.error("Logout error:", error);
-      showState({ confirm: false, progress: false, success: false, error: true });
+      showState({ confirm: false, success: false, error: true });
     } finally {
       if (confirmBtn) confirmBtn.disabled = false;
       if (retryBtn) retryBtn.disabled = false;
@@ -143,7 +133,6 @@ function initLogoutHandler() {
   if (confirmBtn) confirmBtn.addEventListener("click", executeLogout);
   if (retryBtn) retryBtn.addEventListener("click", executeLogout);
 
-  // Mengarahkan ke index.html saat tombol "Oke" pada pop-up sukses diklik
   if (okSuccessBtn) {
     okSuccessBtn.addEventListener("click", () => {
       window.location.href = "index.html";
