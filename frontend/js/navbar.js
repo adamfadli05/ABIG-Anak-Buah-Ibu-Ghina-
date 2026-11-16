@@ -151,6 +151,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
       if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
       if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
+      const foto = user?.foto_profil;
+  if (foto && profileButton) {
+    const img = document.createElement("img");
+    img.src = foto;
+    img.alt = "Foto Profil";
+    img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
+    const icon = profileButton.querySelector("iconify-icon");
+    if (icon) icon.replaceWith(img);
+  }
     } else {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
@@ -269,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function executeLogout() {
     clearAuthStorage();
 
-    fetch(AUTH_API_BASE + "/logout.php", {
+    fetch(window.location.origin + "/logout.php", {
       method: "POST",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
