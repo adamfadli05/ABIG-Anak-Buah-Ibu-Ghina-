@@ -76,7 +76,7 @@ function initLogoutHandler() {
   const cancelBtn = document.getElementById("cancelLogoutBtn");
   const confirmBtn = document.getElementById("confirmLogoutBtn");
   const retryBtn = document.getElementById("retryLogoutBtn");
-  const okSuccessBtn = document.getElementById("closeSuccessBtn");
+  const okSuccessBtn = document.getElementById("closeLogoutSuccessBtn");
 
   function showState({ confirm, success, error }) {
     if (confirmDialog) confirmDialog.hidden = !confirm;
