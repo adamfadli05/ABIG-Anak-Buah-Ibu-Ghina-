@@ -616,7 +616,7 @@
                     ? `<button class="inline-edit-photo-remove" id="inlineRemovePhoto_${review.id_ulasan}" type="button" aria-label="Hapus foto ulasan"><iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon></button>`
                     : ""}
                 </div>
-                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(review.komentar || review.review_text || "")}</textarea>
+                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
               </div>
               <div class="inline-edit-hint">Maksimal ulasan adalah 200 karakter</div>
                 <div class="inline-edit-actions">
@@ -1188,7 +1188,7 @@
           .map((u) => {
             const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
             const rating = Number(u.rating);
-            const comment = u.komentar || u.review_text || "";
+            const comment = getReviewComment(u);
             const photoUrl = u.foto_url
               ? /^(https?:\/\/)/i.test(u.foto_url)
                 ? u.foto_url
@@ -1229,6 +1229,10 @@
               `;
           })
           .join("");
+      }
+
+      function getReviewComment(review) {
+        return String(review.komentar ?? review.review_text ?? "");
       }
 
       function formatReviewDate(value) {
