@@ -77,6 +77,46 @@ if ($id !== '') {
 // =============================================================================
 // GET Daftar — semua user, dengan pencarian opsional by nama atau email
 // =============================================================================
+
+// Parameter pagination
+$page  = max(1, intval($_GET['page']  ?? 1));
+$limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+$offset = ($page - 1) * $limit;
+
+// Hitung total data
+$count_sql = $q !== ''
+    ? "SELECT COUNT(*) AS total FROM users WHERE LOWER(nama) LIKE LOWER('%$q%') OR LOWER(email) LIKE LOWER('%$q%')"
+    : "SELECT COUNT(*) AS total FROM users";
+
+$count_result = $q !== ''
+    ? pg_query_params($conn, "SELECT COUNT(*) AS total FROM users WHERE LOWER(nama) LIKE LOWER(\$1) OR LOWER(email) LIKE LOWER(\$1)", ['%' . $q . '%'])
+    : pg_query($conn, "SELECT COUNT(*) AS total FROM users");
+
+if (!$count_result) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data pengguna"]);
+    exit;
+}
+
+$total_data  = (int)pg_fetch_assoc($count_result)['total'];
+$total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+if ($page > $total_pages && $total_data > 0) {
+    http_response_code(200);
+    echo json_encode([
+        "status"     => true,
+        "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+        "data"       => [],
+        "pagination" => [
+            "total_data"   => $total_data,
+            "total_pages"  => $total_pages,
+            "current_page" => $page,
+            "per_page"     => $limit
+        ]
+    ]);
+    exit;
+}
+
 if ($q !== '') {
     $result = pg_query_params(
         $conn,
@@ -87,12 +127,13 @@ if ($q !== '') {
             foto_profil,
             CASE WHEN google_id IS NOT NULL AND google_id != '' THEN true ELSE false END AS is_google
         FROM users
-        WHERE LOWER(nama) LIKE LOWER($1) OR LOWER(email) LIKE LOWER($1)
-        ORDER BY id_user ASC",
-        ['%' . $q . '%']
+        WHERE LOWER(nama) LIKE LOWER(\$1) OR LOWER(email) LIKE LOWER(\$1)
+        ORDER BY id_user ASC
+        LIMIT \$2 OFFSET \$3",
+        ['%' . $q . '%', $limit, $offset]
     );
 } else {
-    $result = pg_query(
+    $result = pg_query_params(
         $conn,
         "SELECT
             id_user,
@@ -101,7 +142,9 @@ if ($q !== '') {
             foto_profil,
             CASE WHEN google_id IS NOT NULL AND google_id != '' THEN true ELSE false END AS is_google
         FROM users
-        ORDER BY id_user ASC"
+        ORDER BY id_user ASC
+        LIMIT \$1 OFFSET \$2",
+        [$limit, $offset]
     );
 }
 
@@ -125,12 +168,27 @@ while ($row = pg_fetch_assoc($result)) {
 if (empty($data)) {
     http_response_code(200);
     echo json_encode([
-        "status"  => true,
-        "message" => $q !== '' ? "Tidak ada pengguna yang cocok dengan pencarian" : "Belum ada pengguna",
-        "data"    => []
+        "status"     => true,
+        "message"    => $q !== '' ? "Tidak ada pengguna yang cocok dengan pencarian" : "Belum ada pengguna",
+        "data"       => [],
+        "pagination" => [
+            "total_data"   => $total_data,
+            "total_pages"  => $total_pages,
+            "current_page" => $page,
+            "per_page"     => $limit
+        ]
     ]);
     exit;
 }
 
 http_response_code(200);
-echo json_encode(["status" => true, "data" => $data]);
+echo json_encode([
+    "status"     => true,
+    "data"       => $data,
+    "pagination" => [
+        "total_data"   => $total_data,
+        "total_pages"  => $total_pages,
+        "current_page" => $page,
+        "per_page"     => $limit
+    ]
+]);
