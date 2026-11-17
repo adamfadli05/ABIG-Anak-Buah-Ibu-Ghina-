@@ -32,6 +32,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             exit;
         }
 
+        // Parameter pagination
+        $page  = max(1, intval($_GET['page']  ?? 1));
+        $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+        $offset = ($page - 1) * $limit;
+
+        // Hitung total ulasan
+        $count_result = pg_query_params(
+            $conn,
+            "SELECT COUNT(*) AS total FROM ulasan WHERE id_tempat = $1",
+            [$id_tempat]
+        );
+        $total_data  = $count_result ? (int)pg_fetch_assoc($count_result)['total'] : 0;
+        $total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+        if ($page > $total_pages && $total_data > 0) {
+            http_response_code(200);
+            echo json_encode([
+                "status"     => true,
+                "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+                "data"       => [],
+                "pagination" => [
+                    "total_data"  => $total_data,
+                    "total_pages" => $total_pages,
+                    "current_page"=> $page,
+                    "per_page"    => $limit
+                ]
+            ]);
+            exit;
+        }
+
         $result = pg_query_params(
             $conn,
             "SELECT
@@ -52,8 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             JOIN tempat_kuliner tk ON u.id_tempat = tk.id_tempat
             JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
             WHERE u.id_tempat = $1
-            ORDER BY u.tanggal DESC",
-            [$id_tempat]
+            ORDER BY u.tanggal DESC
+            LIMIT $2 OFFSET $3",
+            [$id_tempat, $limit, $offset]
         );
 
         if (!$result) {
@@ -73,17 +104,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (empty($data)) {
             http_response_code(200);
             echo json_encode([
-                "status"  => true,
-                "message" => "Belum ada ulasan untuk kuliner ini",
-                "data"    => []
+                "status"     => true,
+                "message"    => "Belum ada ulasan untuk kuliner ini",
+                "data"       => [],
+                "pagination" => [
+                    "total_data"  => $total_data,
+                    "total_pages" => $total_pages,
+                    "current_page"=> $page,
+                    "per_page"    => $limit
+                ]
             ]);
             exit;
         }
 
         http_response_code(200);
         echo json_encode([
-            "status" => true,
-            "data"   => $data
+            "status"     => true,
+            "data"       => $data,
+            "pagination" => [
+                "total_data"  => $total_data,
+                "total_pages" => $total_pages,
+                "current_page"=> $page,
+                "per_page"    => $limit
+            ]
         ]);
         exit;
     }
