@@ -28,6 +28,37 @@ $id_user = $_SESSION['id_user'];
 // GET — Ambil semua favorit milik user yang sedang login
 // ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    // Parameter pagination
+    $page  = max(1, intval($_GET['page']  ?? 1));
+    $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+    $offset = ($page - 1) * $limit;
+
+    // Hitung total favorit
+    $count_result = pg_query_params(
+        $conn,
+        'SELECT COUNT(*) AS total FROM favorit WHERE id_user = $1',
+        [$id_user]
+    );
+    $total_data  = $count_result ? (int)pg_fetch_assoc($count_result)['total'] : 0;
+    $total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+    if ($page > $total_pages && $total_data > 0) {
+        http_response_code(200);
+        echo json_encode([
+            "status"     => true,
+            "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+            "data"       => [],
+            "pagination" => [
+                "total_data"  => $total_data,
+                "total_pages" => $total_pages,
+                "current_page"=> $page,
+                "per_page"    => $limit
+            ]
+        ]);
+        exit;
+    }
+
     $result = pg_query_params(
         $conn,
         "SELECT
@@ -65,8 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             tk.jam_tutup,
             tk.foto_tempat,
             tk.foto
-        ORDER BY f.tanggal DESC",
-        [$id_user]
+        ORDER BY f.tanggal DESC
+        LIMIT $2 OFFSET $3",
+        [$id_user, $limit, $offset]
     );
 
     if (!$result) {
@@ -86,17 +118,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (empty($data)) {
         http_response_code(200);
         echo json_encode([
-            "status"  => true,
-            "message" => "Belum ada kuliner yang disimpan",
-            "data"    => []
+            "status"     => true,
+            "message"    => "Belum ada kuliner yang disimpan",
+            "data"       => [],
+            "pagination" => [
+                "total_data"  => $total_data,
+                "total_pages" => $total_pages,
+                "current_page"=> $page,
+                "per_page"    => $limit
+            ]
         ]);
         exit;
     }
 
     http_response_code(200);
     echo json_encode([
-        "status" => true,
-        "data"   => $data
+        "status"     => true,
+        "data"       => $data,
+        "pagination" => [
+            "total_data"  => $total_data,
+            "total_pages" => $total_pages,
+            "current_page"=> $page,
+            "per_page"    => $limit
+        ]
     ]);
     exit;
 }
