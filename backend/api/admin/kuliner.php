@@ -99,6 +99,51 @@ if ($method === 'GET') {
     }
 
     // --- Pencarian atau daftar semua ---
+
+    // Parameter pagination
+    $page  = max(1, intval($_GET['page']  ?? 1));
+    $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+    $offset = ($page - 1) * $limit;
+
+    // Hitung total data
+    if ($q !== '') {
+        $count_result = pg_query_params(
+            $conn,
+            "SELECT COUNT(DISTINCT tk.id_tempat) AS total
+             FROM tempat_kuliner tk
+             JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
+             WHERE LOWER(k.nama_kuliner) LIKE LOWER(\$1)",
+            ['%' . $q . '%']
+        );
+    } else {
+        $count_result = pg_query($conn, "SELECT COUNT(*) AS total FROM tempat_kuliner");
+    }
+
+    if (!$count_result) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner"]);
+        exit;
+    }
+
+    $total_data  = (int)pg_fetch_assoc($count_result)['total'];
+    $total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+    if ($page > $total_pages && $total_data > 0) {
+        http_response_code(200);
+        echo json_encode([
+            "status"     => true,
+            "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+            "data"       => [],
+            "pagination" => [
+                "total_data"   => $total_data,
+                "total_pages"  => $total_pages,
+                "current_page" => $page,
+                "per_page"     => $limit
+            ]
+        ]);
+        exit;
+    }
+
     if ($q !== '') {
         $result = pg_query_params(
             $conn,
@@ -130,11 +175,12 @@ if ($method === 'GET') {
                 k.id_kategori, ka.nama_kategori, tk.nama_tempat, tk.alamat,
                 tk.latitude, tk.longitude, tk.jam_buka, tk.jam_tutup,
                 tk.no_telepon, tk.foto, tk.harga
-            ORDER BY k.nama_kuliner ASC",
-            ['%' . $q . '%']
+            ORDER BY k.nama_kuliner ASC
+            LIMIT $2 OFFSET $3",
+            ['%' . $q . '%', $limit, $offset]
         );
     } else {
-        $result = pg_query(
+        $result = pg_query_params(
             $conn,
             "SELECT
                 tk.id_tempat,
@@ -163,7 +209,9 @@ if ($method === 'GET') {
                 k.id_kategori, ka.nama_kategori, tk.nama_tempat, tk.alamat,
                 tk.latitude, tk.longitude, tk.jam_buka, tk.jam_tutup,
                 tk.no_telepon, tk.foto, tk.harga
-            ORDER BY tk.id_tempat ASC"
+            ORDER BY tk.id_tempat ASC
+            LIMIT $1 OFFSET $2",
+            [$limit, $offset]
         );
     }
 
@@ -178,18 +226,33 @@ if ($method === 'GET') {
         $data[] = $row;
     }
 
-    if (empty($data) && $q !== '') {
+    if (empty($data)) {
         http_response_code(200);
         echo json_encode([
-            "status"  => true,
-            "message" => "Tidak ada kuliner yang cocok dengan pencarian",
-            "data"    => []
+            "status"     => true,
+            "message"    => $q !== '' ? "Tidak ada kuliner yang cocok dengan pencarian" : "Belum ada kuliner",
+            "data"       => [],
+            "pagination" => [
+                "total_data"   => $total_data,
+                "total_pages"  => $total_pages,
+                "current_page" => $page,
+                "per_page"     => $limit
+            ]
         ]);
         exit;
     }
 
     http_response_code(200);
-    echo json_encode(["status" => true, "data" => $data]);
+    echo json_encode([
+        "status"     => true,
+        "data"       => $data,
+        "pagination" => [
+            "total_data"   => $total_data,
+            "total_pages"  => $total_pages,
+            "current_page" => $page,
+            "per_page"     => $limit
+        ]
+    ]);
     exit;
 }
 
