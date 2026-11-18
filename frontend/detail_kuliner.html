@@ -237,12 +237,12 @@
                   </div>
                 </div>
                 <label class="sr-only" for="reviewComment">Tulis ulasan di sini</label>
-                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="200"></textarea>
+                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="100"></textarea>
               </div>
               <div class="review-form-meta">
                 <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
-                <span class="review-character-hint">Karakter ulasan maksimal 200</span>
-                <span id="reviewCharacterCount" class="sr-only">0/200</span>
+                <span class="review-character-hint">Karakter ulasan maksimal 100</span>
+                <span id="reviewCharacterCount" class="sr-only">0/100</span>
               </div>
             </div>
             <div class="review-form-actions">
@@ -810,9 +810,9 @@
                     ? `<button class="inline-edit-photo-remove" id="inlineRemovePhoto_${review.id_ulasan}" type="button" aria-label="Hapus foto ulasan"><iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon></button>`
                     : ""}
                 </div>
-                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
+                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="100" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
               </div>
-              <div class="inline-edit-hint">Maksimal ulasan adalah 200 karakter</div>
+              <div class="inline-edit-hint">Maksimal ulasan adalah 100 karakter</div>
                 <div class="inline-edit-actions">
                   <button class="inline-edit-cancel" type="button" id="inlineCancelEdit_${review.id_ulasan}">Batal</button>
                   <button class="inline-edit-save" type="button" id="inlineSaveEdit_${review.id_ulasan}">Simpan</button>
@@ -952,17 +952,6 @@
                 if (response.status === 401) { window.location.href = loginUrl(window.location.href); return; }
                 if (!response.ok || !result.status) throw new Error(result.message || "Gagal menyimpan ulasan.");
 
-                // Update data lokal
-                const idx = ulasanList.findIndex(item => String(item.id_ulasan) === String(review.id_ulasan));
-                if (idx !== -1) {
-                  ulasanList[idx] = {
-                    ...ulasanList[idx],
-                    rating: selectedRating,
-                    komentar: newKomentar,
-                    ...(newPhotoUrl ? { foto_url: newPhotoUrl } : {}),
-                    ...(inlineEditPhotoWasRemoved ? { foto_url: null } : {}),
-                  };
-                }
                 editingReviewId = null;
                 reviewsContainer.closest(".review-section")?.classList.remove("is-editing");
                 inlineEditPhoto = null;
@@ -973,8 +962,18 @@
                   inlineEditPhotoPreviewUrl = null;
                 }
                 renderReviews(ulasanList, reviewsContainer);
-                updateReviewSummary();
-                showReviewFeedback("Ulasan berhasil diubah");
+                let refreshFailed = false;
+                try {
+                  await refreshReviewData();
+                } catch (error) {
+                  console.error("Ulasan berhasil diubah, tetapi daftar gagal diperbarui:", error);
+                  refreshFailed = true;
+                }
+                showReviewFeedback(
+                  refreshFailed
+                    ? "Ulasan berhasil diubah. Namun daftar belum diperbarui. Muat ulang halaman."
+                    : "Ulasan berhasil diubah"
+                );
               } catch (err) {
                 saveBtn.disabled = false;
                 cancelBtn.disabled = false;
@@ -1053,7 +1052,7 @@
             reviewForm.reset();
             updateSelectedRating(0);
             clearReviewPhoto();
-            document.getElementById("reviewCharacterCount").textContent = "0/200";
+            document.getElementById("reviewCharacterCount").textContent = "0/100";
             reviewFormMessage.textContent = "";
             setReviewFormVisible(false);
             submitReview.textContent = "Kirim Ulasan";
@@ -1079,8 +1078,8 @@
 
           reviewComment.addEventListener("input", () => {
             const characters = Array.from(reviewComment.value);
-            if (characters.length > 200) reviewComment.value = characters.slice(0, 200).join("");
-            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/200`;
+            if (characters.length > 100) reviewComment.value = characters.slice(0, 100).join("");
+            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/100`;
             reviewFormMessage.textContent = "";
           });
 
@@ -1131,8 +1130,8 @@
               reviewComment.focus();
               return;
             }
-            if (characterCount > 200) {
-              reviewFormMessage.textContent = "Ulasan maksimal 200 karakter.";
+            if (characterCount > 100) {
+              reviewFormMessage.textContent = "Ulasan maksimal 100 karakter.";
               reviewComment.focus();
               return;
             }
@@ -1178,35 +1177,21 @@
               }
               if (!response.ok || !result.status) throw new Error(result.message || "Ulasan gagal dikirim.");
 
-              const editedReviewId = editingReviewId;
-              const removedReviewPhoto = photoWasRemoved;
-              const editedPhotoUrl = uploadedReviewPhotoUrl;
               reviewForm.reset();
               editingReviewId = null;
               updateSelectedRating(0);
               clearReviewPhoto();
-              document.getElementById("reviewCharacterCount").textContent = "0/200";
+              document.getElementById("reviewCharacterCount").textContent = "0/100";
               setReviewFormVisible(false);
               submitReview.textContent = "Kirim Ulasan";
               cancelReviewEdit.hidden = true;
 
               if (isEditing) {
-                ulasanList = ulasanList.map((review) => {
-                  if (String(review.id_ulasan) !== String(editedReviewId)) return review;
-                  return {
-                    ...review,
-                    rating,
-                    komentar,
-                    review_text: komentar,
-                    ...(editedPhotoUrl ? { foto_url: editedPhotoUrl } : {}),
-                    ...(removedReviewPhoto ? { foto_url: null } : {}),
-                  };
-                });
-                renderReviews(ulasanList, reviewsContainer);
-                updateReviewSummary();
                 const detailUrl = new URL(window.location.href);
                 detailUrl.searchParams.delete("edit_ulasan");
                 window.history.replaceState({}, "", detailUrl);
+              } else {
+                currentReviewPage = 1;
               }
 
               let refreshFailed = false;
@@ -1221,8 +1206,16 @@
             } catch (error) {
               console.error("Gagal mengirim ulasan:", error);
               setReviewFormVisible(true);
+              const fallbackMessage = editingReviewId
+                ? "Ulasan gagal diubah, silakan coba lagi."
+                : "Ulasan gagal dikirim, silakan coba lagi.";
+              const failureMessage = error instanceof TypeError
+                ? fallbackMessage
+                : error instanceof Error && error.message
+                  ? error.message
+                  : fallbackMessage;
               showReviewFeedback(
-                editingReviewId ? "Ulasan gagal diubah, silakan coba lagi." : "Ulasan gagal dikirim, silakan coba lagi.",
+                failureMessage,
                 () => reviewForm.requestSubmit(),
                 true
               );

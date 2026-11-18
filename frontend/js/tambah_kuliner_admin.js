@@ -45,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const photoPreview = document.getElementById("photoPreview");
   const photoPlaceholder = document.getElementById("photoPlaceholder");
   const photoHelp = document.querySelector(".photo-help");
-  const removePhotoButton = document.getElementById("removePhoto");
   const alertBanner = document.getElementById("formAlertBanner");
   const alertMessage = document.getElementById("formAlertMessage");
   const retryCategoriesButton = document.getElementById("retryCategories");
@@ -167,13 +166,11 @@ document.addEventListener("DOMContentLoaded", () => {
       photoPreview.src = previewUrl;
       photoPreview.hidden = false;
       photoPlaceholder.hidden = true;
-      removePhotoButton.hidden = false;
       photoPicker.classList.add("has-photo");
     } else {
       photoPreview.removeAttribute("src");
       photoPreview.hidden = true;
       photoPlaceholder.hidden = false;
-      removePhotoButton.hidden = true;
       photoPicker.classList.remove("has-photo");
     }
   }
@@ -216,12 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     setPhoto(file);
-    if (!categoryLoadFailed) hideFormAlert();
-  });
-
-  removePhotoButton.addEventListener("click", () => {
-    photoInput.value = "";
-    setPhoto(null);
     if (!categoryLoadFailed) hideFormAlert();
   });
 
