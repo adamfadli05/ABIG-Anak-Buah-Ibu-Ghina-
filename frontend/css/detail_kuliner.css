@@ -1338,3 +1338,31 @@ iconify-icon {
     font-size: 13px;
   }
 }
+
+/* Styling Tombol Pagination Ulasan */
+.pagination-btn {
+  background-color: #ffffff;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.pagination-btn.active {
+  background-color: #001b7d;
+  color: #ffffff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -256,3 +256,62 @@
     font-size: 13px;
   }
 }
+
+/* ==========================================================================
+   STYLING PAGINATION PENGGUNA ADMIN
+   ========================================================================== */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.pagination-arrow {
+  background-color: #ffffff;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-arrow:hover,
+.pagination-arrow:active {
+  background-color: #001b7d;
+  color: #ffffff;
+}
+
+.pagination-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background-color: #ffffff;
+  color: #001b7d;
+}
+
+.pagination-number {
+  background: none;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: all 0.2s ease;
+}
+
+.pagination-number:hover {
+  color: #001b7d;
+}
+
+.pagination-number.active {
+  color: #001b7d !important;
+  font-weight: 700 !important;
+}

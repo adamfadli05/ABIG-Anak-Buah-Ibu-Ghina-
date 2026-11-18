@@ -1,11 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL = window.BASE_URL || window.location.origin;
 
-  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
   async function checkAdminAccessSilent() {
     const rawRole = localStorage.getItem("role");
     
-    // Jika di local/storage sudah ada role admin, langsung buka aplikasi tanpa loading screen
     if (rawRole === "admin") {
       if (adminApp) adminApp.hidden = false;
       if (authState) authState.hidden = true;
@@ -13,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Jika belum ada data lokal, lakukan verifikasi senyap ke server
     try {
       const response = await fetch(`${API_BASE_URL}/api/me.php`, {
         credentials: "include",
@@ -37,12 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
       initAdminApp();
     } catch (error) {
       console.error("Gagal memeriksa sesi admin:", error);
-      // Jika gagal/terputus, arahkan kembali ke halaman utama atau login
       window.location.replace("index.html");
     }
   }
 
-  // Bypass tampilan auth di local / elemen penampung
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
 
@@ -57,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchKuliner");
   const tableRetryButton = document.getElementById("tableRetryButton");
 
-  // Elemen Halaman Edit Kuliner
   const editCulinarySection = document.getElementById("editCulinarySection");
   const editCulinaryForm = document.getElementById("editCulinaryForm");
   const cancelEditBtn = document.getElementById("cancelEditBtn");
@@ -65,16 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const editPhotoPreview = document.getElementById("editPhotoPreview");
   const editPhotoInput = document.getElementById("editPhotoInput");
 
-  // Elemen Modal Sukses Edit
   const successEditModal = document.getElementById("successEditModal");
   const closeSuccessEditBtn = document.getElementById("closeSuccessEditBtn");
 
-  // Elemen Modal Gagal Edit (Sesuai Figma)
   const errorEditModal = document.getElementById("errorEditModal");
   const editErrorMessage = document.getElementById("editErrorMessage");
   const retryEditBtn = document.getElementById("retryEditBtn");
 
-  // Elemen Modal Hapus
   const deleteConfirmModal = document.getElementById("deleteConfirmModal");
   const deleteConfirmMessage = document.getElementById("deleteDialogMessage");
   const deleteConfirmState = document.getElementById("deleteConfirmState");
@@ -91,16 +82,21 @@ document.addEventListener("DOMContentLoaded", () => {
   let pendingDeleteId = null;
   let deleteInProgress = false;
 
-  // --- DINAMIS BASE URL (TIDAK HARDCODE) ---
- const getApiUrl = (endpoint) => {
+  // State Pagination Admin (20 data kuliner per halaman)
+  let currentAdminPage = 1;
+  const itemsPerPageAdmin = 20;
+
+  const getApiUrl = (endpoint) => {
     return `${API_BASE_URL}/api/admin/${endpoint}`;
-};
+  };
 
   async function fetchKulinerData() {
     if (tableLoading) tableLoading.hidden = false;
     if (tableError) tableError.hidden = true;
     if (tableWrapper) tableWrapper.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.innerHTML = "";
 
     try {
       const response = await fetch(getApiUrl("kuliner.php"), {
@@ -116,17 +112,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       culinaryData = rawData;
-      renderTable(culinaryData);
+      currentAdminPage = 1;
+      renderTableWithPagination();
     } catch (error) {
       console.error("Error fetching culinary data:", error);
       if (tableLoading) tableLoading.hidden = true;
       if (tableWrapper) tableWrapper.hidden = true;
       if (tableCard) tableCard.hidden = true;
       if (tableError) tableError.hidden = false;
+      const paginationContainer = document.getElementById("paginationContainer");
+      if (paginationContainer) paginationContainer.innerHTML = "";
     }
   }
 
-  // Mengambil opsi kategori untuk dropdown form edit (Tanpa Hardcode)
   async function fetchKategoriOptions(selectedCategoryId = "") {
     try {
       const response = await fetch(getApiUrl("kategori.php"), {
@@ -156,12 +154,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function renderTable(data) {
+  window.changeAdminPage = function(page) {
+    const filteredData = getFilteredCulinaryData();
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPageAdmin));
+    if (page < 1 || page > totalPages) return;
+    currentAdminPage = page;
+    renderTableWithPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  function renderTableWithPagination() {
+    const filteredData = getFilteredCulinaryData();
+    const paginationContainer = document.getElementById("paginationContainer");
+
     if (tableLoading) tableLoading.hidden = true;
 
-    if (!data || data.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
       if (tableCard) tableCard.hidden = true;
       if (tableEmpty) tableEmpty.hidden = false;
+      if (paginationContainer) paginationContainer.innerHTML = "";
       return;
     }
 
@@ -170,7 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableWrapper) tableWrapper.hidden = false;
     if (kulinerTableBody) kulinerTableBody.innerHTML = "";
 
-    data.forEach((item, index) => {
+    const startIndex = (currentAdminPage - 1) * itemsPerPageAdmin;
+    const endIndex = startIndex + itemsPerPageAdmin;
+    const paginatedItems = filteredData.slice(startIndex, endIndex);
+
+    paginatedItems.forEach((item, index) => {
       const tr = document.createElement("tr");
 
       const fotoUrl = item.photo_url || item.foto || item.image || "";
@@ -178,9 +193,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const kategori = item.nama_kategori || item.kategori || "Umum";
       const alamat = item.alamat || "-";
       const itemId = item.id_tempat || item.id_kuliner || item.id;
+      const absoluteNo = startIndex + index + 1;
 
       tr.innerHTML = `
-        <td>${index + 1}.</td>
+        <td>${absoluteNo}.</td>
         <td><img src="${fotoUrl}" alt="${namaKuliner}" class="table-img" onerror="this.style.display='none'"></td>
         <td>${namaKuliner}</td>
         <td>${kategori}</td>
@@ -198,9 +214,51 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       if (kulinerTableBody) kulinerTableBody.appendChild(tr);
     });
+
+    renderAdminPaginationControls(filteredData.length);
   }
 
-  // Menampilkan Halaman Edit dan Mengisi Data Otomatis dari Database
+  function renderAdminPaginationControls(totalItems) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (!paginationContainer) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPageAdmin));
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    let html = `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? 'disabled' : ''}>
+        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)) {
+        html += `
+          <button class="pagination-number ${i === currentAdminPage ? 'active' : ''}" onclick="changeAdminPage(${i})">
+            ${i}
+          </button>
+        `;
+      } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
+        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+      }
+    }
+
+    html += `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? 'disabled' : ''}>
+        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    paginationContainer.innerHTML = html;
+  }
+
+  function renderTable(data) {
+    renderTableWithPagination();
+  }
+
   async function openEditPage(id) {
     const item = culinaryData.find((d) => String(d.id_tempat || d.id_kuliner || d.id) === String(id));
     if (!item) {
@@ -264,6 +322,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchToolbar) searchToolbar.hidden = true;
     if (tableCard) tableCard.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.hidden = true;
 
     if (editCulinarySection) editCulinarySection.hidden = false;
   }
@@ -274,6 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (contentHeaderFlex) contentHeaderFlex.hidden = false;
     if (searchToolbar) searchToolbar.hidden = false;
     if (tableCard) tableCard.hidden = false;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.hidden = false;
   }
 
   if (kulinerTableBody) {
@@ -326,7 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return previewImg && previewImg.src && !previewImg.src.startsWith("data:") ? previewImg.src : null;
   }
 
-  // Submit Form Edit & Validasi
   if (editCulinaryForm) {
     editCulinaryForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -556,7 +617,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       culinaryData = culinaryData.filter((item) => String(item.id_tempat || item.id_kuliner || item.id) !== String(pendingDeleteId));
-      renderTable(getFilteredCulinaryData());
+      
+      const filtered = getFilteredCulinaryData();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPageAdmin));
+      if (currentAdminPage > totalPages) {
+        currentAdminPage = totalPages;
+      }
+      renderTableWithPagination();
+
       showDeleteState("success");
       if (closeSuccessEditBtn) closeSuccessEditBtn.focus();
     } catch (error) {
@@ -584,18 +652,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (searchInput) {
-    searchInput.addEventListener("input", () => renderTable(getFilteredCulinaryData()));
+    searchInput.addEventListener("input", () => {
+      currentAdminPage = 1;
+      renderTableWithPagination();
+    });
   }
 
   if (tableRetryButton) {
     tableRetryButton.addEventListener("click", fetchKulinerData);
   }
 
-  // Fungsi Inisialisasi Utama Aplikasi Kuliner Admin
   function initAdminApp() {
     fetchKulinerData();
   }
 
-  // Jalankan pemeriksaan akses secara senyap saat halaman dimuat
   checkAdminAccessSilent();
 });
