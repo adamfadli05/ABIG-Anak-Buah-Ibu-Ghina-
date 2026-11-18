@@ -3,6 +3,7 @@ require_once __DIR__ . '/../env.php';
 configureSession();
 session_start();
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/kata_terlarang.php';
 
 header('Content-Type: application/json');
 setCorsHeaders();
@@ -340,6 +341,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Sensor kata terlarang sebelum disimpan
+    if ($komentar !== null && $komentar !== '') {
+        $komentar = sensorKataTerlarang($komentar);
+    }
+
     // Simpan ulasan
     $result = pg_query_params(
         $conn,
@@ -449,6 +455,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     $ulasan_lama   = pg_fetch_assoc($cek);
     $rating_baru   = $rating ?? $ulasan_lama['rating'];
     $komentar_baru = ($komentar !== null && $komentar !== '') ? $komentar : $ulasan_lama['komentar'];
+    
+    // Sensor kata terlarang pada komentar baru
+    if ($komentar_baru !== null && $komentar_baru !== '') {
+        $komentar_baru = sensorKataTerlarang($komentar_baru);
+    }
+    
     $foto_baru     = ($foto_url !== null) ? ($foto_url !== '' ? $foto_url : null) : $ulasan_lama['foto_url'];
 
     $result = pg_query_params(
