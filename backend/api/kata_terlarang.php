@@ -49,6 +49,8 @@ function getKataTerlarang(): array
         'jancok', 'j4ncok', 'janc0k', 'j4nc0k',
         'jancuk', 'j4ncuk', 'janc0k',
         'ndasmu', 'nd4smu',
+        'jembut', 'j3mbut', 'jemb0t',
+        'mbut', 'mb0t',
         'asu', '4su',
         'matamu', 'm4tamu',
         'matane', 'm4tane',
