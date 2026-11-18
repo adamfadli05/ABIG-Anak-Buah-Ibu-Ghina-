@@ -83,7 +83,10 @@
           </div>
           <!-- AKHIR .table-card -->
 
-          <!-- STATE KOSONG & ERROR (DIPINDAHKAN KE DALAM DASHBOARD-CONTENT) -->
+          <!-- Kontainer Pagination Daftar Kuliner -->
+          <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
+
+          <!-- STATE KOSONG & ERROR -->
           <div id="tableEmpty" class="culinary-empty-state" role="status" hidden>
             <iconify-icon icon="ic:baseline-search-off" width="48" height="48" aria-hidden="true"></iconify-icon>
             <p>Kuliner Tidak Ditemukan</p>
@@ -183,6 +186,7 @@
         </div>
       </section>
     </div>
+
     <!-- MODAL VALIDASI BERHASIL EDIT -->
     <div id="successEditModal" class="success-modal-overlay" hidden>
       <div class="success-modal-dialog">
@@ -193,7 +197,7 @@
         <button type="button" id="closeSuccessEditBtn" class="btn-success-ok">Oke</button>
       </div>
     </div>
-    <!-- MODAL VALIDASI GAGAL EDIT (SESUAI FIGMA) -->
+    <!-- MODAL VALIDASI GAGAL EDIT -->
     <div id="errorEditModal" class="error-modal-overlay" hidden>
       <div class="error-modal-dialog">
         <div class="error-icon-wrapper">

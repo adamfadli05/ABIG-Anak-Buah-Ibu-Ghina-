@@ -17,6 +17,11 @@
   const culinaryEmpty = document.getElementById("culinaryEmpty");
   const numberFormatter = new Intl.NumberFormat("id-ID");
 
+  // State Pagination Admin (20 data per halaman)
+  let allKulinerData = [];
+  let currentAdminPage = 1;
+  const itemsPerPageAdmin = 20;
+
   async function getJson(url, options = {}) {
     const response = await fetch(url, { ...options, credentials: "include" });
     let result;
@@ -40,14 +45,11 @@
 
   // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) TANPA LOADING SCREEN ---
   async function checkAdminAccess() {
-    // Langsung tampilkan panel admin terlebih dahulu agar tidak ada jeda loading
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
-    
-    // Muat data dashboard langsung
+
     loadDashboardSummary();
 
-    // Validasi sesi ke server di latar belakang secara senyap
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
 
@@ -72,8 +74,6 @@
         window.location.replace(`login.html?returnTo=${returnTo}`);
         return;
       }
-
-      // Jika terjadi error selain 401 (misal offline), biarkan dashboard tetap berjalan atau tangani sesuai kondisi
       console.error("Validasi sesi senyap gagal:", error);
     }
   }
@@ -95,12 +95,31 @@
     return `${API_BASE_URL}/uploads/${photo.replace(/^\/+/, "")}`;
   }
 
-  function renderCulinaryCards(items) {
-    culinaryCards.replaceChildren();
-    culinaryEmpty.hidden = items.length > 0;
-    culinaryCards.hidden = items.length === 0;
+  window.changeAdminPage = function (page) {
+    const totalPages = Math.max(1, Math.ceil(allKulinerData.length / itemsPerPageAdmin));
+    if (page < 1 || page > totalPages) return;
+    currentAdminPage = page;
+    renderCulinaryWithPagination();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-    items.forEach((item) => {
+  function renderCulinaryWithPagination() {
+    culinaryCards.replaceChildren();
+    const paginationContainer = document.getElementById("paginationContainer");
+
+    culinaryEmpty.hidden = allKulinerData.length > 0;
+    culinaryCards.hidden = allKulinerData.length === 0;
+
+    if (allKulinerData.length === 0) {
+      if (paginationContainer) paginationContainer.innerHTML = "";
+      return;
+    }
+
+    const startIndex = (currentAdminPage - 1) * itemsPerPageAdmin;
+    const endIndex = startIndex + itemsPerPageAdmin;
+    const paginatedItems = allKulinerData.slice(startIndex, endIndex);
+
+    paginatedItems.forEach((item) => {
       const title = item.nama_kuliner || item.nama_tempat || "Kuliner";
       const card = document.createElement("div");
       card.className = "culinary-card culinary-card-static";
@@ -109,9 +128,13 @@
       photo.className = "culinary-photo";
       photo.src = resolvePhoto(item.foto);
       photo.alt = title;
-      photo.addEventListener("error", () => {
-        photo.src = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
-      }, { once: true });
+      photo.addEventListener(
+        "error",
+        () => {
+          photo.src = "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
+        },
+        { once: true }
+      );
 
       const content = document.createElement("div");
       content.className = "culinary-card-content";
@@ -133,9 +156,7 @@
       footer.className = "culinary-card-footer";
       const price = Number(item.harga);
       const priceText = document.createElement("span");
-      priceText.textContent = item.harga !== null && item.harga !== undefined && item.harga !== "" && Number.isFinite(price)
-        ? `Rp. ${new Intl.NumberFormat("id-ID").format(price)}`
-        : "Harga belum tersedia";
+      priceText.textContent = item.harga !== null && item.harga !== undefined && item.harga !== "" && Number.isFinite(price) ? `Rp. ${new Intl.NumberFormat("id-ID").format(price)}` : "Harga belum tersedia";
 
       const rating = document.createElement("span");
       rating.className = "culinary-card-rating";
@@ -151,13 +172,51 @@
       card.append(photo, content);
       culinaryCards.append(card);
     });
+
+    renderAdminPaginationControls();
+  }
+
+  function renderAdminPaginationControls() {
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (!paginationContainer) return;
+
+    const totalPages = Math.max(1, Math.ceil(allKulinerData.length / itemsPerPageAdmin));
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    let html = `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)) {
+        html += `
+          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+            ${i}
+          </button>
+        `;
+      } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
+        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+      }
+    }
+
+    html += `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    paginationContainer.innerHTML = html;
   }
 
   async function loadDashboardSummary() {
     summaryCards.setAttribute("aria-busy", "true");
 
     try {
-      // 1. Ambil data ringkasan langsung dari BE
       const dashResult = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
       if (!dashResult.status || !dashResult.data) {
         throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
@@ -165,11 +224,8 @@
 
       const data = dashResult.data;
 
-      // 2. Langsung sinkronkan angka ke elemen ringkasan di dashboard
       if (totalCulinary) {
-        const culinaryCount = data.total_tempat !== undefined && data.total_tempat !== null
-          ? data.total_tempat
-          : data.total_kuliner;
+        const culinaryCount = data.total_tempat !== undefined && data.total_tempat !== null ? data.total_tempat : data.total_kuliner;
         totalCulinary.textContent = numberFormatter.format(getCount(culinaryCount));
       }
       if (totalCategories) {
@@ -179,24 +235,21 @@
         totalUsers.textContent = numberFormatter.format(getCount(data.total_user));
       }
 
-      // Pastikan kartu ringkasan langsung tampil dan aktif
       summaryCards.hidden = false;
       summaryCards.setAttribute("aria-busy", "false");
 
-      // 3. Ambil data daftar tempat kuliner secara terpisah
       try {
         const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
         if (culinaryResult.status && Array.isArray(culinaryResult.data)) {
           const culinary = culinaryResult.data;
-          const details = await Promise.all(culinary.map((item) =>
-            getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)
-          ));
-          const culinaryWithRatings = culinary.map((item, index) => {
+          const details = await Promise.all(culinary.map((item) => getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)));
+          allKulinerData = culinary.map((item, index) => {
             const detail = details[index];
             const rating = detail?.status && detail?.data ? detail.data.rata_rata_rating : 0;
             return { ...item, rata_rata_rating: rating };
           });
-          renderCulinaryCards(culinaryWithRatings);
+          currentAdminPage = 1;
+          renderCulinaryWithPagination();
         } else {
           culinaryEmpty.hidden = false;
         }

@@ -100,6 +100,67 @@
         border-radius: 6px !important;
       }
 
+      /* Styling Pagination Sesuai Detail Kuliner */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      /* Tombol Panah: Ukuran 24px, Normal (Lingkaran Putih, Panah Biru) */
+      .pagination-arrow {
+        background-color: #ffffff;
+        color: #001b7d;
+        border: 1px solid #001b7d;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      /* Tombol Panah: Saat Dipencet/Hover (Lingkaran Biru Penuh, Panah Putih) */
+      .pagination-arrow:hover,
+      .pagination-arrow:active {
+        background-color: #001b7d;
+        color: #ffffff;
+      }
+
+      .pagination-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #ffffff;
+        color: #001b7d;
+      }
+
+      /* Tombol Angka Halaman (Tanpa Lingkaran) */
+      .pagination-number {
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        padding: 2px 4px;
+        transition: all 0.2s ease;
+      }
+
+      .pagination-number:hover {
+        color: #001b7d;
+      }
+
+      /* Angka saat aktif/diklik: Biru tua tebal */
+      .pagination-number.active {
+        color: #001b7d !important;
+        font-weight: 700 !important;
+      }
+
       /* Kustomisasi Infowindow Google Maps agar Pop-up Gambar Keluar Sempurna */
       .map-popup-card {
         width: 180px !important;
@@ -215,6 +276,9 @@
 
       <!-- Pesan Jika Data Kosong -->
       <p id="emptyMessage" class="empty-message" style="display: none; text-align: center; padding: 20px; color: #666">Kuliner untuk pencarian atau kategori ini belum tersedia.</p>
+      
+      <!-- Navigasi Pagination -->
+      <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
     </main>
 
     <!-- File JavaScript External -->
@@ -223,11 +287,12 @@
     <script src="js/navbar.js?v=session-api"></script>
 
     <script>
-
       window.map = null;
       window.markers = [];
-      window.allKuliner = [];
+      window.allKuliner = [];      // Menyimpan seluruh data kuliner mentah
       window.selectedCategory = "semua";
+      window.currentPage = 1;
+      window.itemsPerPage = 20;
 
       function renderMapErrorUI() {
         const mapElement = document.getElementById("map");
@@ -342,17 +407,19 @@
         }
       }
 
-   // 2. LOAD KULINER CARD
-   let _kulinerLoading = false;
-   async function loadKuliner() {
+      // 2. LOAD KULINER CARD ASLI DARI API tempat_kuliner.php & kuliner.php
+      let _kulinerLoading = false;
+      async function loadKuliner() {
         if (_kulinerLoading) return;
         _kulinerLoading = true;
         const foodGrid = document.getElementById("foodGrid");
         const loadingIndicator = document.getElementById("loadingIndicator");
         const emptyMessage = document.getElementById("emptyMessage");
+        const paginationContainer = document.getElementById("paginationContainer");
 
         if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
         if (loadingIndicator) loadingIndicator.style.display = "block";
+        if (paginationContainer) paginationContainer.innerHTML = "";
 
         try {
           const [resTempat, resKuliner] = await Promise.all([fetch(`${BASE_URL}/api/tempat_kuliner.php`), fetch(`${BASE_URL}/api/kuliner.php`)]);
@@ -370,7 +437,7 @@
             kulinerMap.set(String(k.id_kuliner), k);
           });
 
-          // Ambil rating secara paralel untuk setiap tempat agar akurat seperti di detail_kuliner.html
+          // Ambil rating secara paralel untuk setiap tempat agar akurat
           window.allKuliner = await Promise.all(
             jsonTempat.data.map(async (item) => {
               const detailKuliner = kulinerMap.get(String(item.id_kuliner)) || {};
@@ -397,13 +464,14 @@
                 kategori: detailKuliner.kategori || detailKuliner.nama_kategori || item.kategori || "",
                 deskripsi: detailKuliner.deskripsi || detailKuliner.deskripsi_kuliner || "",
                 foto: item.foto || detailKuliner.foto || "",
-                harga: detailKuliner.harga !== undefined ? detailKuliner.harga : item.harga !== undefined ? item.harga : 0,
+                harga: item.harga !== undefined ? item.harga : item.harga !== undefined ? item.harga : 0,
                 rata_rata_rating: dynRating > 0 ? dynRating : (item.rata_rata_rating || detailKuliner.rata_rata_rating || 0),
               };
             })
           );
 
-          renderKuliner();
+          window.currentPage = 1;
+          renderKulinerWithPagination();
         } catch (error) {
           console.error("Gagal memuat data kuliner:", error);
           if (foodGrid) {
@@ -420,14 +488,19 @@
           _kulinerLoading = false;
         }
       }
-      function renderKuliner() {
+
+      // Render Kuliner Berdasarkan Halaman Aktif (20 per halaman)
+      function renderKulinerWithPagination() {
         const foodGrid = document.getElementById("foodGrid");
         const emptyMessage = document.getElementById("emptyMessage");
         if (!foodGrid) return;
 
-        if (window.allKuliner.length === 0) {
+        if (!window.allKuliner || window.allKuliner.length === 0) {
           foodGrid.innerHTML = "";
           foodGrid.style.display = "none";
+          const paginationContainer = document.getElementById("paginationContainer");
+          if (paginationContainer) paginationContainer.innerHTML = "";
+          
           if (emptyMessage) {
             emptyMessage.innerHTML = `
               <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 40px 0; gap: 8px; font-family: 'Inter', sans-serif;">
@@ -445,7 +518,62 @@
         if (emptyMessage) emptyMessage.style.display = "none";
         foodGrid.style.display = "flex";
 
-        foodGrid.innerHTML = window.allKuliner.map(renderFoodCard).join("");
+        // Hitung potong data untuk pagination (20 per halaman)
+        const startIndex = (window.currentPage - 1) * window.itemsPerPage;
+        const endIndex = startIndex + window.itemsPerPage;
+        const paginatedItems = window.allKuliner.slice(startIndex, endIndex);
+
+        foodGrid.innerHTML = paginatedItems.map(renderFoodCard).join("");
+        renderPaginationControls();
+      }
+
+      // Render Kontrol Tombol Pagination (Disamakan dengan Detail Kuliner)
+      function renderPaginationControls() {
+        const paginationContainer = document.getElementById("paginationContainer");
+        if (!paginationContainer) return;
+
+        const totalPages = Math.max(1, Math.ceil(window.allKuliner.length / window.itemsPerPage));
+        if (totalPages <= 1) {
+          paginationContainer.innerHTML = "";
+          return;
+        }
+
+        // Tombol Panah Kiri (Dengan Lingkaran 24px)
+        let html = `
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage - 1})" ${window.currentPage === 1 ? 'disabled' : ''}>
+            <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+          </button>
+        `;
+
+        // Tombol Angka Halaman (Tanpa Lingkaran)
+        for (let i = 1; i <= totalPages; i++) {
+          if (totalPages <= 5 || i === 1 || i === totalPages || (i >= window.currentPage - 1 && i <= window.currentPage + 1)) {
+            html += `
+              <button class="pagination-number ${i === window.currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                ${i}
+              </button>
+            `;
+          } else if (i === window.currentPage - 2 || i === window.currentPage + 2) {
+            html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+          }
+        }
+
+        // Tombol Panah Kanan (Dengan Lingkaran 24px)
+        html += `
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage + 1})" ${window.currentPage === totalPages ? 'disabled' : ''}>
+            <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+          </button>
+        `;
+
+        paginationContainer.innerHTML = html;
+      }
+
+      function changePage(page) {
+        const totalPages = Math.max(1, Math.ceil(window.allKuliner.length / window.itemsPerPage));
+        if (page < 1 || page > totalPages) return;
+        window.currentPage = page;
+        renderKulinerWithPagination();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       function renderFoodCard(item) {
@@ -555,9 +683,11 @@
             const foodGrid = document.getElementById("foodGrid");
             const loadingIndicator = document.getElementById("loadingIndicator");
             const emptyMessage = document.getElementById("emptyMessage");
+            const paginationContainer = document.getElementById("paginationContainer");
 
             if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
             if (loadingIndicator) loadingIndicator.style.display = "block";
+            if (paginationContainer) paginationContainer.innerHTML = "";
 
             try {
               if (selectedCat === "semua") {
@@ -584,7 +714,8 @@
                 };
               });
 
-              renderKuliner();
+              window.currentPage = 1;
+              renderKulinerWithPagination();
             } catch (error) {
               console.error("Gagal filter kategori:", error);
               if (foodGrid) {
@@ -700,6 +831,7 @@
             const rawKeyword = e.target.value.trim().toLowerCase();
             const foodGrid = document.getElementById("foodGrid");
             const emptyMessage = document.getElementById("emptyMessage");
+            const paginationContainer = document.getElementById("paginationContainer");
 
             if (rawKeyword === "") {
               if (window.selectedCategory && window.selectedCategory !== "semua") {
@@ -707,7 +839,8 @@
                   .then((res) => res.json())
                   .then((json) => {
                     window.allKuliner = json.status && Array.isArray(json.data) ? json.data : [];
-                    renderKuliner();
+                    window.currentPage = 1;
+                    renderKulinerWithPagination();
                   });
               } else {
                 loadKuliner();
@@ -716,6 +849,7 @@
             }
 
             if (foodGrid) foodGrid.setAttribute("aria-busy", "true");
+            if (paginationContainer) paginationContainer.innerHTML = "";
 
             try {
               const response = await fetch(`${BASE_URL}/api/search.php?q=${encodeURIComponent(rawKeyword)}`);
@@ -740,7 +874,8 @@
                   return searchWords.every((word) => searchableText.includes(word));
                 });
 
-              renderKuliner();
+              window.currentPage = 1;
+              renderKulinerWithPagination();
             } catch (error) {
               console.error("Gagal melakukan pencarian server:", error);
               if (foodGrid) {

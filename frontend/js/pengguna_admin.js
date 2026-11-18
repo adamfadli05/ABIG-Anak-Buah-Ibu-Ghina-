@@ -12,19 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const noResultsState = document.getElementById("usersNoResults");
   const tableCard = document.getElementById("usersTableCard");
   const tableBody = document.getElementById("usersTableBody");
-  const usersCount = document.getElementById("usersCount");
   const searchInput = document.getElementById("searchUsers");
   const searchContainer = document.querySelector(".users-search-container");
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
 
   let users = [];
   let usersLoaded = false;
+
+  // State Pagination Pengguna (20 data per halaman)
+  let currentUserPage = 1;
+  const itemsPerPageUser = 20;
 
   async function getJson(url, options = {}) {
     const response = await fetch(url, {
@@ -40,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error(`Respons server tidak valid (HTTP ${response.status}).`);
     }
 
-    if (!response.ok || !result.status) {
+    if (!response.ok || (result.status !== undefined && !result.status)) {
       const error = new Error(result.message || `Permintaan gagal (HTTP ${response.status}).`);
       error.status = response.status;
       throw error;
@@ -73,13 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.clear();
   }
 
-  // --- CEK AKSES DI BALIK LAYAR TANPA MENAMPILKAN LOADING SCREEN ---
   async function checkAdminAccessSilent() {
-    // Pastikan langsung tampilkan panel admin tanpa layar "Memeriksa akses..."
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
 
-    // Ambil nama user dari localStorage jika ada untuk mempercepat render nama
     const rawUser = localStorage.getItem("user");
     if (rawUser) {
       try {
@@ -90,7 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Validasi tetap berjalan senyap ke server di latar belakang
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
       if (result.role !== "admin") {
@@ -104,19 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("role", result.role);
       if (adminName) adminName.textContent = result.data?.nama || "Admin";
       
-      // Muat data pengguna setelah sesi dipastikan valid
       await loadUsers();
     } catch (error) {
       if (redirectForAccessError(error)) return;
-      // Jika terjadi error koneksi saat validasi senyap, biarkan loadUsers yang menangani error-nya
       await loadUsers();
     }
-  }
-
-  function formatDate(value) {
-    if (!value) return "Tidak tersedia";
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "Tidak tersedia" : dateFormatter.format(date);
   }
 
   function matchesUserSearch(user, keyword) {
@@ -139,33 +125,49 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  function renderUsers() {
+  window.changeUserPage = function(page) {
+    const keyword = searchInput.value.trim();
+    const filteredUsers = users.filter((user) => matchesUserSearch(user, keyword));
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPageUser));
+    if (page < 1 || page > totalPages) return;
+    currentUserPage = page;
+    renderUsersWithPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  function renderUsersWithPagination() {
     if (!usersLoaded) return;
 
     const keyword = searchInput.value.trim();
-
     const filteredUsers = users.filter((user) => matchesUserSearch(user, keyword));
+    const paginationContainer = document.getElementById("paginationContainer");
 
     tableBody.replaceChildren();
     loading.hidden = true;
     errorState.hidden = true;
 
     const isEmpty = users.length === 0;
-    emptyState.hidden = !isEmpty;
-    searchContainer.hidden = isEmpty;
-    noResultsState.hidden = isEmpty || filteredUsers.length > 0;
-    tableCard.hidden = isEmpty || filteredUsers.length === 0;
+    const isNoResults = !isEmpty && filteredUsers.length === 0;
 
-    if (isEmpty || filteredUsers.length === 0) return;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    if (searchContainer) searchContainer.hidden = isEmpty;
+    if (noResultsState) noResultsState.hidden = !isNoResults;
+    if (tableCard) tableCard.hidden = isEmpty || isNoResults;
 
-    if (usersCount) {
-      usersCount.textContent = `Menampilkan ${filteredUsers.length} pengguna`;
+    if (isEmpty || isNoResults) {
+      if (paginationContainer) paginationContainer.innerHTML = "";
+      return;
     }
 
-    filteredUsers.forEach((user, index) => {
+    const startIndex = (currentUserPage - 1) * itemsPerPageUser;
+    const endIndex = startIndex + itemsPerPageUser;
+    const paginatedItems = filteredUsers.slice(startIndex, endIndex);
+
+    paginatedItems.forEach((user, index) => {
       const row = document.createElement("tr");
+      const absoluteNo = startIndex + index + 1;
       const values = [
-        `${index + 1}.`,
+        `${absoluteNo}.`,
         user.nama || "-",
         user.email || "-"
       ];
@@ -185,6 +187,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tableBody.append(row);
     });
+
+    // Panggil fungsi kontrol pagination agar tombol render di bawah tabel
+    renderUserPaginationControls(filteredUsers.length);
+  }
+
+  function renderUserPaginationControls(totalItems) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (!paginationContainer) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPageUser));
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    let html = `
+      <button class="pagination-arrow" onclick="changeUserPage(${currentUserPage - 1})" ${currentUserPage === 1 ? 'disabled' : ''}>
+        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentUserPage - 1 && i <= currentUserPage + 1)) {
+        html += `
+          <button class="pagination-number ${i === currentUserPage ? 'active' : ''}" onclick="changeUserPage(${i})">
+            ${i}
+          </button>
+        `;
+      } else if (i === currentUserPage - 2 || i === currentUserPage + 2) {
+        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+      }
+    }
+
+    html += `
+      <button class="pagination-arrow" onclick="changeUserPage(${currentUserPage + 1})" ${currentUserPage === totalPages ? 'disabled' : ''}>
+        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    paginationContainer.innerHTML = html;
   }
 
   function showOfflineState() {
@@ -193,6 +235,8 @@ document.addEventListener("DOMContentLoaded", () => {
     noResultsState.hidden = true;
     tableCard.hidden = true;
     searchContainer.hidden = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.innerHTML = "";
 
     if (errorTitle) {
       errorTitle.textContent = "Koneksi Internet Terputus";
@@ -217,15 +261,18 @@ document.addEventListener("DOMContentLoaded", () => {
     tableCard.hidden = true;
     searchContainer.hidden = true;
     retryButton.disabled = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.innerHTML = "";
 
     try {
       const result = await getJson(`${API_BASE_URL}/api/admin/user.php`);
-      if (!Array.isArray(result.data)) {
-        throw new Error("Data pengguna dari server tidak valid.");
-      }
-      users = result.data;
+      // Mendukung format { data: [...] } ataupun langsung array [...]
+      const rawData = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
+      
+      users = rawData;
       usersLoaded = true;
-      renderUsers();
+      currentUserPage = 1;
+      renderUsersWithPagination();
     } catch (error) {
       if (redirectForAccessError(error)) return;
 
@@ -259,17 +306,23 @@ document.addEventListener("DOMContentLoaded", () => {
     showOfflineState();
   });
 
-  searchInput.addEventListener("input", renderUsers);
+  searchInput.addEventListener("input", () => {
+    currentUserPage = 1;
+    renderUsersWithPagination();
+  });
+  
   retryButton.addEventListener("click", loadUsers);
+  
   sidebarToggle.addEventListener("click", () => {
     setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
   });
+  
   sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+  
   window.addEventListener("resize", () => {
     sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches ||
       adminApp.classList.contains("sidebar-collapsed");
   });
 
-  // Langsung tampilkan panel admin tanpa jeda teks "Memeriksa akses Admin..."
   checkAdminAccessSilent();
 });

@@ -34,7 +34,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     initLogoutHandler();
-
   } catch (error) {
     console.error("Error rendering sidebar:", error);
   }
@@ -96,9 +95,11 @@ function initLogoutHandler() {
   }
 
   async function executeLogout() {
-    const baseOrigin = window.location.origin;
-    // Sesuaikan path folder backend jika logout.php berada di dalam subfolder backend (misal: `${baseOrigin}/ABIG-Anak-Buah-Ibu-Ghina-/backend/logout.php`)
-    const logoutUrl = `${baseOrigin}/logout.php`;
+    // --- DINAMIS & TIDAK HARDCODE (Menyesuaikan letak subfolder backend) ---
+    const currentPath = window.location.pathname;
+    const backendBasePath = currentPath.includes("/frontend/") ? currentPath.substring(0, currentPath.indexOf("/frontend/")) + "/backend" : "../backend";
+
+    const logoutUrl = `${window.location.origin}${backendBasePath}/logout.php`;
 
     if (confirmBtn) confirmBtn.disabled = true;
     if (retryBtn) retryBtn.disabled = true;
@@ -106,8 +107,8 @@ function initLogoutHandler() {
     try {
       const response = await fetch(logoutUrl, {
         method: "POST",
-        headers: { "Accept": "application/json" },
-        credentials: "include"
+        headers: { Accept: "application/json" },
+        credentials: "include",
       });
 
       const result = await response.json();
@@ -119,7 +120,7 @@ function initLogoutHandler() {
       localStorage.removeItem("role");
       localStorage.removeItem("admin_logged_in");
       sessionStorage.clear();
-      
+
       showState({ confirm: false, success: true, error: false });
     } catch (error) {
       console.error("Logout error:", error);
@@ -151,9 +152,7 @@ function initLogoutHandler() {
 }
 
 window.addEventListener("storage", (event) => {
-  const authWasRemoved = event.key === null ||
-    (["user", "role", "admin_logged_in"].includes(event.key) && event.newValue === null) ||
-    (event.key === "role" && event.newValue !== "admin");
+  const authWasRemoved = event.key === null || (["user", "role", "admin_logged_in"].includes(event.key) && event.newValue === null) || (event.key === "role" && event.newValue !== "admin");
   if (!authWasRemoved) return;
   if (localStorage.getItem("role") === "admin" && localStorage.getItem("user")) return;
 

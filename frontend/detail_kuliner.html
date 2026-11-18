@@ -17,6 +17,70 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+
+    <!-- Styling Pagination Ulasan -->
+    <style>
+  /* Container Pagination */
+  .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      /* Tombol Panah: Normal (Lingkaran Putih, Panah Biru) */
+      .pagination-arrow {
+        background-color: #ffffff;
+        color: #001b7d;
+        border: 1px solid #001b7d;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      /* Tombol Panah: Saat Dipencet/Hover (Lingkaran Biru Penuh, Panah Putih) */
+      .pagination-arrow:hover,
+      .pagination-arrow:active {
+        background-color: #001b7d;
+        color: #ffffff;
+      }
+
+      .pagination-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #ffffff;
+        color: #001b7d;
+      }
+
+      /* Tombol Angka Halaman (Tanpa Lingkaran) */
+      .pagination-number {
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5); /* Warna abu-abu untuk angka tidak aktif */
+        cursor: pointer;
+        padding: 2px 6px;
+        transition: all 0.2s ease;
+      }
+
+      .pagination-number:hover {
+        color: #001b7d;
+      }
+
+      /* Angka saat aktif/diklik: Biru tua tebal */
+      .pagination-number.active {
+        color: #001b7d !important;
+        font-weight: 700 !important;
+      }
+    </style>
   </head>
   <body>
     <!-- PEMGILIK NAVBAR HTML OTOMATIS -->
@@ -113,6 +177,8 @@
             <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
           </div>
         </div>
+        <!-- Navigasi Pagination Ulasan -->
+        <div id="reviewPaginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px;"></div>
       </section>
 
       <div class="review-composer" id="reviewComposer" hidden>
@@ -233,6 +299,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const idTempat = urlParams.get("id") || urlParams.get("id_tempat");
 
+        // State Pagination Ulasan (Diubah menjadi 10 ulasan per halaman)
+        let currentReviewPage = 1;
+        const reviewsPerPage = 10;
+        let ulasanList = [];
+
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
         const reviewForm = document.getElementById("reviewForm");
@@ -270,6 +341,129 @@
         let inlineEditUploadedPhotoUrl = null;
         let inlineEditPhotoPreviewUrl = null;
         let inlineEditPhotoWasRemoved = false;
+        const reviewsContainer = document.getElementById("reviewsContainer");
+
+        // Fungsi Navigasi Halaman Ulasan
+        window.changeReviewPage = function(page) {
+          const totalPages = Math.max(1, Math.ceil(ulasanList.length / reviewsPerPage));
+          if (page < 1 || page > totalPages) return;
+          currentReviewPage = page;
+          renderReviews(ulasanList, reviewsContainer);
+          const reviewSectionEl = document.querySelector(".review-section");
+          if (reviewSectionEl) reviewSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        const renderReviewPaginationControls = (totalItems) => {
+          const paginationContainer = document.getElementById("reviewPaginationContainer");
+          if (!paginationContainer) return;
+
+          const totalPages = Math.max(1, Math.ceil(totalItems / reviewsPerPage));
+          if (totalPages <= 1) {
+            paginationContainer.innerHTML = "";
+            return;
+          }
+          let html = `
+            <button class="pagination-arrow" onclick="changeReviewPage(${currentReviewPage - 1})" ${currentReviewPage === 1 ? 'disabled' : ''}>
+              <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+            </button>
+          `;
+
+          // Tombol Angka Halaman (Tanpa Lingkaran)
+          for (let i = 1; i <= totalPages; i++) {
+            if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentReviewPage - 1 && i <= currentReviewPage + 1)) {
+              html += `
+                <button class="pagination-number ${i === currentReviewPage ? 'active' : ''}" onclick="changeReviewPage(${i})">
+                  ${i}
+                </button>
+              `;
+            } else if (i === currentReviewPage - 2 || i === currentReviewPage + 2) {
+              html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+            }
+          }
+
+          // Tombol Panah Kanan (Dengan Lingkaran Kecil)
+          html += `
+            <button class="pagination-arrow" onclick="changeReviewPage(${currentReviewPage + 1})" ${currentReviewPage === totalPages ? 'disabled' : ''}>
+              <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+            </button>
+          `;
+
+          paginationContainer.innerHTML = html;
+        };
+
+        window.renderReviews = function(list, container) {
+          const paginationContainer = document.getElementById("reviewPaginationContainer");
+          if (!list || !list.length) {
+            container.innerHTML = `
+              <div class="review-card-empty">
+                <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
+                <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+              </div>
+            `;
+            if (paginationContainer) paginationContainer.innerHTML = "";
+            return;
+          }
+
+          let currentUserId = null;
+          try {
+            const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+            currentUserId = currentUser && currentUser.id_user != null ? String(currentUser.id_user) : null;
+          } catch (error) {
+            console.error("Data sesi pengguna tidak valid:", error);
+          }
+
+          const startIndex = (currentReviewPage - 1) * reviewsPerPage;
+          const endIndex = startIndex + reviewsPerPage;
+          const paginatedItems = list.slice(startIndex, endIndex);
+
+          container.innerHTML = paginatedItems
+            .map((u) => {
+              const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
+              const rating = Number(u.rating);
+              const comment = getReviewComment(u);
+              const photoUrl = u.foto_url
+                ? /^(https?:\/\/)/i.test(u.foto_url)
+                  ? u.foto_url
+                  : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`
+                : "";
+              const reviewDate = formatReviewDate(u.tanggal || u.created_at);
+              return `
+                <article class="review-card" data-review-id-card="${escapeHTML(u.id_ulasan)}">
+                  <div class="review-card-header">
+                    <span class="review-user-avatar" aria-hidden="true">
+                      <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
+                    </span>
+                    <div class="review-user-details">
+                      <strong class="review-user-name">${escapeHTML(u.nama_user || "Pengguna")}</strong>
+                      <div class="review-rating-date">
+                        ${rating >= 1 && rating <= 5 ? `<span class="review-card-stars" aria-label="Rating ${rating} dari 5">${"★".repeat(rating)}</span>` : ""}
+                        <time>${escapeHTML(reviewDate)}</time>
+                      </div>
+                    </div>
+                    ${
+                      isOwner
+                        ? `
+                      <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
+                        <button class="review-action" type="button" data-review-action="edit" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Ubah ulasan">
+                          <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
+                        </button>
+                        <button class="review-action" type="button" data-review-action="delete" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Hapus ulasan">
+                          <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
+                        </button>
+                      </div>
+                    `
+                        : ""
+                    }
+                  </div>
+                  ${comment ? `<p class="review-card-comment">${escapeHTML(comment)}</p>` : ""}
+                  ${photoUrl ? `<img class="review-photo" src="${escapeHTML(photoUrl)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
+                </article>
+                `;
+            })
+            .join("");
+
+          renderReviewPaginationControls(list.length);
+        };
 
         const setReviewFormVisible = (visible) => {
           reviewForm.hidden = !visible;
@@ -460,7 +654,7 @@
           }
 
           const data = result.data;
-          let ulasanList = result.ulasan || [];
+          ulasanList = result.ulasan || [];
 
           if (detailContent) detailContent.hidden = false;
           if (errorState) errorState.style.display = "none";
@@ -509,7 +703,7 @@
           updateAggregateStars(Number(avgRating));
           updateRatingDistribution(ulasanList);
 
-          const reviewsContainer = document.getElementById("reviewsContainer");
+          currentReviewPage = 1;
           renderReviews(ulasanList, reviewsContainer);
 
           const refreshReviewData = async () => {
@@ -1165,71 +1359,6 @@
           }, 3000);
         }
       })();
-
-      function renderReviews(ulasanList, reviewsContainer) {
-        if (!ulasanList || !ulasanList.length) {
-          reviewsContainer.innerHTML = `
-            <div class="review-card-empty">
-              <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
-              <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
-            </div>
-          `;
-          return;
-        }
-        let currentUserId = null;
-        try {
-          const currentUser = JSON.parse(localStorage.getItem("user") || "null");
-          currentUserId = currentUser && currentUser.id_user != null ? String(currentUser.id_user) : null;
-        } catch (error) {
-          console.error("Data sesi pengguna tidak valid:", error);
-        }
-
-        reviewsContainer.innerHTML = ulasanList
-          .map((u) => {
-            const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
-            const rating = Number(u.rating);
-            const comment = getReviewComment(u);
-            const photoUrl = u.foto_url
-              ? /^(https?:\/\/)/i.test(u.foto_url)
-                ? u.foto_url
-                : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`
-              : "";
-            const reviewDate = formatReviewDate(u.tanggal || u.created_at);
-            return `
-              <article class="review-card" data-review-id-card="${escapeHTML(u.id_ulasan)}">
-                <div class="review-card-header">
-                  <span class="review-user-avatar" aria-hidden="true">
-                    <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
-                  </span>
-                  <div class="review-user-details">
-                    <strong class="review-user-name">${escapeHTML(u.nama_user || "Pengguna")}</strong>
-                    <div class="review-rating-date">
-                      ${rating >= 1 && rating <= 5 ? `<span class="review-card-stars" aria-label="Rating ${rating} dari 5">${"★".repeat(rating)}</span>` : ""}
-                      <time>${escapeHTML(reviewDate)}</time>
-                    </div>
-                  </div>
-                  ${
-                    isOwner
-                      ? `
-                    <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
-                      <button class="review-action" type="button" data-review-action="edit" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Ubah ulasan">
-                        <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
-                      </button>
-                      <button class="review-action" type="button" data-review-action="delete" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Hapus ulasan">
-                        <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
-                      </button>
-                    </div>
-                  `
-                      : ""
-                  }
-                </div>
-                ${comment ? `<p class="review-card-comment">${escapeHTML(comment)}</p>` : ""}
-                ${photoUrl ? `<img class="review-photo" src="${escapeHTML(photoUrl)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
-              </article>
-              `;
-          })
-          .join("");
-      }
 
       function getReviewComment(review) {
         return String(review.komentar ?? review.review_text ?? "");
