@@ -25,11 +25,11 @@
     var backendOrigin = new URL(backendBaseUrl, window.location.origin).origin;
     var projectPath = window.location.pathname.substring(0, frontendPathIndex);
     backendBaseUrl = `${backendOrigin}${projectPath}/backend`;
-  } else if (!isLocalHost && new URL(backendBaseUrl, window.location.origin).hostname === window.location.hostname) {
+  } else if (!isLocalHost) {
     backendBaseUrl = window.location.origin;
   }
 
-  // Hosting uses its same-origin proxy; local XAMPP resolves the sibling backend folder.
+  // Hosting proxies API paths on the frontend origin; local XAMPP resolves the sibling backend folder.
   window.BASE_URL = backendBaseUrl.replace(/\/+$/, "");
   window.PROFILE_API_BASE = window.BASE_URL;
   window.AUTH_API_BASE = window.BASE_URL;
