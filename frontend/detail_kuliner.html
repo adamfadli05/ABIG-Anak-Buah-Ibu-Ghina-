@@ -237,12 +237,12 @@
                   </div>
                 </div>
                 <label class="sr-only" for="reviewComment">Tulis ulasan di sini</label>
-                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="100"></textarea>
+                <textarea id="reviewComment" name="komentar" rows="1" placeholder="Tulis ulasan di sini" maxlength="200"></textarea>
               </div>
               <div class="review-form-meta">
                 <span id="reviewFormMessage" class="review-form-message" role="alert" aria-live="polite"></span>
-                <span class="review-character-hint">Karakter ulasan maksimal 100</span>
-                <span id="reviewCharacterCount" class="sr-only">0/100</span>
+                <span class="review-character-hint">Karakter ulasan maksimal 200</span>
+                <span id="reviewCharacterCount" class="sr-only">0/200</span>
               </div>
             </div>
             <div class="review-form-actions">
@@ -303,6 +303,7 @@
         let currentReviewPage = 1;
         const reviewsPerPage = 10;
         let ulasanList = [];
+        let reviewTotalPages = 0;
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
@@ -344,20 +345,23 @@
         const reviewsContainer = document.getElementById("reviewsContainer");
 
         // Fungsi Navigasi Halaman Ulasan
-        window.changeReviewPage = function(page) {
-          const totalPages = Math.max(1, Math.ceil(ulasanList.length / reviewsPerPage));
-          if (page < 1 || page > totalPages) return;
-          currentReviewPage = page;
-          renderReviews(ulasanList, reviewsContainer);
-          const reviewSectionEl = document.querySelector(".review-section");
-          if (reviewSectionEl) reviewSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.changeReviewPage = async function(page) {
+          if (page < 1 || page > reviewTotalPages) return;
+          try {
+            await loadReviewPage(page);
+            const reviewSectionEl = document.querySelector(".review-section");
+            if (reviewSectionEl) reviewSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch (error) {
+            console.error("Gagal memuat halaman ulasan:", error);
+            showReviewFeedback("Gagal memuat halaman ulasan. Silakan coba lagi.", () => window.changeReviewPage(page), true);
+          }
         };
 
-        const renderReviewPaginationControls = (totalItems) => {
+        const renderReviewPaginationControls = () => {
           const paginationContainer = document.getElementById("reviewPaginationContainer");
           if (!paginationContainer) return;
 
-          const totalPages = Math.max(1, Math.ceil(totalItems / reviewsPerPage));
+          const totalPages = reviewTotalPages;
           if (totalPages <= 1) {
             paginationContainer.innerHTML = "";
             return;
@@ -412,11 +416,7 @@
             console.error("Data sesi pengguna tidak valid:", error);
           }
 
-          const startIndex = (currentReviewPage - 1) * reviewsPerPage;
-          const endIndex = startIndex + reviewsPerPage;
-          const paginatedItems = list.slice(startIndex, endIndex);
-
-          container.innerHTML = paginatedItems
+          container.innerHTML = list
             .map((u) => {
               const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
               const rating = Number(u.rating);
@@ -462,7 +462,28 @@
             })
             .join("");
 
-          renderReviewPaginationControls(list.length);
+          renderReviewPaginationControls();
+        };
+
+        const loadReviewPage = async (page = 1) => {
+          const response = await fetch(
+            `${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}&page=${page}&limit=${reviewsPerPage}`,
+            { credentials: "include" }
+          );
+          const result = await response.json();
+          if (!response.ok || !result.status || !Array.isArray(result.data) || !result.pagination) {
+            throw new Error(result.message || "Gagal memuat daftar ulasan.");
+          }
+
+          const totalPages = Number(result.pagination.total_pages) || 0;
+          if (totalPages > 0 && page > totalPages) {
+            return loadReviewPage(totalPages);
+          }
+
+          ulasanList = result.data;
+          reviewTotalPages = totalPages;
+          currentReviewPage = totalPages === 0 ? 1 : (Number(result.pagination.current_page) || page);
+          renderReviews(ulasanList, reviewsContainer);
         };
 
         const setReviewFormVisible = (visible) => {
@@ -661,6 +682,7 @@
 
           const data = result.data;
           ulasanList = result.ulasan || [];
+          reviewTotalPages = Math.ceil(ulasanList.length / reviewsPerPage);
 
           if (detailContent) detailContent.hidden = false;
           if (errorState) errorState.style.display = "none";
@@ -707,15 +729,25 @@
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `${totalReview} Rating`;
           updateAggregateStars(Number(avgRating));
-          updateRatingDistribution(ulasanList);
+          updateRatingDistribution(result.distribusi_rating || ulasanList);
 
           currentReviewPage = 1;
-          renderReviews(ulasanList, reviewsContainer);
+          try {
+            await loadReviewPage(1);
+          } catch (error) {
+            console.error("Gagal memuat ulasan dengan pagination:", error);
+            reviewTotalPages = 0;
+            renderReviews(ulasanList, reviewsContainer);
+            showReviewFeedback(
+              "Daftar ulasan belum berhasil diperbarui dari server. Menampilkan data yang tersedia.",
+              () => window.location.reload(),
+              true
+            );
+          }
 
           const refreshReviewData = async () => {
             const refreshPromises = [
-              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
-              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`)
+              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`)
             ];
             if (isLoggedIn()) {
               refreshPromises.push(
@@ -723,9 +755,9 @@
               );
             }
 
-            const [detailResponse, reviewsResponse, ratingRes] = await Promise.all(refreshPromises);
-            const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
-            if (!detailResponse.ok || !refreshedDetail.status || !reviewsResponse.ok || !refreshedReviews.status) {
+            const [detailResponse, ratingRes] = await Promise.all(refreshPromises);
+            const refreshedDetail = await detailResponse.json();
+            if (!detailResponse.ok || !refreshedDetail.status) {
               throw new Error("Gagal memperbarui daftar ulasan.");
             }
 
@@ -735,24 +767,14 @@
               if (rJson.status && rJson.data) refreshedRatingData = rJson.data;
             }
 
-            ulasanList = refreshedReviews.data || [];
+            await loadReviewPage(currentReviewPage);
             const latestRating = Number(refreshedRatingData ? refreshedRatingData.rata_rata_rating : (refreshedDetail.data.rata_rata_rating || 0)).toFixed(1);
-            const latestCount = refreshedRatingData ? refreshedRatingData.jumlah_rating : ulasanList.length;
+            const latestCount = refreshedRatingData ? refreshedRatingData.jumlah_rating : (refreshedDetail.data.jumlah_ulasan || 0);
 
             document.getElementById("ratingScoreText").textContent = latestRating;
             document.getElementById("reviewCountText").textContent = `${latestCount} Rating`;
             updateAggregateStars(Number(latestRating));
-            updateRatingDistribution(ulasanList);
-            renderReviews(ulasanList, reviewsContainer);
-          };
-
-          const updateReviewSummary = () => {
-            const ratings = ulasanList.map((review) => Number(review.rating)).filter((rating) => rating >= 1 && rating <= 5);
-            const average = ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : "0.0";
-            document.getElementById("ratingScoreText").textContent = average;
-            document.getElementById("reviewCountText").textContent = `${ulasanList.length} Rating`;
-            updateAggregateStars(Number(average));
-            updateRatingDistribution(ulasanList);
+            updateRatingDistribution(refreshedDetail.distribusi_rating || ulasanList);
           };
 
           const beginReviewEdit = (reviewId) => {
@@ -822,9 +844,9 @@
                     ? `<button class="inline-edit-photo-remove" id="inlineRemovePhoto_${review.id_ulasan}" type="button" aria-label="Hapus foto ulasan"><iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon></button>`
                     : ""}
                 </div>
-                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="100" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
+                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
               </div>
-              <div class="inline-edit-hint">Maksimal ulasan adalah 100 karakter</div>
+              <div class="inline-edit-hint">Maksimal ulasan adalah 200 karakter</div>
                 <div class="inline-edit-actions">
                   <button class="inline-edit-cancel" type="button" id="inlineCancelEdit_${review.id_ulasan}">Batal</button>
                   <button class="inline-edit-save" type="button" id="inlineSaveEdit_${review.id_ulasan}">Simpan</button>
@@ -1041,7 +1063,6 @@
 
               ulasanList = ulasanList.filter((item) => String(item.id_ulasan) !== String(reviewId));
               renderReviews(ulasanList, reviewsContainer);
-              updateReviewSummary();
               try {
                 await refreshReviewData();
               } catch (error) {
@@ -1064,7 +1085,7 @@
             reviewForm.reset();
             updateSelectedRating(0);
             clearReviewPhoto();
-            document.getElementById("reviewCharacterCount").textContent = "0/100";
+            document.getElementById("reviewCharacterCount").textContent = "0/200";
             reviewFormMessage.textContent = "";
             setReviewFormVisible(false);
             submitReview.textContent = "Kirim Ulasan";
@@ -1090,8 +1111,8 @@
 
           reviewComment.addEventListener("input", () => {
             const characters = Array.from(reviewComment.value);
-            if (characters.length > 100) reviewComment.value = characters.slice(0, 100).join("");
-            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/100`;
+            if (characters.length > 200) reviewComment.value = characters.slice(0, 200).join("");
+            document.getElementById("reviewCharacterCount").textContent = `${Array.from(reviewComment.value).length}/200`;
             reviewFormMessage.textContent = "";
           });
 
@@ -1142,8 +1163,8 @@
               reviewComment.focus();
               return;
             }
-            if (characterCount > 100) {
-              reviewFormMessage.textContent = "Ulasan maksimal 100 karakter.";
+            if (characterCount > 200) {
+              reviewFormMessage.textContent = "Ulasan maksimal 200 karakter.";
               reviewComment.focus();
               return;
             }
@@ -1193,7 +1214,7 @@
               editingReviewId = null;
               updateSelectedRating(0);
               clearReviewPhoto();
-              document.getElementById("reviewCharacterCount").textContent = "0/100";
+              document.getElementById("reviewCharacterCount").textContent = "0/200";
               setReviewFormVisible(false);
               submitReview.textContent = "Kirim Ulasan";
               cancelReviewEdit.hidden = true;
@@ -1398,9 +1419,11 @@
         });
       }
 
-      function updateRatingDistribution(reviews) {
+      function updateRatingDistribution(source) {
         const counts = [1, 2, 3, 4, 5].reduce((result, rating) => {
-          result[rating] = reviews.filter((review) => Number(review.rating) === rating).length;
+          result[rating] = Array.isArray(source)
+            ? source.filter((review) => Number(review.rating) === rating).length
+            : Number(source?.[rating] || 0);
           return result;
         }, {});
         const maxCount = Math.max(0, ...Object.values(counts));

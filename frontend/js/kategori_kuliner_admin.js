@@ -1,14 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
   const KATEGORI_CACHE_KEY = "mangan_yukk_admin_kategori_v1";
-
-  // --- DINAMIS API URL (TIDAK HARDCODE & AMAN DARI SUBFOLDER / 404) ---
-  const currentPath = window.location.pathname;
-  // Jika diakses dari folder frontend, arahkan mundur satu tingkat ke backend, atau sesuaikan secara dinamis
-  const backendBasePath = currentPath.includes('/frontend/') 
-    ? currentPath.substring(0, currentPath.indexOf('/frontend/')) + '/backend' 
-    : '../backend';
-  
-  const API_URL = `${window.location.origin}${backendBasePath}/api/admin/kategori.php`;
+  const API_URL = `${API_BASE_URL}/api/admin/kategori.php`;
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");
@@ -82,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const meUrl = `${window.location.origin}${backendBasePath}/api/me.php`;
+      const meUrl = `${API_BASE_URL}/api/me.php`;
       const response = await fetch(meUrl, {
         credentials: "include",
         headers: { Accept: "application/json" }

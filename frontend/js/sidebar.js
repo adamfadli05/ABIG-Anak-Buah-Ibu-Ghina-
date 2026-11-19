@@ -95,11 +95,8 @@ function initLogoutHandler() {
   }
 
   async function executeLogout() {
-    // --- DINAMIS & TIDAK HARDCODE (Menyesuaikan letak subfolder backend) ---
-    const currentPath = window.location.pathname;
-    const backendBasePath = currentPath.includes("/frontend/") ? currentPath.substring(0, currentPath.indexOf("/frontend/")) + "/backend" : "../backend";
-
-    const logoutUrl = `${window.location.origin}${backendBasePath}/logout.php`;
+    const API_BASE_URL = window.BASE_URL || window.location.origin;
+    const logoutUrl = `${API_BASE_URL}/logout.php`;
 
     if (confirmBtn) confirmBtn.disabled = true;
     if (retryBtn) retryBtn.disabled = true;
