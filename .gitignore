@@ -5,7 +5,6 @@ backend/.env
 # Postman local workspace files
 postman/
 .postman/
-backend/mangan-yukkk.postman_collection.json
 
 # File env yang di-generate otomatis oleh Docker entrypoint saat runtime
 # (bukan file statis — di-overwrite tiap container start)
