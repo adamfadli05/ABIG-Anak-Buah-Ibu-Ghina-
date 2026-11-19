@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const KATEGORI_CACHE_KEY = "mangan_yukk_admin_kategori_v1";
+
   // --- DINAMIS API URL (TIDAK HARDCODE & AMAN DARI SUBFOLDER / 404) ---
   const currentPath = window.location.pathname;
   // Jika diakses dari folder frontend, arahkan mundur satu tingkat ke backend, atau sesuaikan secara dinamis
@@ -7,41 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
     : '../backend';
   
   const API_URL = `${window.location.origin}${backendBasePath}/api/admin/kategori.php`;
-
-  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
-  async function checkAdminAccessSilent() {
-    const rawRole = localStorage.getItem("role");
-    
-    if (rawRole === "admin") {
-      fetchKategoriData();
-      return;
-    }
-
-    try {
-      const meUrl = `${window.location.origin}${backendBasePath}/api/me.php`;
-      const response = await fetch(meUrl, {
-        credentials: "include",
-        headers: { Accept: "application/json" }
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.status || result.role !== "admin") {
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
-        localStorage.removeItem("admin_logged_in");
-        window.location.replace("index.html");
-        return;
-      }
-
-      localStorage.setItem("user", JSON.stringify(result.data || {}));
-      localStorage.setItem("role", result.role);
-      
-      fetchKategoriData();
-    } catch (error) {
-      console.error("Gagal memeriksa sesi admin:", error);
-      fetchKategoriData();
-    }
-  }
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");
@@ -88,6 +55,58 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedDeleteId = null;
   let activeErrorAction = null; // Melacak aksi terakhir untuk tombol Coba Lagi
 
+  function readKategoriCache() {
+    try {
+      const raw = localStorage.getItem(KATEGORI_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeKategoriCache(items) {
+    try {
+      localStorage.setItem(KATEGORI_CACHE_KEY, JSON.stringify(items));
+    } catch (_) {}
+  }
+
+  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+    
+    if (rawRole === "admin") {
+      fetchKategoriData();
+      return;
+    }
+
+    try {
+      const meUrl = `${window.location.origin}${backendBasePath}/api/me.php`;
+      const response = await fetch(meUrl, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+      
+      fetchKategoriData();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      fetchKategoriData();
+    }
+  }
+
   // Fungsi menampilkan UI Koneksi Terputus Sesuai Figma
   function showTableErrorUI(isOffline) {
     if (tableCardContainer) tableCardContainer.hidden = true;
@@ -105,18 +124,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Mengambil Data dari kategori.php dengan Desain Koneksi Terputus
-  async function fetchKategoriData() {
-    if (tableErrorState) tableErrorState.hidden = true;
-    if (tableCardContainer) tableCardContainer.hidden = false;
-    if (btnAddKategori) btnAddKategori.hidden = false;
-    if (tableLoading) tableLoading.hidden = false;
-    if (tableError) tableError.hidden = true;
-    if (tableWrapper) tableWrapper.hidden = true;
-    if (tableEmpty) tableEmpty.hidden = true;
+  // Mengambil Data dari kategori.php dengan Cache Instan
+  async function fetchKategoriData(forceNoCache = false) {
+    const cached = !forceNoCache ? readKategoriCache() : null;
+
+    if (cached && cached.length > 0) {
+      kategoriData = cached;
+      if (tableErrorState) tableErrorState.hidden = true;
+      renderTable(kategoriData);
+    } else {
+      if (tableErrorState) tableErrorState.hidden = true;
+      if (tableCardContainer) tableCardContainer.hidden = false;
+      if (btnAddKategori) btnAddKategori.hidden = false;
+      if (tableLoading) tableLoading.hidden = false;
+      if (tableError) tableError.hidden = true;
+      if (tableWrapper) tableWrapper.hidden = true;
+      if (tableEmpty) tableEmpty.hidden = true;
+    }
 
     if (!navigator.onLine) {
-      showTableErrorUI(true);
+      if (!cached || cached.length === 0) {
+        showTableErrorUI(true);
+      }
       return;
     }
 
@@ -142,16 +171,20 @@ document.addEventListener("DOMContentLoaded", () => {
         kategoriData = [];
       }
 
+      writeKategoriCache(kategoriData);
       renderTable(kategoriData);
     } catch (error) {
       console.error("Gagal mengambil data kategori:", error);
-      const isOffline = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
-      showTableErrorUI(isOffline);
+      if (tableLoading) tableLoading.hidden = true;
+      if (!cached || cached.length === 0) {
+        const isOffline = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
+        showTableErrorUI(isOffline);
+      }
     }
   }
 
   if (btnReloadKategori) {
-    btnReloadKategori.addEventListener("click", fetchKategoriData);
+    btnReloadKategori.addEventListener("click", () => fetchKategoriData(true));
   }
 
   // Render Tabel Kategori & Jumlah Kuliner dari Database
@@ -162,13 +195,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!data || data.length === 0) {
       if (tableCardContainer) tableCardContainer.hidden = false;
+      if (tableWrapper) tableWrapper.hidden = true;
       if (tableEmpty) tableEmpty.hidden = false;
       return;
     }
 
     if (tableCardContainer) tableCardContainer.hidden = false;
+    if (tableEmpty) tableEmpty.hidden = true;
     if (tableWrapper) tableWrapper.hidden = false;
-    if (kategoriTableBody) kategoriTableBody.innerHTML = "";
+
+    const fragment = document.createDocumentFragment();
 
     data.forEach((item, index) => {
       const tr = document.createElement("tr");
@@ -191,8 +227,12 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </td>
       `;
-      kategoriTableBody.appendChild(tr);
+      fragment.appendChild(tr);
     });
+
+    if (kategoriTableBody) {
+      kategoriTableBody.replaceChildren(fragment);
+    }
   }
 
   // Buka Modal Tambah
@@ -297,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedDeleteId = null;
       if (successMessageText) successMessageText.textContent = "Kategori berhasil di hapus";
       if (successModal) successModal.hidden = false;
-      fetchKategoriData();
+      fetchKategoriData(true);
     } catch (error) {
       console.error(error);
       activeErrorAction = "delete";
@@ -384,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (successModal) successModal.hidden = false;
-      fetchKategoriData();
+      fetchKategoriData(true);
     } catch (error) {
       console.error(error);
       closeModal();

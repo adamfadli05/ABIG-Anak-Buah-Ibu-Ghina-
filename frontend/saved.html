@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,500&display=swap" rel="stylesheet" />
 
     <!-- Iconify -->
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
 
     <style>
       :root {
@@ -339,25 +339,71 @@
       window.allSavedKuliner = [];
       window.currentPage = 1;
       window.itemsPerPage = 20;
+      const SAVED_CACHE_KEY = "mangan_yukk_saved_cache_v1";
 
       document.addEventListener("DOMContentLoaded", () => {
         loadSavedFoods();
 
         document.getElementById("retryBtn").addEventListener("click", () => {
-          loadSavedFoods();
+          loadSavedFoods(true);
         });
       });
 
-      async function loadSavedFoods() {
+      function readSavedCache() {
+        try {
+          const raw = localStorage.getItem(SAVED_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function writeSavedCache(items) {
+        try {
+          localStorage.setItem(SAVED_CACHE_KEY, JSON.stringify(items));
+        } catch (_) {}
+      }
+
+      function applySavedList(list) {
         const emptyState = document.getElementById("emptyState");
         const errorState = document.getElementById("errorState");
         const savedGrid = document.getElementById("savedGrid");
         const paginationContainer = document.getElementById("paginationContainer");
 
-        emptyState.style.display = "none";
         errorState.style.display = "none";
-        savedGrid.style.display = "none";
-        if (paginationContainer) paginationContainer.innerHTML = "";
+        window.allSavedKuliner = Array.isArray(list) ? list : [];
+
+        if (window.allSavedKuliner.length === 0) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+          if (paginationContainer) paginationContainer.innerHTML = "";
+          emptyState.style.display = "flex";
+          return;
+        }
+
+        emptyState.style.display = "none";
+        window.currentPage = 1;
+        renderSavedWithPagination();
+        savedGrid.style.display = "flex";
+      }
+
+      async function loadSavedFoods(forceNoCache = false) {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        const cached = !forceNoCache ? readSavedCache() : null;
+        if (cached && cached.length > 0) {
+          applySavedList(cached);
+        } else {
+          emptyState.style.display = "none";
+          errorState.style.display = "none";
+          savedGrid.style.display = "none";
+          if (paginationContainer) paginationContainer.innerHTML = "";
+        }
 
         try {
           const response = await fetch(`${BASE_URL}/api/favorit.php`, {
@@ -366,6 +412,7 @@
           });
 
           if (response.status === 401) {
+            localStorage.removeItem(SAVED_CACHE_KEY);
             window.location.href = "login.html";
             return;
           }
@@ -375,23 +422,20 @@
           const result = await response.json();
 
           if (!result.status) {
-            errorState.style.display = "flex";
+            if (!cached || cached.length === 0) {
+              errorState.style.display = "flex";
+            }
             return;
           }
 
-          window.allSavedKuliner = result.data || [];
-
-          if (window.allSavedKuliner.length === 0) {
-            emptyState.style.display = "flex";
-            return;
-          }
-
-          window.currentPage = 1;
-          renderSavedWithPagination();
-          savedGrid.style.display = "flex";
+          const freshList = result.data || [];
+          writeSavedCache(freshList);
+          applySavedList(freshList);
         } catch (err) {
           console.error("Gagal memuat kuliner tersimpan:", err);
-          errorState.style.display = "flex";
+          if (!cached || cached.length === 0) {
+            errorState.style.display = "flex";
+          }
         }
       }
 
