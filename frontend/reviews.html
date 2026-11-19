@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
     <style>
       .reviews-page {
         width: 100%;
@@ -835,10 +835,10 @@
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
     <script src="js/navbar.js?v=session-api"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="js/supabase-config.js" defer></script>
     <script>
-
+      const REVIEWS_CACHE_KEY = "mangan_yukk_my_reviews_cache_v1";
       let pendingReviewDelete = null;
       let reviewsData = [];
       let editingReviewId = null;
@@ -849,8 +849,55 @@
       let currentReviewPage = 1;
       const reviewsPerPage = 20;
 
+      function readReviewsCache() {
+        try {
+          const raw = localStorage.getItem(REVIEWS_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function writeReviewsCache(items) {
+        try {
+          localStorage.setItem(REVIEWS_CACHE_KEY, JSON.stringify(items));
+        } catch (_) {}
+      }
+
+      function applyReviewsList(reviews) {
+        const title = document.getElementById("reviewsTitle");
+        const loading = document.getElementById("reviewsLoading");
+        const empty = document.getElementById("reviewsEmpty");
+        const error = document.getElementById("reviewsError");
+        const list = document.getElementById("reviewsList");
+        const paginationContainer = document.getElementById("reviewPaginationContainer");
+
+        reviewsData = Array.isArray(reviews) ? reviews : [];
+        editingReviewId = null;
+        currentReviewPage = 1;
+        clearReviewPhotoPreview();
+        loading.hidden = true;
+        error.hidden = true;
+
+        if (reviewsData.length === 0) {
+          list.hidden = true;
+          list.replaceChildren();
+          if (paginationContainer) paginationContainer.innerHTML = "";
+          title.hidden = true;
+          empty.hidden = false;
+          return;
+        }
+
+        empty.hidden = true;
+        title.hidden = false;
+        renderReviewsWithPagination();
+        list.hidden = false;
+      }
+
       (() => {
-        document.getElementById("retryReviews").addEventListener("click", loadReviews);
+        document.getElementById("retryReviews").addEventListener("click", () => loadReviews(true));
         const reviewsList = document.getElementById("reviewsList");
         reviewsList.addEventListener("click", handleReviewAction);
         reviewsList.addEventListener("change", handleReviewEditChange);
@@ -881,7 +928,9 @@
         });
         window.addEventListener("offline", () => {
           reviewLoadController?.abort();
-          showReviewsLoadError();
+          if (!readReviewsCache()?.length) {
+            showReviewsLoadError();
+          }
         });
         loadReviews();
       })();
@@ -896,7 +945,7 @@
         document.getElementById("reviewsError").hidden = false;
       }
 
-      async function loadReviews() {
+      async function loadReviews(forceNoCache = false) {
         const title = document.getElementById("reviewsTitle");
         const loading = document.getElementById("reviewsLoading");
         const empty = document.getElementById("reviewsEmpty");
@@ -904,18 +953,28 @@
         const list = document.getElementById("reviewsList");
         const paginationContainer = document.getElementById("reviewPaginationContainer");
 
+        const cached = !forceNoCache ? readReviewsCache() : null;
+
         if (!navigator.onLine) {
-          showReviewsLoadError();
+          if (cached && cached.length > 0) {
+            applyReviewsList(cached);
+          } else {
+            showReviewsLoadError();
+          }
           return;
         }
 
-        title.hidden = false;
-        loading.hidden = false;
-        empty.hidden = true;
-        error.hidden = true;
-        list.hidden = true;
-        list.replaceChildren();
-        if (paginationContainer) paginationContainer.innerHTML = "";
+        if (cached && cached.length > 0) {
+          applyReviewsList(cached);
+        } else {
+          title.hidden = false;
+          loading.hidden = false;
+          empty.hidden = true;
+          error.hidden = true;
+          list.hidden = true;
+          list.replaceChildren();
+          if (paginationContainer) paginationContainer.innerHTML = "";
+        }
 
         const controller = new AbortController();
         reviewLoadController = controller;
@@ -929,6 +988,7 @@
           });
 
           if (response.status === 401) {
+            localStorage.removeItem(REVIEWS_CACHE_KEY);
             const returnTo = encodeURIComponent("reviews.html");
             window.location.href = `login.html?returnTo=${returnTo}`;
             return;
@@ -954,23 +1014,14 @@
           }
 
           const reviews = Array.isArray(result.data) ? result.data : [];
-          reviewsData = reviews;
-          editingReviewId = null;
-          currentReviewPage = 1;
-          clearReviewPhotoPreview();
-          loading.hidden = true;
-          if (reviews.length === 0) {
-            title.hidden = true;
-            empty.hidden = false;
-            return;
-          }
-
-          renderReviewsWithPagination();
-          list.hidden = false;
+          writeReviewsCache(reviews);
+          applyReviewsList(reviews);
         } catch (requestError) {
           console.error("Gagal memuat daftar ulasan:", requestError);
           loading.hidden = true;
-          showReviewsLoadError();
+          if (!cached || cached.length === 0) {
+            showReviewsLoadError();
+          }
         } finally {
           window.clearTimeout(timeoutId);
           if (reviewLoadController === controller) reviewLoadController = null;
@@ -1074,9 +1125,9 @@
                   </div>
                 </div>
                 ${review.review_text ? `<p class="review-comment">${escapeHTML(review.review_text)}</p>` : ""}
-                ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" loading="lazy" />` : ""}
+                ${reviewPhoto ? `<img class="review-photo" src="${escapeHTML(reviewPhoto)}" alt="Foto pada ulasan" />` : ""}
                 <a class="review-food-link" href="detail_kuliner.html?id_tempat=${encodeURIComponent(review.id_tempat)}">
-                  <img class="review-food-photo" src="${escapeHTML(foodPhoto)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+                  <img class="review-food-photo" src="${escapeHTML(foodPhoto)}" alt="" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
                   <span class="review-food-details">
                     <strong class="review-food-name">${escapeHTML(foodName)}</strong>
                     <span class="review-food-address"><iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>${escapeHTML(address)}</span>
@@ -1363,6 +1414,7 @@
               ...(foto_url ? { foto_url } : {}),
             }
             : review);
+          writeReviewsCache(reviewsData);
           editingReviewId = null;
           selectedReviewPhoto = null;
           uploadedReviewPhotoUrl = null;
@@ -1443,6 +1495,7 @@
           }
 
           reviewsData = reviewsData.filter((review) => String(review.id_ulasan) !== String(button.dataset.deleteReview));
+          writeReviewsCache(reviewsData);
           if (reviewsData.length === 0) {
             document.getElementById("reviewsList").hidden = true;
             document.getElementById("reviewPaginationContainer").innerHTML = "";

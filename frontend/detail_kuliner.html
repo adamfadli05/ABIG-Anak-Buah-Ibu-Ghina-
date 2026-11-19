@@ -629,11 +629,17 @@
         }
 
         try {
-          // Fetch data detail kuliner dan data rating secara paralel dari rating.php
-          const [response, ratingResponse] = await Promise.all([
-            fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
-            fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
-          ]);
+          // Fetch data detail kuliner; panggil rating.php hanya jika sesi login aktif
+          const fetchPromises = [
+            fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`)
+          ];
+          if (isLoggedIn()) {
+            fetchPromises.push(
+              fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+            );
+          }
+
+          const [response, ratingResponse] = await Promise.all(fetchPromises);
 
           if (!response.ok) throw new Error("Gagal mengambil data dari server");
 
@@ -707,11 +713,17 @@
           renderReviews(ulasanList, reviewsContainer);
 
           const refreshReviewData = async () => {
-            const [detailResponse, reviewsResponse, ratingRes] = await Promise.all([
-              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`), 
-              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
-              fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
-            ]);
+            const refreshPromises = [
+              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
+              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`)
+            ];
+            if (isLoggedIn()) {
+              refreshPromises.push(
+                fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+              );
+            }
+
+            const [detailResponse, reviewsResponse, ratingRes] = await Promise.all(refreshPromises);
             const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
             if (!detailResponse.ok || !refreshedDetail.status || !reviewsResponse.ok || !refreshedReviews.status) {
               throw new Error("Gagal memperbarui daftar ulasan.");
@@ -1315,6 +1327,8 @@
         }
 
         async function checkBookmarkStatus() {
+          if (!isLoggedIn()) return;
+
           try {
             const res = await fetch(`${BASE_URL}/api/favorit.php`, {
               method: "GET",

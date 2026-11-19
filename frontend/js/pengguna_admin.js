@@ -1,52 +1,73 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL = window.BASE_URL || window.location.origin;
+  const USERS_CACHE_KEY = "mangan_yukk_admin_users_v1";
 
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
   const adminName = document.getElementById("adminName");
-
   const loading = document.getElementById("usersLoading");
   const errorState = document.getElementById("usersError");
   const errorTitle = document.getElementById("usersErrorTitle");
   const errorMessage = document.getElementById("usersErrorMessage");
   const retryButton = document.getElementById("usersRetryButton");
-
   const emptyState = document.getElementById("usersEmpty");
   const noResultsState = document.getElementById("usersNoResults");
   const tableCard = document.getElementById("usersTableCard");
   const tableBody = document.getElementById("usersTableBody");
-
   const searchInput = document.getElementById("searchUsers");
   const searchContainer = document.querySelector(".users-search-container");
-
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-  const paginationContainer = document.getElementById("paginationContainer");
 
-  // State pagination server-side
-  let users = [];
-  let usersLoaded = false;
   let currentUserPage = 1;
-  const itemsPerPageUser = 20;
   let totalPagesFromBE = 1;
+  const itemsPerPageUser = 20;
+  const pageDataCache = new Map();
 
-  // Mengambil data dari API
+  window.allUsers = [];
+  window.currentPage = 1;
+  window.itemsPerPage = itemsPerPageUser;
+
+  function readUsersCache() {
+    try {
+      const raw = localStorage.getItem(USERS_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return { items: parsed, totalPages: Math.max(1, Math.ceil(parsed.length / itemsPerPageUser)) };
+      }
+      if (parsed && Array.isArray(parsed.items)) {
+        return {
+          items: parsed.items,
+          totalPages: Math.max(1, Number(parsed.totalPages) || 1),
+        };
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeUsersCache(items, totalPages = 1) {
+    try {
+      localStorage.setItem(USERS_CACHE_KEY, JSON.stringify({ items, totalPages: Math.max(1, Number(totalPages) || 1) }));
+    } catch (_) {}
+  }
+
   async function getJson(url, options = {}) {
     const response = await fetch(url, {
       ...options,
       credentials: "include",
-      headers: {
-        Accept: "application/json",
-        ...options.headers,
-      },
+      headers: { Accept: "application/json", ...options.headers },
     });
-
     let result;
 
     try {
       result = await response.json();
     } catch {
-      throw new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+      const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+      error.status = response.status;
+      throw error;
     }
 
     if (!response.ok || (result.status !== undefined && !result.status)) {
@@ -58,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return result;
   }
 
-  // Mengarahkan pengguna jika akses tidak sesuai
   function redirectForAccessError(error) {
     if (error.status === 401) {
       clearAuthStorage();
@@ -76,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
-  // Menghapus data autentikasi
   function clearAuthStorage() {
     localStorage.removeItem("user");
     localStorage.removeItem("role");
@@ -84,27 +103,49 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.clear();
   }
 
-  // Memeriksa akses admin
+  function resolveTotalPages(result, rawData) {
+    const explicitPages = Number(result?.pagination?.total_pages ?? result?.total_pages ?? result?.meta?.total_pages);
+    if (Number.isFinite(explicitPages) && explicitPages >= 1) {
+      return explicitPages;
+    }
+
+    const totalItems = Number(result?.pagination?.total_items ?? result?.pagination?.total ?? result?.total_items ?? result?.total);
+    if (Number.isFinite(totalItems) && totalItems > 0) {
+      return Math.max(1, Math.ceil(totalItems / itemsPerPageUser));
+    }
+
+    if (Array.isArray(rawData) && rawData.length > itemsPerPageUser) {
+      return Math.max(1, Math.ceil(rawData.length / itemsPerPageUser));
+    }
+
+    return 1;
+  }
+
   async function checkAdminAccessSilent() {
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
 
     const rawUser = localStorage.getItem("user");
-
     if (rawUser) {
       try {
         const parsed = JSON.parse(rawUser);
-        if (adminName) {
-          adminName.textContent = parsed?.nama || parsed?.name || "Admin";
-        }
-      } catch {
+        if (adminName) adminName.textContent = parsed?.nama || parsed?.name || "Admin";
+      } catch (e) {
         if (adminName) adminName.textContent = "Admin";
       }
     }
 
+    const cached = readUsersCache();
+    if (cached && cached.items.length > 0) {
+      totalPagesFromBE = cached.totalPages;
+      window.allUsers = cached.items;
+      currentUserPage = 1;
+      window.currentPage = 1;
+      renderUsersWithPagination(totalPagesFromBE);
+    }
+
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
-
       if (result.role !== "admin") {
         localStorage.setItem("user", JSON.stringify(result.data || {}));
         localStorage.setItem("role", result.role);
@@ -114,87 +155,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("user", JSON.stringify(result.data || {}));
       localStorage.setItem("role", result.role);
+      if (adminName) adminName.textContent = result.data?.nama || "Admin";
 
-      if (adminName) {
-        adminName.textContent = result.data?.nama || "Admin";
-      }
-
-      await loadUsers();
+      await loadUsers(Boolean(cached && cached.items.length > 0), false);
     } catch (error) {
       if (redirectForAccessError(error)) return;
-      await loadUsers();
+      await loadUsers(Boolean(cached && cached.items.length > 0), false);
     }
   }
 
-  function matchesUserSearch(user, keyword) {
-    const normalizedKeyword = keyword.trim().toLocaleLowerCase("id");
-    if (!normalizedKeyword) return true;
-
-    const userName = (user.nama || "").toLocaleLowerCase("id");
-    const userEmail = (user.email || "").toLocaleLowerCase("id");
-    const searchTerms = normalizedKeyword.split(/\s+/).filter(Boolean);
-    const emailTerms = searchTerms.filter((term) => term.includes("@"));
-    const nameTerms = searchTerms.filter((term) => !term.includes("@"));
-
-    if (emailTerms.length > 0) {
-      return emailTerms.every((term) => userEmail.includes(term)) && nameTerms.every((term) => userName.includes(term));
-    }
-
-    return searchTerms.every((term) => userName.includes(term) || userEmail.includes(term));
-  }
-
-  // Berpindah halaman pagination dengan memanggil API BE
-  window.changeUserPage = function (page) {
-    if (page < 1 || page > totalPagesFromBE) return;
+  window.changePage = function (page) {
+    if (page < 1) return;
     currentUserPage = page;
-    loadUsers();
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.currentPage = page;
+    renderPaginationControls(totalPagesFromBE);
+    loadUsers(true, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Menampilkan data pengguna sesuai halaman dari BE
-  function renderUsersWithPagination() {
-    if (!usersLoaded) return;
+  function renderUsersWithPagination(totalPages = totalPagesFromBE) {
+    const paginationContainer = document.getElementById("paginationContainer");
 
-    const keyword = searchInput ? searchInput.value.trim() : "";
-    const filteredUsers = users.filter((user) => matchesUserSearch(user, keyword));
+    if (loading) loading.hidden = true;
+    if (errorState) errorState.hidden = true;
 
-    tableBody.replaceChildren();
-    loading.hidden = true;
-    errorState.hidden = true;
+    const hasKeyword = Boolean(searchInput && searchInput.value.trim());
+    const isEmpty = window.allUsers.length === 0;
 
-    const isEmpty = users.length === 0 && currentUserPage === 1 && !keyword;
-    const isNoResults = !isEmpty && filteredUsers.length === 0;
+    if (emptyState) emptyState.hidden = !isEmpty || hasKeyword;
+    if (noResultsState) noResultsState.hidden = !(isEmpty && hasKeyword);
+    if (searchContainer) searchContainer.hidden = isEmpty && !hasKeyword;
+    if (tableCard) tableCard.hidden = isEmpty;
 
-    if (emptyState) emptyState.hidden = !isEmpty;
-    if (searchContainer) searchContainer.hidden = isEmpty;
-    if (noResultsState) noResultsState.hidden = !isNoResults;
-    if (tableCard) tableCard.hidden = isEmpty || isNoResults;
-
-    // Jika data kosong
-    if (isEmpty || isNoResults) {
-      if (paginationContainer) {
-        paginationContainer.innerHTML = "";
-        paginationContainer.hidden = true;
-      }
+    if (isEmpty) {
+      if (tableBody) tableBody.replaceChildren();
+      if (paginationContainer && !hasKeyword) paginationContainer.innerHTML = "";
       return;
     }
 
-    const startIndex = (currentUserPage - 1) * itemsPerPageUser;
+    // Jika BE mengembalikan semua data (> itemsPerPageUser), slice di sisi client
+    const itemsToDisplay = window.allUsers.length > itemsPerPageUser ? window.allUsers.slice((currentUserPage - 1) * itemsPerPageUser, currentUserPage * itemsPerPageUser) : window.allUsers;
 
-    // Menampilkan data halaman aktif dari BE (maksimal 20 pengguna)
-    filteredUsers.forEach((user, index) => {
+    const startIndex = (currentUserPage - 1) * itemsPerPageUser;
+    const fragment = document.createDocumentFragment();
+
+    itemsToDisplay.forEach((user, index) => {
       const row = document.createElement("tr");
       const absoluteNo = startIndex + index + 1;
-
       const values = [`${absoluteNo}.`, user.nama || "-", user.email || "-"];
 
       values.forEach((value, colIndex) => {
         const cell = document.createElement("td");
         cell.textContent = value;
-
         if (colIndex === 0) {
           cell.className = "td-no";
         } else if (colIndex === 1) {
@@ -202,198 +214,193 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           cell.className = "td-email";
         }
-
         row.append(cell);
       });
 
-      tableBody.append(row);
+      fragment.append(row);
     });
 
-    renderUserPaginationControls(totalPagesFromBE);
-  }
-
-  // Membuat tombol pagination (menampilkan semua nomor halaman tanpa titik-titik)
-  function renderUserPaginationControls(totalItems) {
-    if (!paginationContainer) return;
-
-    const totalPages = totalItems; // total_pages dari BE
-
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = "";
-      paginationContainer.hidden = true;
-      return;
+    if (tableBody) {
+      tableBody.replaceChildren(fragment);
     }
+
+    renderPaginationControls(totalPages);
+  }
+  function renderPaginationControls(totalPagesInput = totalPagesFromBE) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (!paginationContainer) return;
 
     paginationContainer.hidden = false;
 
-    let html = `
-    <button
-      class="pagination-arrow"
-      onclick="changeUserPage(${currentUserPage - 1})"
-      ${currentUserPage === 1 ? "disabled" : ""}
-      aria-label="Halaman sebelumnya"
-    >
-      <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
-    </button>
-  `;
+    const totalPages = Math.max(1, Number(totalPagesInput) || 1);
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = "";
+      return;
+    }
 
-    // Loop untuk menampilkan SEMUA nomor halaman secara berurutan
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-      <button
-        class="pagination-number ${i === currentUserPage ? "active" : ""}"
-        onclick="changeUserPage(${i})"
-        aria-label="Halaman ${i}"
-        ${i === currentUserPage ? 'aria-current="page"' : ""}
-      >
-        ${i}
+    let html = `
+      <button class="pagination-arrow" onclick="changePage(${currentUserPage - 1})" ${currentUserPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+        <button class="pagination-number ${i === currentUserPage ? "active" : ""}" onclick="changePage(${i})">
+          ${i}
+        </button>
+      `;
     }
 
     html += `
-    <button
-      class="pagination-arrow"
-      onclick="changeUserPage(${currentUserPage + 1})"
-      ${currentUserPage === totalPages ? "disabled" : ""}
-      aria-label="Halaman berikutnya"
-    >
-      <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
-    </button>
-  `;
+      <button class="pagination-arrow" onclick="changePage(${currentUserPage + 1})" ${currentUserPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
 
     paginationContainer.innerHTML = html;
   }
 
-  // Menampilkan kondisi ketika internet terputus
   function showOfflineState() {
-    loading.hidden = true;
-    emptyState.hidden = true;
-    noResultsState.hidden = true;
-    tableCard.hidden = true;
-    searchContainer.hidden = true;
-
-    if (paginationContainer) {
-      paginationContainer.innerHTML = "";
-      paginationContainer.hidden = true;
-    }
+    if (loading) loading.hidden = true;
+    if (emptyState) emptyState.hidden = true;
+    if (noResultsState) noResultsState.hidden = true;
+    if (tableCard) tableCard.hidden = true;
+    if (searchContainer) searchContainer.hidden = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.innerHTML = "";
 
     if (errorTitle) {
       errorTitle.textContent = "Koneksi Internet Terputus";
     }
-
     if (errorMessage) {
       errorMessage.textContent = "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
     }
-
-    errorState.hidden = false;
+    if (errorState) errorState.hidden = false;
   }
 
-  // Mengambil daftar pengguna dari API dengan parameter page dan limit
-  async function loadUsers() {
+  async function loadUsers(silentBackground = false, isPageSwitch = false) {
+    const keyword = searchInput ? searchInput.value.trim() : "";
+    const cacheKey = `${currentUserPage}:${keyword.toLowerCase()}`;
+    const cachedPage = pageDataCache.get(cacheKey);
+    const localFirst = currentUserPage === 1 && !keyword && !cachedPage ? readUsersCache() : null;
+    const initialData = cachedPage || (localFirst ? localFirst.items : null);
+
+    if (initialData && initialData.length > 0) {
+      window.allUsers = initialData;
+      renderUsersWithPagination(totalPagesFromBE);
+    }
+
     if (!navigator.onLine) {
-      showOfflineState();
+      if (!initialData || initialData.length === 0) {
+        showOfflineState();
+      }
       return;
     }
 
-    usersLoaded = false;
-    loading.hidden = false;
-    errorState.hidden = true;
-    emptyState.hidden = true;
-    noResultsState.hidden = true;
-    tableCard.hidden = true;
-    searchContainer.hidden = true;
-    retryButton.disabled = true;
-
-    if (paginationContainer) {
-      paginationContainer.innerHTML = "";
-      paginationContainer.hidden = true;
+    if (!silentBackground && !isPageSwitch && (!initialData || initialData.length === 0)) {
+      if (loading) loading.hidden = false;
+      if (errorState) errorState.hidden = true;
+      if (emptyState) emptyState.hidden = true;
+      if (noResultsState) noResultsState.hidden = true;
+      if (tableCard) tableCard.hidden = true;
+      if (searchContainer) searchContainer.hidden = true;
     }
+
+    if (retryButton) retryButton.disabled = true;
 
     try {
-      const keyword = searchInput ? searchInput.value.trim() : "";
-      const searchParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-      const result = await getJson(`${API_BASE_URL}/api/admin/user.php?page=${currentUserPage}&limit=20${searchParam}`);
+      const queryParams = new URLSearchParams({
+        page: String(currentUserPage),
+        limit: String(itemsPerPageUser),
+      });
+      if (keyword) {
+        queryParams.set("search", keyword);
+      }
 
-      const rawData = Array.isArray(result.data) ? result.data : [];
-      totalPagesFromBE = result.pagination?.total_pages || 1;
+      const result = await getJson(`${API_BASE_URL}/api/admin/user.php?${queryParams.toString()}`);
+      const rawData = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
 
-      users = rawData;
-      usersLoaded = true;
-      renderUsersWithPagination();
+      totalPagesFromBE = resolveTotalPages(result, rawData);
+
+      window.allUsers = rawData;
+      pageDataCache.set(cacheKey, rawData);
+      if (currentUserPage === 1 && !keyword) {
+        writeUsersCache(rawData, totalPagesFromBE);
+      }
+
+      renderUsersWithPagination(totalPagesFromBE);
     } catch (error) {
+      if (loading) loading.hidden = true;
       if (redirectForAccessError(error)) return;
 
-      loading.hidden = true;
-
-      const isOffline = !navigator.onLine || error instanceof TypeError;
-
-      if (isOffline) {
-        showOfflineState();
-      } else {
-        if (errorTitle) {
-          errorTitle.textContent = "Daftar Pengguna Gagal Dimuat";
+      if (!initialData || initialData.length === 0) {
+        const isOffline = !navigator.onLine || error instanceof TypeError;
+        if (isOffline) {
+          showOfflineState();
+        } else {
+          if (errorTitle) {
+            errorTitle.textContent = "Daftar Pengguna Gagal Dimuat";
+          }
+          if (errorMessage) {
+            errorMessage.textContent = error.message || "Terjadi kesalahan saat memuat data pengguna.";
+          }
+          if (errorState) errorState.hidden = false;
         }
-
-        if (errorMessage) {
-          errorMessage.textContent = error.message || "Terjadi kesalahan saat memuat data pengguna.";
-        }
-
-        errorState.hidden = false;
       }
     } finally {
-      retryButton.disabled = false;
+      if (loading) loading.hidden = true;
+      if (retryButton) retryButton.disabled = false;
     }
   }
 
-  // Mengatur sidebar
   function setSidebarOpen(isOpen) {
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
-    adminApp.classList.toggle("sidebar-collapsed", !isOpen);
-    sidebarToggle.setAttribute("aria-expanded", String(isOpen));
-    sidebarToggle.setAttribute("aria-label", isOpen ? "Tutup menu" : "Buka menu");
-    sidebarBackdrop.hidden = !isMobile || !isOpen;
+    if (adminApp) adminApp.classList.toggle("sidebar-collapsed", !isOpen);
+    if (sidebarToggle) {
+      sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+      sidebarToggle.setAttribute("aria-label", isOpen ? "Tutup menu" : "Buka menu");
+    }
+    if (sidebarBackdrop) sidebarBackdrop.hidden = !isMobile || !isOpen;
   }
 
-  // Pencarian pengguna (reset ke halaman 1 dan fetch ke BE)
-  let searchTimeout;
+  window.addEventListener("offline", () => {
+    if (!readUsersCache()?.items?.length) {
+      showOfflineState();
+    }
+  });
+
   if (searchInput) {
+    let searchTimeout = null;
     searchInput.addEventListener("input", () => {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         currentUserPage = 1;
-        loadUsers();
-      }, 300);
+        window.currentPage = 1;
+        loadUsers(true, true);
+      }, 150);
     });
   }
 
-  // Tombol muat ulang
   if (retryButton) {
-    retryButton.addEventListener("click", loadUsers);
+    retryButton.addEventListener("click", () => loadUsers(false, false));
   }
 
-  // Tombol sidebar
   if (sidebarToggle) {
     sidebarToggle.addEventListener("click", () => {
-      setSidebarOpen(adminApp.classList.contains("sidebar-collapsed"));
+      setSidebarOpen(adminApp ? adminApp.classList.contains("sidebar-collapsed") : false);
     });
   }
 
   if (sidebarBackdrop) {
-    sidebarBackdrop.addEventListener("click", () => {
-      setSidebarOpen(false);
-    });
+    sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
   }
 
   window.addEventListener("resize", () => {
     if (sidebarBackdrop) {
-      sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || adminApp.classList.contains("sidebar-collapsed");
+      sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || (adminApp ? adminApp.classList.contains("sidebar-collapsed") : false);
     }
   });
 
-  // Ketika koneksi internet terputus
-  window.addEventListener("offline", showOfflineState);
-
-  // Jalankan pemeriksaan admin
   checkAdminAccessSilent();
 });

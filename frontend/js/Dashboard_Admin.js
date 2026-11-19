@@ -2,13 +2,7 @@
   const API_BASE_URL = window.BASE_URL || window.location.origin;
   const adminApp = document.getElementById("adminApp");
   const authState = document.getElementById("authState");
-  const authTitle = document.getElementById("authTitle");
-  const authMessage = document.getElementById("authMessage");
-  const authErrorIcon = document.getElementById("authErrorIcon");
-  const authIconify = document.getElementById("authIconify");
-  const authOfflineIcon = document.getElementById("authOfflineIcon");
   const authRetryButton = document.getElementById("authRetryButton");
-  const authRetryLabel = document.getElementById("authRetryLabel");
   const summaryCards = document.getElementById("summaryCards");
   const totalCulinary = document.getElementById("totalCulinary");
   const totalCategories = document.getElementById("totalCategories");
@@ -17,10 +11,29 @@
   const culinaryEmpty = document.getElementById("culinaryEmpty");
   const numberFormatter = new Intl.NumberFormat("id-ID");
 
+  const DASHBOARD_CACHE_KEY = "mangan_yukk_admin_dashboard_v1";
+
   // State Pagination Admin (20 data per halaman)
   let allKulinerData = [];
   let currentAdminPage = 1;
   const itemsPerPageAdmin = 20;
+
+  function readDashboardCache() {
+    try {
+      const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeDashboardCache(payload) {
+    try {
+      localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(payload));
+    } catch (_) {}
+  }
 
   async function getJson(url, options = {}) {
     const response = await fetch(url, { ...options, credentials: "include" });
@@ -48,7 +61,17 @@
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
 
-    loadDashboardSummary();
+    const cached = readDashboardCache();
+    if (cached) {
+      if (cached.summary) applySummaryData(cached.summary);
+      if (Array.isArray(cached.culinary) && cached.culinary.length > 0) {
+        allKulinerData = cached.culinary;
+        currentAdminPage = 1;
+        renderCulinaryWithPagination();
+      }
+    }
+
+    loadDashboardSummary(cached);
 
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
@@ -87,6 +110,25 @@
     return count;
   }
 
+  function applySummaryData(data) {
+    if (totalCulinary) {
+      const culinaryCount =
+        data.total_tempat !== undefined && data.total_tempat !== null
+          ? data.total_tempat
+          : data.total_kuliner;
+      totalCulinary.textContent = numberFormatter.format(getCount(culinaryCount));
+    }
+    if (totalCategories) {
+      totalCategories.textContent = numberFormatter.format(getCount(data.total_kategori));
+    }
+    if (totalUsers) {
+      totalUsers.textContent = numberFormatter.format(getCount(data.total_user));
+    }
+    if (summaryCards) {
+      summaryCards.hidden = false;
+    }
+  }
+
   function resolvePhoto(value) {
     const photo = String(value || "").trim();
     if (!photo) return "https://placehold.co/400x300/e0e0e0/555555?text=Kuliner";
@@ -118,6 +160,7 @@
     const startIndex = (currentAdminPage - 1) * itemsPerPageAdmin;
     const endIndex = startIndex + itemsPerPageAdmin;
     const paginatedItems = allKulinerData.slice(startIndex, endIndex);
+    const fragment = document.createDocumentFragment();
 
     paginatedItems.forEach((item) => {
       const title = item.nama_kuliner || item.nama_tempat || "Kuliner";
@@ -156,7 +199,13 @@
       footer.className = "culinary-card-footer";
       const price = Number(item.harga);
       const priceText = document.createElement("span");
-      priceText.textContent = item.harga !== null && item.harga !== undefined && item.harga !== "" && Number.isFinite(price) ? `Rp. ${new Intl.NumberFormat("id-ID").format(price)}` : "Harga belum tersedia";
+      priceText.textContent =
+        item.harga !== null &&
+        item.harga !== undefined &&
+        item.harga !== "" &&
+        Number.isFinite(price)
+          ? `Rp. ${numberFormatter.format(price)}`
+          : "Harga belum tersedia";
 
       const rating = document.createElement("span");
       rating.className = "culinary-card-rating";
@@ -170,9 +219,10 @@
       footer.append(priceText, rating);
       content.append(heading, address, footer);
       card.append(photo, content);
-      culinaryCards.append(card);
+      fragment.append(card);
     });
 
+    culinaryCards.append(fragment);
     renderAdminPaginationControls();
   }
 
@@ -193,7 +243,12 @@
     `;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)) {
+      if (
+        totalPages <= 5 ||
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
+      ) {
         html += `
           <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
             ${i}
@@ -213,65 +268,67 @@
     paginationContainer.innerHTML = html;
   }
 
-  async function loadDashboardSummary() {
-    summaryCards.setAttribute("aria-busy", "true");
+  async function loadDashboardSummary(cachedData = null) {
+    if (summaryCards) summaryCards.setAttribute("aria-busy", "true");
 
     try {
-      const dashResult = await getJson(`${API_BASE_URL}/api/admin/dashboard.php`);
-      if (!dashResult.status || !dashResult.data) {
-        throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
+      const [dashSettled, culinarySettled] = await Promise.allSettled([
+        getJson(`${API_BASE_URL}/api/admin/dashboard.php`),
+        getJson(`${API_BASE_URL}/api/tempat_kuliner.php`),
+      ]);
+
+      let nextSummary = cachedData?.summary || null;
+      let nextCulinary = Array.isArray(cachedData?.culinary) ? cachedData.culinary : null;
+
+      if (dashSettled.status === "fulfilled") {
+        const dashResult = dashSettled.value;
+        if (!dashResult.status || !dashResult.data) {
+          throw new Error(dashResult.message || "Data dashboard dari server tidak valid.");
+        }
+        nextSummary = dashResult.data;
+        applySummaryData(nextSummary);
+      } else {
+        console.error("Gagal memuat ringkasan dashboard:", dashSettled.reason);
       }
 
-      const data = dashResult.data;
-
-      if (totalCulinary) {
-        const culinaryCount = data.total_tempat !== undefined && data.total_tempat !== null ? data.total_tempat : data.total_kuliner;
-        totalCulinary.textContent = numberFormatter.format(getCount(culinaryCount));
-      }
-      if (totalCategories) {
-        totalCategories.textContent = numberFormatter.format(getCount(data.total_kategori));
-      }
-      if (totalUsers) {
-        totalUsers.textContent = numberFormatter.format(getCount(data.total_user));
-      }
-
-      summaryCards.hidden = false;
-      summaryCards.setAttribute("aria-busy", "false");
-
-      try {
-        const culinaryResult = await getJson(`${API_BASE_URL}/api/tempat_kuliner.php`);
+      if (culinarySettled.status === "fulfilled") {
+        const culinaryResult = culinarySettled.value;
         if (culinaryResult.status && Array.isArray(culinaryResult.data)) {
-          const culinary = culinaryResult.data;
-          const details = await Promise.all(culinary.map((item) => getJson(`${API_BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(item.id_tempat)}`).catch(() => null)));
-          allKulinerData = culinary.map((item, index) => {
-            const detail = details[index];
-            const rating = detail?.status && detail?.data ? detail.data.rata_rata_rating : 0;
-            return { ...item, rata_rata_rating: rating };
-          });
+          nextCulinary = culinaryResult.data.map((item) => ({
+            ...item,
+            rata_rata_rating: Number(item.rata_rata_rating ?? item.rating ?? 0),
+          }));
+          allKulinerData = nextCulinary;
           currentAdminPage = 1;
           renderCulinaryWithPagination();
         } else {
           culinaryEmpty.hidden = false;
         }
-      } catch (culinaryError) {
-        console.error("Gagal memuat kartu kuliner:", culinaryError);
-        culinaryEmpty.hidden = false;
+      } else {
+        console.error("Gagal memuat kartu kuliner:", culinarySettled.reason);
+        if (!nextCulinary || nextCulinary.length === 0) {
+          culinaryEmpty.hidden = false;
+        }
       }
-    } catch (error) {
-      console.error("Gagal memuat ringkasan dashboard:", error);
+
+      if (nextSummary || nextCulinary) {
+        writeDashboardCache({
+          summary: nextSummary,
+          culinary: nextCulinary,
+        });
+      }
     } finally {
-      summaryCards.setAttribute("aria-busy", "false");
+      if (summaryCards) summaryCards.setAttribute("aria-busy", "false");
     }
   }
 
   if (authRetryButton) authRetryButton.addEventListener("click", checkAdminAccess);
 
   window.addEventListener("offline", () => {
-    if (!adminApp.hidden) loadDashboardSummary();
+    if (adminApp && !adminApp.hidden) loadDashboardSummary(readDashboardCache());
   });
   window.addEventListener("online", () => {
-    if (adminApp.hidden) checkAdminAccess();
-    else loadDashboardSummary();
+    if (adminApp && !adminApp.hidden) checkAdminAccess();
   });
 
   checkAdminAccess();

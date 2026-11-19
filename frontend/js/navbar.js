@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const AUTH_API_BASE = window.AUTH_API_BASE || window.BASE_URL || window.location.origin;
+  const resolveBaseUrl = () => {
+    const rawBase =
+      window.AUTH_API_BASE ||
+      window.API_BASE_URL ||
+      window.BASE_URL ||
+      ".";
+    return String(rawBase).replace(/\/+$/, "");
+  };
+
+  const resolveEndpoint = (overrideUrl, defaultPath) => {
+    if (overrideUrl) return String(overrideUrl);
+    const base = resolveBaseUrl();
+    const cleanPath = String(defaultPath).replace(/^\/+/, "");
+    return base ? `${base}/${cleanPath}` : `/${cleanPath}`;
+  };
+
+  const NAVBAR_TEMPLATE_URL = window.NAVBAR_TEMPLATE_URL || "components/navbar.html";
+  const SESSION_ENDPOINT = resolveEndpoint(window.SESSION_ENDPOINT, "api/me.php");
+  const LOGOUT_ENDPOINT = resolveEndpoint(window.LOGOUT_ENDPOINT, "api/logout.php");
+
   const navbarContainer = document.getElementById("navbar-container");
 
   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
@@ -57,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 2. FETCH & INJECT NAVBAR.HTML
   if (navbarContainer) {
-    fetch("components/navbar.html")
+    fetch(NAVBAR_TEMPLATE_URL)
       .then((response) => {
         if (response.ok) return response.text();
         throw new Error("Gagal memuat navbar.html");
@@ -65,9 +84,13 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((html) => {
         navbarContainer.innerHTML = html;
         window.initNavbarState();
-        
+
         // Hanya sinkronkan sesi jika penyimpanan lokal menandakan ada sesi login aktif
-        if (localStorage.getItem("user") || localStorage.getItem("role") || localStorage.getItem("admin_logged_in") === "true") {
+        if (
+          localStorage.getItem("user") ||
+          localStorage.getItem("role") ||
+          localStorage.getItem("admin_logged_in") === "true"
+        ) {
           return syncNavbarSession();
         }
       })
@@ -77,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function syncNavbarSession() {
     try {
-      const response = await fetch(`${AUTH_API_BASE}/api/me.php`, {
+      const response = await fetch(SESSION_ENDPOINT, {
         credentials: "include",
       });
 
@@ -86,7 +109,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      if (!response.ok) throw new Error(`Gagal memeriksa sesi (HTTP ${response.status}).`);
+      if (!response.ok) {
+        throw new Error(`Gagal memeriksa sesi (HTTP ${response.status}).`);
+      }
 
       const result = await response.json();
       if (!result.status || !result.data || !result.role) {
@@ -149,17 +174,22 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isLoggedIn) {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "none", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
-      if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
-      if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
+      if (navUserName) {
+        navUserName.textContent =
+          user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
+      }
+      if (profileButton) {
+        profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
+      }
       const foto = user?.foto_profil;
-  if (foto && profileButton) {
-    const img = document.createElement("img");
-    img.src = foto;
-    img.alt = "Foto Profil";
-    img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
-    const icon = profileButton.querySelector("iconify-icon");
-    if (icon) icon.replaceWith(img);
-  }
+      if (foto && profileButton) {
+        const img = document.createElement("img");
+        img.src = foto;
+        img.alt = "Foto Profil";
+        img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
+        const icon = profileButton.querySelector("iconify-icon");
+        if (icon) icon.replaceWith(img);
+      }
     } else {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
@@ -186,7 +216,12 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (navDropdownMenu && navDropdownMenu.classList.contains("show") && !navDropdownMenu.contains(event.target) && !navMenuToggle) {
+    if (
+      navDropdownMenu &&
+      navDropdownMenu.classList.contains("show") &&
+      !navDropdownMenu.contains(event.target) &&
+      !navMenuToggle
+    ) {
       navDropdownMenu.classList.remove("show");
     }
 
@@ -229,7 +264,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       Swal.fire({
-        title: '<span style="color: #001b7d; font-weight: 400; font-size: 24px; display: inline-block; margin-bottom: 5px;">Apakah anda yakin<br>ingin keluar ?</span>',
+        title:
+          '<span style="color: #001b7d; font-weight: 400; font-size: 24px; display: inline-block; margin-bottom: 5px;">Apakah anda yakin<br>ingin keluar ?</span>',
         showCancelButton: true,
         confirmButtonText: "OKE",
         cancelButtonText: "Batal",
@@ -278,7 +314,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function executeLogout() {
     clearAuthStorage();
 
-    fetch(window.location.origin + "/logout.php", {
+    fetch(LOGOUT_ENDPOINT, {
       method: "POST",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },

@@ -1,42 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL = window.BASE_URL || window.location.origin;
-
-  async function checkAdminAccessSilent() {
-    const rawRole = localStorage.getItem("role");
-    
-    if (rawRole === "admin") {
-      if (adminApp) adminApp.hidden = false;
-      if (authState) authState.hidden = true;
-      initAdminApp();
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/me.php`, {
-        credentials: "include",
-        headers: { Accept: "application/json" }
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.status || result.role !== "admin") {
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
-        localStorage.removeItem("admin_logged_in");
-        window.location.replace("index.html");
-        return;
-      }
-
-      localStorage.setItem("user", JSON.stringify(result.data || {}));
-      localStorage.setItem("role", result.role);
-      
-      if (adminApp) adminApp.hidden = false;
-      if (authState) authState.hidden = true;
-      initAdminApp();
-    } catch (error) {
-      console.error("Gagal memeriksa sesi admin:", error);
-      window.location.replace("index.html");
-    }
-  }
+  const ADMIN_KULINER_CACHE_KEY = "mangan_yukk_admin_kuliner_v1";
 
   const authState = document.getElementById("authState");
   const adminApp = document.getElementById("adminApp");
@@ -84,44 +48,118 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // State Pagination Admin (20 data kuliner per halaman)
   let currentAdminPage = 1;
+  let totalPagesFromBE = 1;
   const itemsPerPageAdmin = 20;
+  const pageDataCache = new Map();
+
+  function readKulinerCache() {
+    try {
+      const raw = localStorage.getItem(ADMIN_KULINER_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeKulinerCache(items) {
+    try {
+      localStorage.setItem(ADMIN_KULINER_CACHE_KEY, JSON.stringify(items));
+    } catch (_) {}
+  }
 
   const getApiUrl = (endpoint) => {
     return `${API_BASE_URL}/api/admin/${endpoint}`;
   };
 
-  async function fetchKulinerData() {
-    if (tableLoading) tableLoading.hidden = false;
-    if (tableError) tableError.hidden = true;
-    if (tableWrapper) tableWrapper.hidden = true;
-    if (tableEmpty) tableEmpty.hidden = true;
-    const paginationContainer = document.getElementById("paginationContainer");
-    if (paginationContainer) paginationContainer.innerHTML = "";
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+
+    if (rawRole === "admin") {
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
+      return;
+    }
 
     try {
-      const response = await fetch(getApiUrl("kuliner.php"), {
+      const response = await fetch(`${API_BASE_URL}/api/me.php`, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      window.location.replace("index.html");
+    }
+  }
+
+  async function fetchKulinerData(forceNoCache = false, isPageSwitch = false) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    const cachedPage = !forceNoCache ? pageDataCache.get(currentAdminPage) : null;
+    const localCachedFirstPage =
+      !forceNoCache && currentAdminPage === 1 && !cachedPage ? readKulinerCache() : null;
+    const initialData = cachedPage || localCachedFirstPage;
+
+    if (initialData && initialData.length > 0) {
+      culinaryData = initialData;
+      if (tableError) tableError.hidden = true;
+      renderTableWithPagination(totalPagesFromBE);
+    } else if (!isPageSwitch) {
+      if (tableLoading) tableLoading.hidden = false;
+      if (tableError) tableError.hidden = true;
+      if (tableWrapper) tableWrapper.hidden = true;
+      if (tableEmpty) tableEmpty.hidden = true;
+      if (paginationContainer) paginationContainer.innerHTML = "";
+    }
+
+    try {
+      const url = `${getApiUrl("kuliner.php")}?page=${currentAdminPage}&limit=${itemsPerPageAdmin}`;
+      const response = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
       if (!response.ok) throw new Error("Gagal mengambil data dari server.");
 
       const result = await response.json();
-      const rawData = result.data || result;
-      if (!Array.isArray(rawData)) {
-        throw new Error("Format data tidak valid.");
-      }
+      const rawData = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result)
+          ? result
+          : [];
+      totalPagesFromBE = Number(result.pagination?.total_pages) || 1;
 
       culinaryData = rawData;
-      currentAdminPage = 1;
-      renderTableWithPagination();
+      pageDataCache.set(currentAdminPage, culinaryData);
+      if (currentAdminPage === 1) {
+        writeKulinerCache(culinaryData);
+      }
+      renderTableWithPagination(totalPagesFromBE);
     } catch (error) {
       console.error("Error fetching culinary data:", error);
       if (tableLoading) tableLoading.hidden = true;
-      if (tableWrapper) tableWrapper.hidden = true;
-      if (tableCard) tableCard.hidden = true;
-      if (tableError) tableError.hidden = false;
-      const paginationContainer = document.getElementById("paginationContainer");
-      if (paginationContainer) paginationContainer.innerHTML = "";
+      if (!initialData || initialData.length === 0) {
+        if (tableWrapper) tableWrapper.hidden = true;
+        if (tableCard) tableCard.hidden = true;
+        if (tableError) tableError.hidden = false;
+        if (paginationContainer) paginationContainer.innerHTML = "";
+      }
     }
   }
 
@@ -137,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (editKategoriSelect) {
         editKategoriSelect.innerHTML = '<option value="" disabled>Pilih Kategori</option>';
+        const fragment = document.createDocumentFragment();
         categories.forEach((cat) => {
           const catId = cat.id_kategori || cat.id;
           const catName = cat.nama_kategori || cat.name;
@@ -146,24 +185,24 @@ document.addEventListener("DOMContentLoaded", () => {
           if (String(catId) === String(selectedCategoryId)) {
             option.selected = true;
           }
-          editKategoriSelect.appendChild(option);
+          fragment.appendChild(option);
         });
+        editKategoriSelect.appendChild(fragment);
       }
     } catch (error) {
       console.error("Gagal memuat kategori:", error);
     }
   }
 
-  window.changeAdminPage = function(page) {
-    const filteredData = getFilteredCulinaryData();
-    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPageAdmin));
-    if (page < 1 || page > totalPages) return;
+  window.changeAdminPage = function (page) {
+    if (page < 1) return;
     currentAdminPage = page;
-    renderTableWithPagination();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAdminPaginationControls(totalPagesFromBE);
+    fetchKulinerData(false, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  function renderTableWithPagination() {
+  function renderTableWithPagination(totalPages = totalPagesFromBE) {
     const filteredData = getFilteredCulinaryData();
     const paginationContainer = document.getElementById("paginationContainer");
 
@@ -179,13 +218,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableCard) tableCard.hidden = false;
     if (tableEmpty) tableEmpty.hidden = true;
     if (tableWrapper) tableWrapper.hidden = false;
-    if (kulinerTableBody) kulinerTableBody.innerHTML = "";
+    if (kulinerTableBody) kulinerTableBody.replaceChildren();
 
     const startIndex = (currentAdminPage - 1) * itemsPerPageAdmin;
-    const endIndex = startIndex + itemsPerPageAdmin;
-    const paginatedItems = filteredData.slice(startIndex, endIndex);
+    const fragment = document.createDocumentFragment();
 
-    paginatedItems.forEach((item, index) => {
+    filteredData.forEach((item, index) => {
       const tr = document.createElement("tr");
 
       const fotoUrl = item.photo_url || item.foto || item.image || "";
@@ -195,49 +233,92 @@ document.addEventListener("DOMContentLoaded", () => {
       const itemId = item.id_tempat || item.id_kuliner || item.id;
       const absoluteNo = startIndex + index + 1;
 
-      tr.innerHTML = `
-        <td>${absoluteNo}.</td>
-        <td><img src="${fotoUrl}" alt="${namaKuliner}" class="table-img" onerror="this.style.display='none'"></td>
-        <td>${namaKuliner}</td>
-        <td>${kategori}</td>
-        <td>${alamat}</td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn-action btn-edit" data-id="${itemId}">
-              <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon> Edit
-            </button>
-            <button class="btn-action btn-delete" data-id="${itemId}">
-              <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus
-            </button>
-          </div>
-        </td>
-      `;
-      if (kulinerTableBody) kulinerTableBody.appendChild(tr);
+      const tdNo = document.createElement("td");
+      tdNo.textContent = `${absoluteNo}.`;
+
+      const tdImg = document.createElement("td");
+      if (fotoUrl) {
+        const img = document.createElement("img");
+        img.src = fotoUrl;
+        img.alt = namaKuliner;
+        img.className = "table-img";
+        img.loading = index < 6 ? "eager" : "lazy";
+        img.addEventListener(
+          "error",
+          () => {
+            img.style.display = "none";
+          },
+          { once: true }
+        );
+        tdImg.appendChild(img);
+      }
+
+      const tdNama = document.createElement("td");
+      tdNama.textContent = namaKuliner;
+
+      const tdKat = document.createElement("td");
+      tdKat.textContent = kategori;
+
+      const tdAlamat = document.createElement("td");
+      tdAlamat.textContent = alamat;
+
+      const tdAction = document.createElement("td");
+      const actionWrap = document.createElement("div");
+      actionWrap.className = "action-buttons";
+
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "btn-action btn-edit";
+      btnEdit.setAttribute("data-id", itemId);
+      btnEdit.innerHTML = '<iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon> Edit';
+
+      const btnDelete = document.createElement("button");
+      btnDelete.className = "btn-action btn-delete";
+      btnDelete.setAttribute("data-id", itemId);
+      btnDelete.innerHTML = '<iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus';
+
+      actionWrap.append(btnEdit, btnDelete);
+      tdAction.appendChild(actionWrap);
+
+      tr.append(tdNo, tdImg, tdNama, tdKat, tdAlamat, tdAction);
+      fragment.appendChild(tr);
     });
 
-    renderAdminPaginationControls(filteredData.length);
+    if (kulinerTableBody) kulinerTableBody.appendChild(fragment);
+
+    const hasKeyword = Boolean(searchInput && searchInput.value.trim());
+    const pagesToRender = hasKeyword
+      ? Math.max(1, Math.ceil(filteredData.length / itemsPerPageAdmin))
+      : totalPages;
+    renderAdminPaginationControls(pagesToRender);
   }
 
-  function renderAdminPaginationControls(totalItems) {
+  function renderAdminPaginationControls(totalPagesInput) {
     const paginationContainer = document.getElementById("paginationContainer");
     if (!paginationContainer) return;
 
-    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPageAdmin));
+    paginationContainer.hidden = false;
+
+    const totalPages = Math.max(1, Number(totalPagesInput) || 1);
     if (totalPages <= 1) {
       paginationContainer.innerHTML = "";
       return;
     }
 
     let html = `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? 'disabled' : ''}>
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
         <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)) {
+      if (
+        totalPages <= 5 ||
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
+      ) {
         html += `
-          <button class="pagination-number ${i === currentAdminPage ? 'active' : ''}" onclick="changeAdminPage(${i})">
+          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
             ${i}
           </button>
         `;
@@ -247,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     html += `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? 'disabled' : ''}>
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
         <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
@@ -255,8 +336,8 @@ document.addEventListener("DOMContentLoaded", () => {
     paginationContainer.innerHTML = html;
   }
 
-  function renderTable(data) {
-    renderTableWithPagination();
+  function renderTable() {
+    renderTableWithPagination(totalPagesFromBE);
   }
 
   async function openEditPage(id) {
@@ -512,18 +593,22 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error(result.message || "Gagal memperbarui kuliner");
         }
 
+        pageDataCache.clear();
         closeEditPage();
         if (successEditModal) {
           successEditModal.hidden = false;
           if (closeSuccessEditBtn) closeSuccessEditBtn.focus();
         }
 
-        fetchKulinerData();
+        fetchKulinerData(true);
       } catch (error) {
         console.error("Error saving culinary:", error);
 
         if (editErrorMessage) {
-          editErrorMessage.textContent = !navigator.onLine || error instanceof TypeError ? "Periksa koneksi internet anda" : error.message || "Gagal memperbarui kuliner";
+          editErrorMessage.textContent =
+            !navigator.onLine || error instanceof TypeError
+              ? "Periksa koneksi internet anda"
+              : error.message || "Gagal memperbarui kuliner";
         }
         if (errorEditModal) {
           errorEditModal.hidden = false;
@@ -573,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const name = (item.nama_kuliner || item.name || "").toLowerCase();
       const category = (item.nama_kategori || item.kategori || "").toLowerCase();
       const address = (item.alamat || item.address || "").toLowerCase();
-      
+
       const combinedText = `${name} ${category} ${address}`;
       return keywords.every((kw) => combinedText.includes(kw));
     });
@@ -616,21 +701,30 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.message || "Periksa koneksi internet Anda.");
       }
 
-      culinaryData = culinaryData.filter((item) => String(item.id_tempat || item.id_kuliner || item.id) !== String(pendingDeleteId));
-      
-      const filtered = getFilteredCulinaryData();
-      const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPageAdmin));
-      if (currentAdminPage > totalPages) {
-        currentAdminPage = totalPages;
+      culinaryData = culinaryData.filter(
+        (item) => String(item.id_tempat || item.id_kuliner || item.id) !== String(pendingDeleteId)
+      );
+      pageDataCache.clear();
+      if (currentAdminPage === 1) {
+        writeKulinerCache(culinaryData);
       }
-      renderTableWithPagination();
+
+      if (culinaryData.length === 0 && currentAdminPage > 1) {
+        currentAdminPage -= 1;
+        await fetchKulinerData(true, true);
+      } else {
+        renderTableWithPagination(totalPagesFromBE);
+      }
 
       showDeleteState("success");
       if (closeSuccessEditBtn) closeSuccessEditBtn.focus();
     } catch (error) {
       console.error("Error deleting culinary:", error);
       if (deleteErrorMessage) {
-        deleteErrorMessage.textContent = !navigator.onLine || error instanceof TypeError ? "Periksa koneksi internet anda" : error.message || "Terjadi kesalahan. Silakan coba lagi.";
+        deleteErrorMessage.textContent =
+          !navigator.onLine || error instanceof TypeError
+            ? "Periksa koneksi internet anda"
+            : error.message || "Terjadi kesalahan. Silakan coba lagi.";
       }
       showDeleteState("error");
       if (retryDeleteBtn) retryDeleteBtn.focus();
@@ -653,13 +747,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {
-      currentAdminPage = 1;
-      renderTableWithPagination();
+      renderTableWithPagination(totalPagesFromBE);
     });
   }
 
   if (tableRetryButton) {
-    tableRetryButton.addEventListener("click", fetchKulinerData);
+    tableRetryButton.addEventListener("click", () => fetchKulinerData(true));
   }
 
   function initAdminApp() {
