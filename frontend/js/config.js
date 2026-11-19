@@ -17,8 +17,20 @@
     if (meta) injected = meta.getAttribute("content");
   }
 
-  // Fallback terakhir: origin yang sama (cocok jika frontend & backend satu domain)
-  window.BASE_URL = injected || window.location.origin;
+  var backendBaseUrl = injected || window.location.origin;
+  var isLocalHost = /^(localhost|127\.0\.0\.1|::1)$/i.test(window.location.hostname);
+  var frontendPathIndex = window.location.pathname.toLowerCase().indexOf("/frontend/");
+
+  if (isLocalHost && frontendPathIndex !== -1) {
+    var backendOrigin = new URL(backendBaseUrl, window.location.origin).origin;
+    var projectPath = window.location.pathname.substring(0, frontendPathIndex);
+    backendBaseUrl = `${backendOrigin}${projectPath}/backend`;
+  } else if (!isLocalHost && new URL(backendBaseUrl, window.location.origin).hostname === window.location.hostname) {
+    backendBaseUrl = window.location.origin;
+  }
+
+  // Hosting uses its same-origin proxy; local XAMPP resolves the sibling backend folder.
+  window.BASE_URL = backendBaseUrl.replace(/\/+$/, "");
   window.PROFILE_API_BASE = window.BASE_URL;
   window.AUTH_API_BASE = window.BASE_URL;
 })();
