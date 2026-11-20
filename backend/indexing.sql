@@ -1,16 +1,5 @@
--- ============================================================
--- Indexing Database Mangan Yukkk
--- Jalankan di Supabase SQL Editor
--- Sprint 5 — Optimasi Performa
--- ============================================================
-
 -- Enable pg_trgm extension untuk pencarian LIKE yang lebih cepat
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
--- ============================================================
--- Tabel: ulasan
--- Kolom paling sering di-filter dan di-JOIN
--- ============================================================
 
 -- Index untuk filter ulasan per tempat (paling sering dipakai)
 CREATE INDEX IF NOT EXISTS idx_ulasan_id_tempat
@@ -45,10 +34,6 @@ CREATE INDEX IF NOT EXISTS idx_favorit_id_user
 CREATE INDEX IF NOT EXISTS idx_favorit_user_tempat
     ON favorit (id_user, id_tempat);
 
--- ============================================================
--- Tabel: tempat_kuliner
--- ============================================================
-
 -- Index untuk JOIN ke kuliner (paling sering di-JOIN)
 CREATE INDEX IF NOT EXISTS idx_tempat_kuliner_id_kuliner
     ON tempat_kuliner (id_kuliner);
@@ -58,9 +43,6 @@ CREATE INDEX IF NOT EXISTS idx_tempat_kuliner_koordinat
     ON tempat_kuliner (id_tempat)
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 
--- ============================================================
--- Tabel: kuliner
--- ============================================================
 
 -- Index untuk JOIN ke kategori
 CREATE INDEX IF NOT EXISTS idx_kuliner_id_kategori
@@ -74,9 +56,6 @@ CREATE INDEX IF NOT EXISTS idx_kuliner_nama_trgm
 CREATE INDEX IF NOT EXISTS idx_kuliner_nama_lower
     ON kuliner (LOWER(nama_kuliner));
 
--- ============================================================
--- Tabel: kategori
--- ============================================================
 
 -- Functional index untuk filter nama kategori case-insensitive
 CREATE INDEX IF NOT EXISTS idx_kategori_nama_lower
@@ -85,10 +64,6 @@ CREATE INDEX IF NOT EXISTS idx_kategori_nama_lower
 -- GIN index untuk pencarian nama kategori
 CREATE INDEX IF NOT EXISTS idx_kategori_nama_trgm
     ON kategori USING gin (nama_kategori gin_trgm_ops);
-
--- ============================================================
--- Tabel: users
--- ============================================================
 
 -- Index untuk login/register (cek email unik)
 CREATE INDEX IF NOT EXISTS idx_users_email
@@ -100,10 +75,6 @@ CREATE INDEX IF NOT EXISTS idx_users_nama_lower
 
 CREATE INDEX IF NOT EXISTS idx_users_email_lower
     ON users (LOWER(email));
-
--- ============================================================
--- Tabel: admin
--- ============================================================
 
 -- Index untuk login admin
 CREATE INDEX IF NOT EXISTS idx_admin_email
