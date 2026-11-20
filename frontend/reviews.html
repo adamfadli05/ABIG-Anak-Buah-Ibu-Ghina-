@@ -104,7 +104,7 @@
 
       .review-card {
         width: 100%;
-        padding: 16px 22px;
+        padding: 18px 22px;
         border: 1px solid #d1d1d1;
         border-radius: 20px;
         background: #fff;
@@ -124,21 +124,22 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        margin-bottom: 10px;
       }
 
       .review-author {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         min-width: 0;
-        gap: 10px;
+        gap: 12px;
       }
 
       .review-avatar {
         display: grid;
-        flex: 0 0 32px;
-        width: 32px;
-        height: 32px;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
         place-items: center;
         border-radius: 50%;
         background: #001b7d;
@@ -169,7 +170,7 @@
 
       .review-author-name {
         display: block;
-        margin: 0 0 2px;
+        margin: 0 0 3px;
         color: #111;
         font-size: 12px;
         font-weight: 500;
@@ -207,7 +208,7 @@
       }
 
       .review-comment {
-        margin: 9px 0 10px;
+        margin: 8px 0 12px;
         overflow-wrap: anywhere;
         color: #333;
         font-size: 11px;
@@ -410,7 +411,7 @@
         display: block;
         width: 52px;
         height: 44px;
-        margin: 0 0 10px;
+        margin: 0 0 12px;
         border-radius: 7px;
         object-fit: cover;
       }
@@ -419,8 +420,9 @@
         display: flex;
         align-items: center;
         min-height: 60px;
-        gap: 10px;
-        padding: 6px 10px;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 8px 12px;
         border: 1px solid #c9c9c9;
         border-radius: 7px;
         color: inherit;
@@ -491,41 +493,17 @@
         opacity: 0.6;
       }
 
+      /* Gaya pesan kosong / koneksi terputus disamakan dengan saved.html */
       .reviews-state {
-        padding: 8px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        margin-top: 40px;
+        padding: 0 16px;
         text-align: center;
-      }
-
-      .reviews-state-card {
-        display: grid;
-        justify-items: center;
-        width: min(100%, 520px);
-        margin: 24px auto 0;
-        padding: 28px 20px;
-        border: 1px solid #d1d1d1;
-        border-radius: 20px;
-        background: #fff;
-        box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
-      }
-
-      #reviewsEmpty .reviews-state-card {
-        width: 100%;
-        margin-top: 52px;
-        padding: 0 12px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        box-shadow: none;
-      }
-
-      #reviewsError .reviews-state-card {
-        width: 100%;
-        margin-top: 52px;
-        padding: 0 12px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        box-shadow: none;
+        font-family: "Inter", sans-serif;
       }
 
       .reviews-empty-icon {
@@ -537,47 +515,19 @@
         font-size: 48px;
       }
 
-      .reviews-error-icon {
-        display: block;
-        width: 48px;
-        height: 48px;
-        margin: 0 auto 12px;
-        color: #888;
-        font-size: 48px;
-      }
-
-      .reviews-error-title {
-        margin: 16px 0 8px;
-        color: #111;
-        font-size: 20px;
-        font-weight: 600;
-      }
-
       .reviews-empty-title {
-        margin: 16px 0 8px;
+        margin: 12px 0 8px;
         color: #111;
         font-size: 20px;
         font-weight: 600;
       }
 
       .reviews-empty-copy {
-        max-width: 360px;
         margin: 0;
-        color: #555;
-        font-size: 13px;
-        line-height: 1.5;
-      }
-
-      #reviewsEmpty .reviews-empty-copy {
-        max-width: none;
-        color: #111;
-        font-size: 16px;
-      }
-
-      #reviewsError .reviews-empty-copy {
-        max-width: none;
-        color: #111;
-        font-size: 16px;
+        color: #000000;
+        font-size: 14px;
+        line-height: 17px;
+        font-weight: 400;
       }
 
       .reviews-retry {
@@ -586,14 +536,17 @@
         border: 0;
         background: transparent;
         color: #001b7d;
-        font: inherit;
-        font-size: inherit;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        line-height: 17px;
+        font-weight: 400;
         text-decoration: underline;
         cursor: pointer;
+        display: inline;
       }
 
       .reviews-retry:hover {
-        color: #00145f;
+        opacity: 0.8;
       }
 
       .reviews-retry:focus-visible {
@@ -730,20 +683,17 @@
           padding: 104px 8px 32px;
         }
 
-        #reviewsEmpty .reviews-state-card {
-          margin-top: 40px;
-        }
-
-        #reviewsError .reviews-state-card {
-          margin-top: 40px;
-        }
-
         .review-card {
-          padding: 13px 14px;
+          padding: 16px;
         }
 
         .review-card-heading {
-          gap: 6px;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .review-author {
+          gap: 10px;
         }
 
         .review-owner-actions {
@@ -755,16 +705,16 @@
           height: 28px;
         }
 
+        .review-food-link {
+          margin-top: 12px;
+        }
+
         .review-food-name {
           font-size: 12px;
         }
 
         .review-food-address {
           font-size: 9px;
-        }
-
-        .review-card {
-          padding: 14px 16px;
         }
 
         .review-card[data-editing-review] {
@@ -790,22 +740,16 @@
       <h1 id="reviewsTitle" class="reviews-title">Riwayat Ulasan Anda <iconify-icon icon="codicon:code-review" aria-hidden="true"></iconify-icon></h1>
       <div id="reviewsLoading" class="reviews-state" role="status">Memuat ulasan...</div>
       <div id="reviewsEmpty" class="reviews-state" hidden>
-        <section class="reviews-state-card" aria-labelledby="reviewsEmptyTitle">
-          <iconify-icon class="reviews-empty-icon" icon="fluent:comment-error-16-regular" aria-hidden="true"></iconify-icon>
-          <h2 id="reviewsEmptyTitle" class="reviews-empty-title">Belum Ada Ulasan</h2>
-          <p class="reviews-empty-copy">YUKKK, bagikan pengalamanmu setelah mencoba kuliner favoritmu!</p>
-        </section>
+        <iconify-icon class="reviews-empty-icon" icon="fluent:comment-error-16-regular" aria-hidden="true"></iconify-icon>
+        <h2 id="reviewsEmptyTitle" class="reviews-empty-title">Belum Ada Ulasan</h2>
+        <p class="reviews-empty-copy">YUKKK, bagikan pengalamanmu setelah mencoba kuliner favoritmu!</p>
       </div>
       <div id="reviewsError" class="reviews-state" role="alert" hidden>
-        <section class="reviews-state-card" aria-labelledby="reviewsErrorTitle">
-          <iconify-icon id="reviewsErrorIcon" class="reviews-error-icon" icon="fluent:comment-dismiss-24-regular" aria-hidden="true"></iconify-icon>
-          <h2 id="reviewsErrorTitle" class="reviews-error-title">Gagal memuat halaman</h2>
-          <p class="reviews-empty-copy">Silahkan <button id="retryReviews" class="reviews-retry" type="button">coba lagi</button></p>
-        </section>
+        <p id="reviewsErrorMessage" class="reviews-empty-copy">Koneksi internet terputus, silahkan <button id="retryReviews" class="reviews-retry" type="button">Coba Lagi</button></p>
       </div>
       <div id="reviewsList" class="reviews-list" hidden></div>
       <!-- Tempat Kontainer Pagination -->
-      <div id="reviewPaginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
+      <div id="reviewPaginationContainer" class="pagination-container" style="display: none;"></div>
 
       <div id="reviewEditFeedback" class="review-edit-feedback" role="alert" aria-live="assertive" hidden>
         <span id="reviewEditFeedbackText"></span>
@@ -866,6 +810,13 @@
         } catch (_) {}
       }
 
+      function bindRetryReviewsButton() {
+        const retryBtn = document.getElementById("retryReviews");
+        if (retryBtn) {
+          retryBtn.onclick = () => loadReviews(true);
+        }
+      }
+
       function applyReviewsList(reviews) {
         const title = document.getElementById("reviewsTitle");
         const loading = document.getElementById("reviewsLoading");
@@ -884,7 +835,10 @@
         if (reviewsData.length === 0) {
           list.hidden = true;
           list.replaceChildren();
-          if (paginationContainer) paginationContainer.innerHTML = "";
+          if (paginationContainer) {
+            paginationContainer.innerHTML = "";
+            paginationContainer.style.display = "none";
+          }
           title.hidden = true;
           empty.hidden = false;
           return;
@@ -897,7 +851,7 @@
       }
 
       (() => {
-        document.getElementById("retryReviews").addEventListener("click", () => loadReviews(true));
+        bindRetryReviewsButton();
         const reviewsList = document.getElementById("reviewsList");
         reviewsList.addEventListener("click", handleReviewAction);
         reviewsList.addEventListener("change", handleReviewEditChange);
@@ -928,20 +882,51 @@
         });
         window.addEventListener("offline", () => {
           reviewLoadController?.abort();
-          if (!readReviewsCache()?.length) {
-            showReviewsLoadError();
-          }
+          showReviewsConnectionLost();
+        });
+        window.addEventListener("online", () => {
+          loadReviews(true);
         });
         loadReviews();
       })();
+
+      function showReviewsConnectionLost() {
+        document.getElementById("reviewsTitle").hidden = true;
+        document.getElementById("reviewsLoading").hidden = true;
+        document.getElementById("reviewsEmpty").hidden = true;
+        document.getElementById("reviewsList").hidden = true;
+        document.getElementById("reviewsList").replaceChildren();
+        const paginationContainer = document.getElementById("reviewPaginationContainer");
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
+        document.getElementById("reviewEditFeedback").hidden = true;
+        const msgEl = document.getElementById("reviewsErrorMessage");
+        if (msgEl) {
+          msgEl.innerHTML = `Koneksi internet terputus, silahkan <button id="retryReviews" class="reviews-retry" type="button">Coba Lagi</button>`;
+          bindRetryReviewsButton();
+        }
+        document.getElementById("reviewsError").hidden = false;
+      }
 
       function showReviewsLoadError() {
         document.getElementById("reviewsTitle").hidden = true;
         document.getElementById("reviewsLoading").hidden = true;
         document.getElementById("reviewsEmpty").hidden = true;
         document.getElementById("reviewsList").hidden = true;
-        document.getElementById("reviewPaginationContainer").innerHTML = "";
+        document.getElementById("reviewsList").replaceChildren();
+        const paginationContainer = document.getElementById("reviewPaginationContainer");
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
         document.getElementById("reviewEditFeedback").hidden = true;
+        const msgEl = document.getElementById("reviewsErrorMessage");
+        if (msgEl) {
+          msgEl.innerHTML = `Gagal memuat daftar ulasan, silahkan <button id="retryReviews" class="reviews-retry" type="button">Coba Lagi</button>`;
+          bindRetryReviewsButton();
+        }
         document.getElementById("reviewsError").hidden = false;
       }
 
@@ -953,17 +938,12 @@
         const list = document.getElementById("reviewsList");
         const paginationContainer = document.getElementById("reviewPaginationContainer");
 
-        const cached = !forceNoCache ? readReviewsCache() : null;
-
         if (!navigator.onLine) {
-          if (cached && cached.length > 0) {
-            applyReviewsList(cached);
-          } else {
-            showReviewsLoadError();
-          }
+          showReviewsConnectionLost();
           return;
         }
 
+        const cached = !forceNoCache ? readReviewsCache() : null;
         if (cached && cached.length > 0) {
           applyReviewsList(cached);
         } else {
@@ -973,7 +953,10 @@
           error.hidden = true;
           list.hidden = true;
           list.replaceChildren();
-          if (paginationContainer) paginationContainer.innerHTML = "";
+          if (paginationContainer) {
+            paginationContainer.innerHTML = "";
+            paginationContainer.style.display = "none";
+          }
         }
 
         const controller = new AbortController();
@@ -1019,7 +1002,9 @@
         } catch (requestError) {
           console.error("Gagal memuat daftar ulasan:", requestError);
           loading.hidden = true;
-          if (!cached || cached.length === 0) {
+          if (!navigator.onLine || requestError instanceof TypeError) {
+            showReviewsConnectionLost();
+          } else if (!cached || cached.length === 0) {
             showReviewsLoadError();
           }
         } finally {
@@ -1029,6 +1014,10 @@
       }
 
       window.changeReviewPage = function(page) {
+        if (!navigator.onLine) {
+          showReviewsConnectionLost();
+          return;
+        }
         const totalPages = Math.max(1, Math.ceil(reviewsData.length / reviewsPerPage));
         if (page < 1 || page > totalPages) return;
         currentReviewPage = page;
@@ -1056,8 +1045,11 @@
         const totalPages = Math.max(1, Math.ceil(reviewsData.length / reviewsPerPage));
         if (totalPages <= 1) {
           paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
           return;
         }
+
+        paginationContainer.style.display = "flex";
 
         let html = `
           <button class="pagination-arrow" onclick="changeReviewPage(${currentReviewPage - 1})" ${currentReviewPage === 1 ? 'disabled' : ''}>
@@ -1498,7 +1490,11 @@
           writeReviewsCache(reviewsData);
           if (reviewsData.length === 0) {
             document.getElementById("reviewsList").hidden = true;
-            document.getElementById("reviewPaginationContainer").innerHTML = "";
+            const paginationContainer = document.getElementById("reviewPaginationContainer");
+            if (paginationContainer) {
+              paginationContainer.innerHTML = "";
+              paginationContainer.style.display = "none";
+            }
             document.getElementById("reviewsEmpty").hidden = false;
             document.getElementById("reviewsTitle").hidden = true;
           } else {

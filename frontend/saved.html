@@ -204,7 +204,6 @@
         text-overflow: ellipsis !important;
       }
 
-      /* Perbaikan Alamat agar tidak kepotong (multiline rapi) */
       .food-location {
         display: flex !important;
         align-items: flex-start !important;
@@ -319,16 +318,16 @@
         <div class="state-text">Belum ada kuliner yang tersimpan</div>
       </div>
 
-      <!-- 2. Kondisi Gagal Dimuat -->
+      <!-- 2. Kondisi Gagal Dimuat / Koneksi Terputus -->
       <div id="errorState" class="state-container" style="display: none">
-        <div class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
+        <div id="errorMessageText" class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
       </div>
 
       <!-- 3. Daftar Kartu Kuliner Tersimpan -->
       <div id="savedGrid" class="saved-grid" style="display: none"></div>
 
       <!-- 4. Navigasi Pagination -->
-      <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
+      <div id="paginationContainer" class="pagination-container" style="display: none"></div>
     </main>
 
     <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
@@ -339,74 +338,164 @@
       window.allSavedKuliner = [];
       window.currentPage = 1;
       window.itemsPerPage = 20;
+      let totalSavedPages = 1;
       const SAVED_CACHE_KEY = "mangan_yukk_saved_cache_v1";
+      const savedPageCache = new Map();
 
       document.addEventListener("DOMContentLoaded", () => {
-        loadSavedFoods();
+        loadSavedFoods(1, false);
 
-        document.getElementById("retryBtn").addEventListener("click", () => {
-          loadSavedFoods(true);
+        window.addEventListener("offline", () => {
+          showConnectionLostState();
+        });
+
+        window.addEventListener("online", () => {
+          loadSavedFoods(window.currentPage, true);
         });
       });
+
+      function bindRetryButton() {
+        const retryBtn = document.getElementById("retryBtn");
+        if (retryBtn) {
+          retryBtn.onclick = () => loadSavedFoods(window.currentPage, true);
+        }
+      }
+
+      function showConnectionLostState() {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const errorMessageText = document.getElementById("errorMessageText");
+        const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        if (emptyState) emptyState.style.display = "none";
+        if (savedGrid) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+        }
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
+        if (errorMessageText) {
+          errorMessageText.innerHTML = `Koneksi internet terputus, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button>`;
+          bindRetryButton();
+        }
+        if (errorState) errorState.style.display = "flex";
+      }
+
+      function showLoadErrorState() {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const errorMessageText = document.getElementById("errorMessageText");
+        const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        if (emptyState) emptyState.style.display = "none";
+        if (savedGrid) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+        }
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
+        if (errorMessageText) {
+          errorMessageText.innerHTML = `Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button>`;
+          bindRetryButton();
+        }
+        if (errorState) errorState.style.display = "flex";
+      }
 
       function readSavedCache() {
         try {
           const raw = localStorage.getItem(SAVED_CACHE_KEY);
           if (!raw) return null;
           const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : null;
+          if (Array.isArray(parsed)) {
+            return { items: parsed, totalPages: Math.max(1, Math.ceil(parsed.length / window.itemsPerPage)) };
+          }
+          if (parsed && Array.isArray(parsed.items)) {
+            return {
+              items: parsed.items,
+              totalPages: Math.max(1, Number(parsed.totalPages) || 1),
+            };
+          }
+          return null;
         } catch (_) {
           return null;
         }
       }
 
-      function writeSavedCache(items) {
+      function writeSavedCache(items, totalPages = 1) {
         try {
-          localStorage.setItem(SAVED_CACHE_KEY, JSON.stringify(items));
+          localStorage.setItem(
+            SAVED_CACHE_KEY,
+            JSON.stringify({ items, totalPages: Math.max(1, Number(totalPages) || 1) })
+          );
         } catch (_) {}
       }
 
-      function applySavedList(list) {
+      function renderSavedPage(list, page = 1, totalPages = 1) {
         const emptyState = document.getElementById("emptyState");
         const errorState = document.getElementById("errorState");
         const savedGrid = document.getElementById("savedGrid");
         const paginationContainer = document.getElementById("paginationContainer");
 
-        errorState.style.display = "none";
+        if (errorState) errorState.style.display = "none";
         window.allSavedKuliner = Array.isArray(list) ? list : [];
+        window.currentPage = Math.max(1, Number(page) || 1);
+        totalSavedPages = Math.max(1, Number(totalPages) || 1);
 
         if (window.allSavedKuliner.length === 0) {
           savedGrid.style.display = "none";
           savedGrid.innerHTML = "";
-          if (paginationContainer) paginationContainer.innerHTML = "";
+          if (paginationContainer) {
+            paginationContainer.innerHTML = "";
+            paginationContainer.style.display = "none";
+          }
           emptyState.style.display = "flex";
           return;
         }
 
         emptyState.style.display = "none";
-        window.currentPage = 1;
-        renderSavedWithPagination();
+        const fragment = document.createDocumentFragment();
+        const tempWrapper = document.createElement("div");
+        tempWrapper.innerHTML = window.allSavedKuliner.map(renderFoodCard).join("");
+        while (tempWrapper.firstChild) {
+          fragment.appendChild(tempWrapper.firstChild);
+        }
+        savedGrid.replaceChildren(fragment);
         savedGrid.style.display = "flex";
+
+        renderPaginationControls(totalSavedPages);
       }
 
-      async function loadSavedFoods(forceNoCache = false) {
-        const emptyState = document.getElementById("emptyState");
-        const errorState = document.getElementById("errorState");
-        const savedGrid = document.getElementById("savedGrid");
-        const paginationContainer = document.getElementById("paginationContainer");
+      async function loadSavedFoods(page = 1, forceNoCache = false) {
+        const targetPage = Math.max(1, Number(page) || 1);
+        window.currentPage = targetPage;
 
-        const cached = !forceNoCache ? readSavedCache() : null;
-        if (cached && cached.length > 0) {
-          applySavedList(cached);
-        } else {
-          emptyState.style.display = "none";
-          errorState.style.display = "none";
-          savedGrid.style.display = "none";
-          if (paginationContainer) paginationContainer.innerHTML = "";
+        if (!navigator.onLine) {
+          showConnectionLostState();
+          return;
+        }
+
+        const memCached = !forceNoCache ? savedPageCache.get(targetPage) : null;
+        const localPage1 =
+          targetPage === 1 && !forceNoCache && !memCached ? readSavedCache() : null;
+        const initial = memCached || localPage1;
+
+        if (initial && Array.isArray(initial.items) && initial.items.length > 0) {
+          renderSavedPage(initial.items, targetPage, initial.totalPages);
         }
 
         try {
-          const response = await fetch(`${BASE_URL}/api/favorit.php`, {
+          const query = new URLSearchParams({
+            page: String(targetPage),
+            limit: String(window.itemsPerPage),
+          }).toString();
+
+          const response = await fetch(`${BASE_URL}/api/favorit.php?${query}`, {
             method: "GET",
             credentials: "include",
           });
@@ -422,65 +511,63 @@
           const result = await response.json();
 
           if (!result.status) {
-            if (!cached || cached.length === 0) {
-              errorState.style.display = "flex";
+            if (!initial || !initial.items?.length) {
+              showLoadErrorState();
             }
             return;
           }
 
-          const freshList = result.data || [];
-          writeSavedCache(freshList);
-          applySavedList(freshList);
+          const freshList = Array.isArray(result.data) ? result.data : [];
+          const pagination = result.pagination || {};
+          const computedPages =
+            Number(pagination.total_pages) ||
+            (Number(pagination.total_data) > 0
+              ? Math.ceil(Number(pagination.total_data) / window.itemsPerPage)
+              : Math.max(1, Math.ceil(freshList.length / window.itemsPerPage)));
+
+          const pageObj = {
+            items: freshList,
+            totalPages: Math.max(1, computedPages),
+          };
+          savedPageCache.set(targetPage, pageObj);
+          if (targetPage === 1) {
+            writeSavedCache(freshList, pageObj.totalPages);
+          }
+
+          renderSavedPage(freshList, Number(pagination.current_page) || targetPage, pageObj.totalPages);
         } catch (err) {
           console.error("Gagal memuat kuliner tersimpan:", err);
-          if (!cached || cached.length === 0) {
-            errorState.style.display = "flex";
+          if (!navigator.onLine || err instanceof TypeError) {
+            showConnectionLostState();
+          } else if (!initial || !initial.items?.length) {
+            showLoadErrorState();
           }
         }
       }
 
-      function renderSavedWithPagination() {
-        const savedGrid = document.getElementById("savedGrid");
-        if (!savedGrid) return;
-
-        const startIndex = (window.currentPage - 1) * window.itemsPerPage;
-        const endIndex = startIndex + window.itemsPerPage;
-        const paginatedItems = window.allSavedKuliner.slice(startIndex, endIndex);
-
-        savedGrid.innerHTML = paginatedItems.map(renderFoodCard).join("");
-        renderPaginationControls();
-      }
-
-      function renderPaginationControls() {
+      function renderPaginationControls(totalPagesInput = totalSavedPages) {
         const paginationContainer = document.getElementById("paginationContainer");
         if (!paginationContainer) return;
 
-        const totalPages = Math.max(1, Math.ceil(window.allSavedKuliner.length / window.itemsPerPage));
-        if (totalPages <= 1) {
-          paginationContainer.innerHTML = "";
-          return;
-        }
+        const totalPages = Math.max(1, Number(totalPagesInput) || 1);
+        paginationContainer.style.display = "flex";
 
         let html = `
-          <button class="pagination-arrow" onclick="changePage(${window.currentPage - 1})" ${window.currentPage === 1 ? 'disabled' : ''}>
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage - 1})" ${window.currentPage === 1 ? "disabled" : ""}>
             <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
           </button>
         `;
 
         for (let i = 1; i <= totalPages; i++) {
-          if (totalPages <= 5 || i === 1 || i === totalPages || (i >= window.currentPage - 1 && i <= window.currentPage + 1)) {
-            html += `
-              <button class="pagination-number ${i === window.currentPage ? 'active' : ''}" onclick="changePage(${i})">
-                ${i}
-              </button>
-            `;
-          } else if (i === window.currentPage - 2 || i === window.currentPage + 2) {
-            html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
-          }
+          html += `
+            <button class="pagination-number ${i === window.currentPage ? "active" : ""}" onclick="changePage(${i})">
+              ${i}
+            </button>
+          `;
         }
 
         html += `
-          <button class="pagination-arrow" onclick="changePage(${window.currentPage + 1})" ${window.currentPage === totalPages ? 'disabled' : ''}>
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage + 1})" ${window.currentPage === totalPages ? "disabled" : ""}>
             <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
           </button>
         `;
@@ -489,11 +576,14 @@
       }
 
       function changePage(page) {
-        const totalPages = Math.max(1, Math.ceil(window.allSavedKuliner.length / window.itemsPerPage));
-        if (page < 1 || page > totalPages) return;
-        window.currentPage = page;
-        renderSavedWithPagination();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!navigator.onLine) {
+          showConnectionLostState();
+          return;
+        }
+        const target = Number(page);
+        if (target < 1 || target > totalSavedPages) return;
+        loadSavedFoods(target, false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
       function renderFoodCard(item) {

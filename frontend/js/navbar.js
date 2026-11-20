@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       })
       .then(() => window.initNavbarState())
-      .catch((error) => console.error("Gagal memuat navbar:", error));
+      .catch((error) => console.warn("Gagal memuat navbar:", error));
   }
 
   async function syncNavbarSession() {
@@ -110,19 +110,24 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (!response.ok) {
-        throw new Error(`Gagal memeriksa sesi (HTTP ${response.status}).`);
+        // Aman saat me.php mengembalikan 500: pertahankan state lokal yang ada
+        return;
       }
 
       const result = await response.json();
-      if (!result.status || !result.data || !result.role) {
-        clearAuthStorage();
+      if (!result || !result.status || !result.data || !result.role) {
         return;
       }
 
       localStorage.setItem("user", JSON.stringify(result.data));
       localStorage.setItem("role", result.role);
-    } catch (error) {
-      console.error("Gagal memeriksa sesi navbar:", error);
+      if (result.role === "admin") {
+        localStorage.setItem("admin_logged_in", "true");
+      } else {
+        localStorage.removeItem("admin_logged_in");
+      }
+    } catch (_) {
+      // Aman saat jaringan bermasalah atau respons gagal di-parse
     }
   }
 
@@ -149,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const parsedUser = JSON.parse(rawUser);
         if (parsedUser && typeof parsedUser === "object") user = parsedUser;
       } catch (error) {
-        console.error("[Auth System] Data pengguna tidak valid.", error);
+        console.warn("[Auth System] Data pengguna tidak valid.", error);
       }
     }
 
@@ -183,12 +188,20 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       const foto = user?.foto_profil;
       if (foto && profileButton) {
-        const img = document.createElement("img");
+        let img = profileButton.querySelector("img.nav-avatar-img");
+        if (!img) {
+          img = document.createElement("img");
+          img.className = "nav-avatar-img";
+          img.alt = "Foto Profil";
+          img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
+          const icon = profileButton.querySelector("iconify-icon");
+          if (icon) {
+            icon.replaceWith(img);
+          } else {
+            profileButton.appendChild(img);
+          }
+        }
         img.src = foto;
-        img.alt = "Foto Profil";
-        img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
-        const icon = profileButton.querySelector("iconify-icon");
-        if (icon) icon.replaceWith(img);
       }
     } else {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
@@ -323,7 +336,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.replace("index.html");
       })
       .catch((err) => {
-        console.error("Logout backend error:", err);
+        console.warn("Logout backend error:", err);
         window.location.replace("index.html");
       });
   }
