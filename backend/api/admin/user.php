@@ -84,10 +84,6 @@ $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
 $offset = ($page - 1) * $limit;
 
 // Hitung total data
-$count_sql = $q !== ''
-    ? "SELECT COUNT(*) AS total FROM users WHERE LOWER(nama) LIKE LOWER('%$q%') OR LOWER(email) LIKE LOWER('%$q%')"
-    : "SELECT COUNT(*) AS total FROM users";
-
 $count_result = $q !== ''
     ? pg_query_params($conn, "SELECT COUNT(*) AS total FROM users WHERE LOWER(nama) LIKE LOWER(\$1) OR LOWER(email) LIKE LOWER(\$1)", ['%' . $q . '%'])
     : pg_query($conn, "SELECT COUNT(*) AS total FROM users");

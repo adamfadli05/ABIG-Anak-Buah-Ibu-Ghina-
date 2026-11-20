@@ -34,24 +34,11 @@ FROM tempat_kuliner tk
 JOIN kuliner k  ON tk.id_kuliner  = k.id_kuliner
 JOIN kategori ka ON k.id_kategori = ka.id_kategori
 LEFT JOIN ulasan u ON tk.id_tempat = u.id_tempat
-GROUP BY
-    tk.id_tempat,
-    tk.id_kuliner,
-    k.nama_kuliner,
-    k.deskripsi,
-    k.foto,
-    k.id_kategori,
-    ka.nama_kategori,
-    tk.nama_tempat,
-    tk.alamat,
-    tk.latitude,
-    tk.longitude,
-    tk.jam_buka,
-    tk.jam_tutup,
-    tk.no_telepon,
-    tk.foto_tempat,
-    tk.foto,
-    tk.harga
+WHERE tk.latitude  IS NOT NULL AND tk.longitude IS NOT NULL
+GROUP BY tk.id_tempat, tk.id_kuliner, k.nama_kuliner, k.deskripsi,
+    k.foto, k.id_kategori, ka.nama_kategori, tk.nama_tempat, tk.alamat,
+    tk.latitude, tk.longitude, tk.jam_buka, tk.jam_tutup, tk.no_telepon,
+    tk.foto_tempat, tk.foto, tk.harga
 ORDER BY tk.id_tempat ASC";
 
 $result = pg_query($conn, $sql);
@@ -64,9 +51,6 @@ if (!$result) {
 
 $data = [];
 while ($row = pg_fetch_assoc($result)) {
-    if (empty($row['latitude']) || empty($row['longitude'])) {
-        continue;
-    }
     $data[] = $row;
 }
 

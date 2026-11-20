@@ -18,13 +18,9 @@ $offset = ($page - 1) * $limit;
 
 // Hitung total data dulu
 $count_result = pg_query($conn,
-    "SELECT COUNT(DISTINCT tk.id_tempat) AS total
+    "SELECT COUNT(*) AS total
      FROM tempat_kuliner tk
-     JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
-     JOIN kategori ka ON k.id_kategori = ka.id_kategori
-     LEFT JOIN ulasan u ON tk.id_tempat = u.id_tempat
-     WHERE tk.latitude IS NOT NULL AND tk.longitude IS NOT NULL
-       AND tk.latitude != '' AND tk.longitude != ''"
+     WHERE tk.latitude IS NOT NULL AND tk.longitude IS NOT NULL"
 );
 
 if (!$count_result) {

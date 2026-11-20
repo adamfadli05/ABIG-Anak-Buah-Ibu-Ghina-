@@ -228,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     // Cek apakah rating ada dan milik user ini
     $cek = pg_query_params(
         $conn,
-        'SELECT id_ulasan, rating FROM ulasan WHERE id_ulasan = $1 AND id_user = $2 AND rating IS NOT NULL',
+        'SELECT id_ulasan, id_tempat, rating FROM ulasan WHERE id_ulasan = $1 AND id_user = $2 AND rating IS NOT NULL',
         [$id_ulasan, $id_user]
     );
 
@@ -267,13 +267,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     }
 
     $row = pg_fetch_assoc($result);
+    $id_tempat_put = pg_fetch_assoc($cek)['id_tempat'] ?? null;
 
-    // Ambil rata-rata dan jumlah rating terbaru
+    // Ambil rata-rata dan jumlah rating terbaru — gunakan id_tempat dari cek, bukan subquery
     $stat = pg_query_params(
         $conn,
         "SELECT COALESCE(AVG(rating), 0) AS rata_rata_rating, COUNT(id_ulasan) AS jumlah_rating
-         FROM ulasan WHERE id_tempat = (SELECT id_tempat FROM ulasan WHERE id_ulasan = $1) AND rating IS NOT NULL",
-        [$id_ulasan]
+         FROM ulasan WHERE id_tempat = $1 AND rating IS NOT NULL",
+        [$id_tempat_put]
     );
 
     $stat_data = $stat ? pg_fetch_assoc($stat) : null;
