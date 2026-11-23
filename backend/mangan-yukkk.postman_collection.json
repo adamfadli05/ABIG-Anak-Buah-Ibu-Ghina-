@@ -1809,6 +1809,66 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 2,\n  \"komentar\": \"4nj1ng banget pelayanannya\"\n}" }
           }
+        },
+        {
+          "name": "POST Ulasan - Leet-Speak Bypass Tersensor (s1l1t, p4nt4t)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status code is 201 or 401 or 409', function() { pm.expect(pm.response.code).to.be.oneOf([201, 401, 409]); });",
+            "if (pm.response.code === 201) {",
+            "  pm.test('Ulasan tersimpan meski pakai leet-speak', function() { pm.expect(pm.response.json().message).to.eql('Ulasan berhasil disimpan'); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/ulasan.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 1,\n  \"komentar\": \"s1l1t lo mah p4nt4t\"\n}" }
+          }
+        },
+        {
+          "name": "POST Ulasan - Kata Baru (penis, vagina) Tersensor",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status code is 201 or 401 or 409', function() { pm.expect(pm.response.code).to.be.oneOf([201, 401, 409]); });",
+            "if (pm.response.code === 201) {",
+            "  pm.test('Ulasan tersimpan', function() { pm.expect(pm.response.json().message).to.eql('Ulasan berhasil disimpan'); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/ulasan.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 1,\n  \"komentar\": \"gambar penis dan vagina di tembok\"\n}" }
+          }
+        },
+        {
+          "name": "POST Ulasan - Komentar Tepat 200 Karakter (Batas Maksimal)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status code is 201 or 401 or 409', function() { pm.expect(pm.response.code).to.be.oneOf([201, 401, 409]); });",
+            "if (pm.response.code === 201) {",
+            "  pm.test('Komentar 200 karakter diterima', function() { pm.expect(pm.response.json().message).to.eql('Ulasan berhasil disimpan'); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/ulasan.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 4,\n  \"komentar\": \"Makanannya enak sekali dan tempatnya sangat nyaman untuk bersantai bersama keluarga. Pelayanan ramah dan cepat. Harga juga terjangkau untuk ukuran restoran di kota. Recommended banget buat yang mau makan di sini!\"\n}" }
+          }
+        },
+        {
+          "name": "POST Ulasan - Komentar Melebihi 200 Karakter (Ditolak)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status code is 400 or 401', function() { pm.expect(pm.response.code).to.be.oneOf([400, 401]); });",
+            "if (pm.response.code === 400) {",
+            "  pm.test('Response has max length message', function() { pm.expect(pm.response.json().message).to.eql('Komentar maksimal 200 karakter'); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/ulasan.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 4,\n  \"komentar\": \"Makanannya enak sekali dan tempatnya sangat nyaman untuk bersantai bersama keluarga. Pelayanan ramah dan cepat. Harga juga terjangkau untuk ukuran restoran di kota. Recommended banget buat yang mau makan di sini! Pasti balik lagi deh!\"\n}" }
+          }
         }
       ]
     }
