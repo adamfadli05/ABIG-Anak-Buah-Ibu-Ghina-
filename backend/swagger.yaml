@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
   title: Mangan Yukkk API
-  version: 4.0.0
+  version: 5.0.0
   description: |
-    API untuk aplikasi kuliner Mangan Yukkk — Sprint 5
+    API untuk aplikasi kuliner Mangan Yukkk — Sprint 6
 
-    **Perubahan v4.0.0:**
-    - Pagination ditambahkan di endpoint rekomendasi, ulasan, favorit, admin kuliner, admin pengguna
-    - Format pagination: `current_page`, `per_page`, `total_data`, `total_pages`
-    - Penyaringan kata terlarang otomatis di endpoint ulasan (POST & PUT)
-    - Logout diperbarui ke POST JSON API
+    **Perubahan v5.0.0:**
+    - Filter kata terlarang diperluas: tambah kata bahasa daerah (Jawa, Sunda, Batak, Minang, Makassar, Betawi), leet-speak bypass (`4nj1ng`, `s1l1t`, dll), dan kata baru (`penis`, `vagina`, `pantat`, `silit`, `ngewe`, `ewe`, `kirik`, `turuk`, `kunyuk`, dll)
+    - Batas maksimal komentar ulasan diubah dari 100 → **200 karakter** (POST & PUT)
+    - Fix sensor kata terlarang: sebelumnya leet-speak lolos sensor, sekarang dinormalisasi dulu sebelum dicek
+    - Semua variasi leet-speak kini tersensor otomatis menjadi ***
 
 servers:
   - url: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend
@@ -742,7 +742,7 @@ paths:
       tags: [Ulasan]
       description: |
         Butuh login. Rating dan komentar tidak bergantungan — salah satu wajib diisi. Foto opsional, max 1.
-        **Kata terlarang otomatis disensor** menjadi *** sebelum disimpan ke database.
+        **Kata terlarang otomatis disensor** menjadi *** sebelum disimpan ke database. Leet-speak (`4nj1ng`, `s1l1t`, dll) juga ikut tersensor karena teks dinormalisasi sebelum dicek.
       requestBody:
         required: true
         content:
@@ -763,6 +763,7 @@ paths:
                   type: string
                   minLength: 5
                   maxLength: 200
+                  description: Minimal 5, maksimal 200 karakter. Kata terlarang otomatis disensor.
                   example: "Enak banget!"
                 foto_url:
                   type: string
@@ -838,6 +839,7 @@ paths:
                   type: string
                   minLength: 5
                   maxLength: 200
+                  description: Minimal 5, maksimal 200 karakter. Kata terlarang otomatis disensor.
                   example: "Lumayan enak"
                 foto_url:
                   type: string
