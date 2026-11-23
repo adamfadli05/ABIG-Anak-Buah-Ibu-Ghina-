@@ -1,22 +1,8 @@
 <?php
 
-/**
- * Profanity Filter — Penyaringan kata terlarang pada ulasan
- *
- * Fitur:
- * - Daftar kata terlarang bahasa Indonesia
- * - Normalisasi teks (angka → huruf, karakter berulang, spasi berlebih)
- * - Pencocokan batas kata agar kata normal tidak tersaring
- * - Penyamaran kata terlarang dengan ***
- */
-
-// =============================================================================
-// Daftar kata terlarang
-// =============================================================================
 function getKataTerlarang(): array
 {
     return [
-        // Kata kasar umum
         'anjing', 'anjir', 'anying', 'anj1ng', 'anj!ng', '4nj1ng', '4njing', '4nj!ng',
         'babi', 'b4bi', 'bab1', 'b4b1',
         'bangsat', 'b4ngsat', 'bangz4t', 'b4ngs4t',
@@ -38,8 +24,6 @@ function getKataTerlarang(): array
         'tai', 't41', 't4i',
         'tahi', 't4hi', 'tah1', 't4h1',
         'asu', '4su', 'a5u', '45u',
-
-        // Kata seksual / vulgar
         'cok', 'c0k',
         'cuki', 'cuk1', 'c0ki', 'c0k1',
         'kontol', 'k0ntol', 'kont0l', 'k0nt0l', 'k0nt01',
@@ -90,9 +74,77 @@ function getKataTerlarang(): array
         'bispak', 'b1spak', 'bisp4k', 'b1sp4k',
         'ngesek', 'ng3sek', 'nges3k', 'ng3s3k',
         'nyetot', 'ny3tot', 'nyet0t', 'ny3t0t',
-        'ngocol', 'ng0col', 'ngoc0l', 'ng0c0l',
-
-        // Kata kasar / hinaan lanjutan
+        'telanjang', 't3lanjang', 'tel4njang', 't3l4nj4ng',
+        'penis', 'p3nis', 'pen1s', 'p3n1s', 'p€nis',
+        'vagina', 'v4gina', 'vagin4', 'v4gin4', 'v@gina',
+        'vulva', 'vulv4', 'v0lva',
+        'orgasme', '0rgasme', 'orgas m3',
+        'sperma', 'sp3rma', 'sperm4',
+        'payudara', 'p4yudara', 'payud4ra', 'p4yud4ra',
+        'putting', 'putt1ng', 'p0ting', 'p0t1ng',
+        'birahi', 'bir4hi', 'b1rahi', 'b1r4h1',
+        'libido', 'lib1do', 'libi d0',
+        'prostitusi', 'pr0stitusi', 'prostit0si',
+        'mesum', 'm3sum', 'mes0m', 'm3s0m',
+        'cabul', 'c4bul', 'cab0l', 'c4b0l',
+        'porno', 'p0rno', 'porn0', 'p0rn0',
+        'peler', 'p3ler', 'pel3r', 'p3l3r',
+        'tempik', 't3mpik', 'temp1k', 't3mp1k',
+        'trijilan', 'tr1jilan', 'trij1lan', 'tr1j1lan',
+        'kentut', 'k3ntut', 'kent0t', 'k3nt0t',
+        'bool', 'b00l', 'bo0l', 'b0ol',
+        'anal', '4nal', 'an4l', '4n4l',
+        'palkon', 'p4lkon', 'palk0n', 'p4lk0n',
+        'jancuk', 'j4ncuk', 'janc0k', 'j4nc0k',
+        'asu', '4su', 'a5u',
+        'goblok', 'g0blok', 'g0bl0k',
+        'bajingan', 'b4jingan', 'b4jing4n',
+        'sempak', 's3mpak', 'semp4k', 's3mp4k',
+        'cangkeme', 'cangk3me', 'c4ngkeme', 'c4ngk3me',
+        'mbokmu', 'mb0kmu', 'mbok m0',
+        'asune', '4sune', 'asun3',
+        'ndasmu', 'nd4smu',
+        'gatheli', 'gath3li', 'gatel1', 'g4theli',
+        'gathel', 'g4thel', 'gath3l',
+        'jembud', 'j3mbud', 'jemb0d', 'j3mb0d',
+        'tempik', 't3mpik', 'temp1k',
+        'peli', 'p3li', 'pel1',
+        'dengkul', 'd3ngkul', 'dengk0l',
+        'nyokot', 'ny0kot', 'nyok0t',
+        'ngewe', 'ng3we', 'ngew3',
+        'diancok', 'di4ncok', 'dianc0k',
+        'diancuk', 'di4ncuk',
+        'sia', 's14', 's1a',
+        'maneh', 'man3h', 'm4neh', 'm4n3h',
+        'goblog', 'g0blog', 'gobl0g', 'g0bl0g',
+        'belegug', 'b3legug', 'beleg0g', 'b3l3g0g',
+        'belegug', 'b3l3gug',
+        'lanjing', 'l4njing', 'lanjing4n',
+        'heuras',
+        'pikasebeleun', 'pikaseb3leun',
+        'bangsat', 'b4ngsat',
+        'bajigur', 'b4jigur', 'bajig0r',
+        'sundel', 'sund3l',
+        'bujang', 'buj4ng',
+        'maho', 'm4ho', 'mah0',
+        'bego', 'b3go', 'beg0',
+        'horas do au',
+        'pantek', 'p4ntek', 'pant3k', 'p4nt3k',
+        'pukek', 'puk3k', 'p0kek',
+        'bujur', 'buj0r', 'b0jur',
+        'palak', 'p4lak', 'pal4k',
+        'bansai', 'bans4i',
+        'kurenah', 'kur3nah',
+        'siapo', 'si4po', 'siap0',
+        'pakboro', 'p4kboro', 'pakbor0',
+        'boko', 'b0ko', 'bok0',
+        'kodong', 'kod0ng', 'k0dong',
+        'sugi', 's0gi', 'sug1',
+        'bego', 'b3go', 'beg0',
+        'mampus', 'm4mpus', 'mampu5',
+        'brengsek', 'br3ngsek',
+        'nyaho', 'ny4ho', 'nyah0',
+        'bangke', 'b4ngke', 'bangk3',
         'bejat', 'b3jat', 'bej4t', 'b3j4t',
         'sundal', 'sund4l', 's0ndal', 's0nd4l',
         'pelacur', 'pel4cur', 'p3lacur', 'p3l4cur', 'p3l4c0r',
@@ -118,8 +170,6 @@ function getKataTerlarang(): array
         'geblek', 'g3blek', 'gebl3k', 'g3bl3k',
         'bongol', 'b0ngol', 'bong0l', 'b0ng0l',
         'lolol', 'l0lol', 'l0l0l',
-
-        // Kondisi/hinaan mental/fisik kasar
         'budek', 'bud3k', 'bud3g',
         'buta', 'but4',
         'cacat', 'c4cat', 'cac4t', 'c4c4t',
@@ -132,9 +182,6 @@ function getKataTerlarang(): array
     ];
 }
 
-// =============================================================================
-// Normalisasi teks: angka → huruf, huruf berulang, lowercase
-// =============================================================================
 function normalisasiTeks(string $teks): string
 {
     $teks = mb_strtolower($teks);
@@ -168,9 +215,6 @@ function normalisasiTeks(string $teks): string
     return $teks;
 }
 
-// =============================================================================
-// Deteksi apakah teks mengandung kata terlarang
-// =============================================================================
 function mengandungKataTerlarang(string $teks): bool
 {
     $teksNormal = normalisasiTeks($teks);
@@ -188,18 +232,6 @@ function mengandungKataTerlarang(string $teks): bool
     return false;
 }
 
-// =============================================================================
-// Sensor kata terlarang dalam teks — ganti dengan ***
-//
-// Cara kerja:
-// 1. Normalisasi teks asli → teksNormal
-// 2. Jalankan regex pencarian di teksNormal (karena leet-speak sudah
-//    dinormalisasi menjadi huruf biasa di sana)
-// 3. Ganti setiap kemunculan di teksNormal dengan bintang, lalu kembalikan
-//    teksNormal yang sudah disensor sebagai output.
-//    (Teks asli tidak dipakai karena pengguna yang sengaja memakai leet-speak
-//    tetap harus tersensor — hasilnya berupa bintang, bukan teks asli.)
-// =============================================================================
 function sensorKataTerlarang(string $teks): string
 {
     $daftarKata = getKataTerlarang();
