@@ -348,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const rawFoto = item.photo_url || item.foto || item.image || item.gambar || "";
       const fotoUrl = resolvePhotoUrl(rawFoto);
-      const namaKuliner = item.nama_kuliner || item.name || "Tanpa Nama";
+      const namaKuliner = item.nama_tempat || item.nama_kuliner || item.name || "Tanpa Nama";
       const kategori = item.nama_kategori || item.kategori || "Umum";
       const alamat = item.alamat || "-";
       const itemId = item.id_tempat || item.id_kuliner || item.id;

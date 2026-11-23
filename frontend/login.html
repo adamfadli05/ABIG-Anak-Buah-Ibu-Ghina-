@@ -88,14 +88,16 @@
       background-color: #e33629 !important;
       color: #ffffff !important;
       font-family: "Inter", sans-serif !important;
-      font-size: 16px !important;
+      font-size: clamp(11.5px, 3vw, 14px) !important;
       font-weight: 400 !important;
       text-align: center !important;
-      border-radius: 12px !important;
-      padding: 10px 16px !important;
-      margin: 14px auto !important;
+      white-space: nowrap !important;
+      border-radius: 10px !important;
+      padding: 10px 12px !important;
+      margin: 4px 0 !important;
       width: 100% !important;
-      max-width: 240px !important;
+      max-width: 100% !important;
+      min-height: 42px !important;
       box-sizing: border-box !important;
       line-height: 1.3 !important;
       box-shadow: 0 2px 8px rgba(234, 56, 41, 0.2) !important;
@@ -298,7 +300,6 @@
     });
 
     // LOGIKA FORM SUBMIT LOGIN
-    // LOGIKA FORM SUBMIT LOGIN
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -318,26 +319,26 @@
       if (!email && !password) {
         emailWrapper.classList.add("error");
         passwordWrapper.classList.add("error");
-        showError("Email dan kata sandi<br>wajib di isi");
+        showError("Email dan kata sandi wajib di isi");
         return;
       }
 
       if (!email) {
         emailWrapper.classList.add("error");
         passwordWrapper.classList.add("error");
-        showError("Email dan kata sandi<br>wajib di isi");
+        showError("Email dan kata sandi wajib di isi");
         return;
       }
 
       if (!password) {
         emailWrapper.classList.add("error");
         passwordWrapper.classList.add("error");
-        showError("Email dan kata sandi<br>wajib di isi");
+        showError("Email dan kata sandi wajib di isi");
         return;
       }
       if (!email.toLowerCase().endsWith("gmail.com")) {
         emailWrapper.classList.add("error");
-        showError("Gunakan email yang<br>berakhiran gmail.com");
+        showError("Gunakan email yang berakhiran gmail.com");
         return;
       }
 
@@ -363,7 +364,7 @@
 
         if (!data.status) {
           // 3. KASUS 3: EMAIL ATAU KATA SANDI SALAH DARI BACKEND
-          showError("Email atau kata sandi salah,<br>silahkan coba lagi");
+          showError("Email atau kata sandi salah, silahkan coba lagi");
           return;
         }
 
@@ -374,12 +375,13 @@
         showPopupModal(true, "Anda berhasil masuk");
       } catch (err) {
         console.error("[API Error] /api/login.php", err);
-        showError("Terjadi kesalahan koneksi,<br>silahkan coba lagi");
+        showError("Terjadi kesalahan koneksi, silahkan coba lagi");
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.textContent = "MASUK";
       }
     });
+
     // Saat form login di-submit
     async function handleLogin(event) {
       event.preventDefault();
