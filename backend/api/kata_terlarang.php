@@ -212,6 +212,12 @@ function normalisasiTeks(string $teks): string
     // Hapus tanda baca yang disisipkan di antara huruf (cth: "a.n.j.i.n.g" → "anjing")
     $teks = preg_replace('/([a-z])[^a-z0-9\s](?=[a-z])/u', '$1', $teks);
 
+    // Hapus spasi tunggal yang disisipkan di antara huruf (cth: "a n j i n g" → "anjing")
+    // Hanya berlaku jika setiap huruf dipisah satu spasi (pola: "x x x x")
+    $teks = preg_replace_callback('/\b[a-z](?: [a-z]){2,}\b/u', function($matches) {
+        return str_replace(' ', '', $matches[0]);
+    }, $teks);
+
     return $teks;
 }
 
