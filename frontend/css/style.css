@@ -658,12 +658,12 @@ button.gm-ui-hover-effect span {
     max-width: 125px !important;
   }
 
-  /* GRID KARTU KULINER: Mengunci ukuran persis selebar 165px per kolom */
+  /* GRID KARTU KULINER MOBILE */
   .food-grid,
   .card-grid,
   .kuliner-grid {
     display: grid !important;
-    grid-template-columns: repeat(2, 165px) !important; /* Mengunci lebar kolom tepat 165px */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     justify-content: center !important; /* Memposisikan kedua kolom agar pas di tengah */
     gap: 16px !important;
     padding: 0 !important;
@@ -672,10 +672,10 @@ button.gm-ui-hover-effect span {
   }
 
   /* KARTU KULINER MOBILE */
-  .food-card {
-    width: 165px !important; /* Lebar fix sesuai Figma */
-    min-width: 165px !important;
-    max-width: 165px !important;
+  .food-grid .food-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
     height: 190px !important; /* Tinggi fix sesuai Figma */
     padding: 8px !important;
     background: #ffffff !important;
@@ -689,9 +689,10 @@ button.gm-ui-hover-effect span {
   }
 
   /* FOTO KULINER */
-  .food-photo {
-    width: 145px !important; /* Lebar foto pas di dalam card */
-    min-width: 145px !important;
+  .food-grid .food-photo {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     height: 95px !important;
     object-fit: cover !important;
     border-radius: 4px !important;
@@ -735,4 +736,32 @@ button.gm-ui-hover-effect span {
     justify-content: space-between !important;
     align-items: center !important;
   }
+}
+
+/* Styling Pagination */
+.pagination-btn {
+  background-color: #ffffff;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.pagination-btn.active {
+  background-color: #001b7d;
+  color: #ffffff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

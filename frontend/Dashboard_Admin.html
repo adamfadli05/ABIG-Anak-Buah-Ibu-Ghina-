@@ -5,60 +5,43 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Admin | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=3" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="js/env.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/Dashboard_Admin.js" defer></script>
+    <script src="js/config.js?v=2"></script>
+    
+    <!-- Panggil script sidebar agar otomatis termuat -->
+    <script src="js/sidebar.js?v=5" defer></script>
+    <script src="js/Dashboard_Admin.js?v=3" defer></script>
   </head>
   <body>
+    <!-- State Autentikasi / Loading Awal -->
     <main id="authState" class="page-state" role="status" aria-live="polite">
-      <p id="authMessage">Memeriksa akses Admin...</p>
-      <button id="authRetryButton" class="button button-secondary" type="button" hidden>Coba lagi</button>
+      <h1 id="authTitle">Memeriksa akses Admin...</h1>
+      <p id="authMessage">Mohon tunggu sebentar.</p>
+      <button id="authRetryButton" class="button button-secondary" type="button" hidden>
+        <span id="authRetryLabel">Coba lagi</span>
+      </button>
     </main>
 
+    <!-- App Utama (Tersembunyi sampai akses diverifikasi) -->
     <div id="adminApp" class="admin-app" hidden>
-      <aside id="adminSidebar" class="sidebar" aria-label="Navigasi Admin">
-        <a class="brand" href="Dashboard_Admin.html" aria-label="Dashboard Mangan Yukkk">
-          <img src="assets/logo.png" alt="" />
-        </a>
+      
+      <!-- TEMPAT PEMANGGILAN SIDEBAR OTOMATIS -->
+      <div id="sidebar-container"></div>
 
-        <nav class="sidebar-nav">
-          <a class="nav-link active" href="Dashboard_Admin.html" aria-current="page">
-            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
-            <span>Dashboard</span>
-          </a>
-          <a class="nav-link" href="daftar_kuliner_admin.html">
-            <iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon>
-            <span>Kuliner</span>
-          </a>
-          <a class="nav-link" href="kategori_kuliner_admin.html">
-            <iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon>
-            <span>Kategori</span>
-          </a>
-          <a class="nav-link" href="#pengguna" data-coming-soon="Daftar Pengguna">
-            <iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon>
-            <span>Pengguna</span>
-          </a>
-        </nav>
-      </aside>
-
-      <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
-
+      <!-- Panel Konten Utama -->
       <section class="main-panel">
         <header class="topbar">
-          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu" aria-expanded="true">
-            <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
-          </button>
-          <div class="topbar-title">
-            <span class="topbar-title-text">
-              <strong>Dashboard</strong>
-              <span id="adminName">Admin</span>
-            </span>
-            <iconify-icon icon="bxs:dashboard" aria-hidden="true"></iconify-icon>
+          <div class="topbar-right-panel" style="margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 16px 32px;">
+            <div style="text-align: right; display: grid; gap: 2px;">
+              <strong style="color: #001b7d; font-size: 18px; font-weight: 700;">Panel</strong>
+              <span style="color: #001b7d; font-size: 13px; font-weight: 500;">Admin</span>
+            </div>
+            <iconify-icon icon="lucide-extended:user-cog-filled" style="color: #001b7d; font-size: 36px;" aria-hidden="true"></iconify-icon>
           </div>
         </header>
 
@@ -66,36 +49,34 @@
           <section class="summary-section" aria-labelledby="summaryTitle">
             <h2 id="summaryTitle" class="sr-only">Ringkasan</h2>
 
-            <div id="summaryLoading" class="notice" role="status" aria-live="polite">Memuat ringkasan dashboard...</div>
-            <div id="summaryError" class="notice notice-error" role="alert" hidden>
-              <p id="summaryErrorMessage">Ringkasan dashboard gagal dimuat.</p>
-              <button id="summaryRetryButton" class="button button-secondary" type="button">Coba lagi</button>
-            </div>
-
-            <div id="summaryCards" class="summary-grid" aria-busy="true" hidden>
+            <!-- Kotak Kartu Statistik -->
+            <div id="summaryCards" class="summary-grid" aria-busy="true">
               <article class="summary-card">
                 <div class="summary-card-icon icon-blue"><iconify-icon icon="dashicons:food" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Total Kuliner</p>
                 <p id="totalCulinary" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-blue"><iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon></div>
+                <div class="summary-card-icon icon-orange"><iconify-icon icon="wordpress:category" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Kategori</p>
                 <p id="totalCategories" class="summary-value">0</p>
               </article>
               <article class="summary-card">
-                <div class="summary-card-icon icon-blue"><iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon></div>
+                <div class="summary-card-icon icon-green"><iconify-icon icon="f7:person-2-fill" aria-hidden="true"></iconify-icon></div>
                 <p class="summary-label">Total Pengguna</p>
                 <p id="totalUsers" class="summary-value">0</p>
               </article>
             </div>
-            <p id="navigationMessage" class="navigation-message" role="status" aria-live="polite" hidden></p>
           </section>
 
+          <!-- Bagian Grid Daftar Kuliner -->
           <section class="culinary-section" aria-labelledby="culinaryTitle">
             <h2 id="culinaryTitle" class="sr-only">Daftar Kuliner</h2>
             <div id="culinaryCards" class="culinary-grid" hidden></div>
             <p id="culinaryEmpty" class="culinary-empty" role="status" hidden>Belum ada data kuliner.</p>
+            
+            <!-- Kontainer Pagination Kuliner Admin -->
+            <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
           </section>
         </div>
       </section>

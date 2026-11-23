@@ -11,8 +11,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Ambil data kuliner diurutkan berdasarkan rating rata-rata tertinggi
-// lalu jumlah ulasan terbanyak sebagai prioritas kedua
+// Parameter pagination
+$page  = max(1, intval($_GET['page']  ?? 1));
+$limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+$offset = ($page - 1) * $limit;
+
+// Hitung total data dulu
+$count_result = pg_query($conn,
+    "SELECT COUNT(*) AS total
+     FROM tempat_kuliner tk
+     WHERE tk.latitude IS NOT NULL AND tk.longitude IS NOT NULL"
+);
+
+if (!$count_result) {
+    http_response_code(500);
+    echo json_encode(["status" => false, "message" => "Gagal mengambil data rekomendasi"]);
+    exit;
+}
+
+$total_data  = (int)pg_fetch_assoc($count_result)['total'];
+$total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+if ($page > $total_pages && $total_data > 0) {
+    http_response_code(200);
+    echo json_encode([
+        "status"     => true,
+        "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+        "data"       => [],
+        "pagination" => [
+            "total_data"  => $total_data,
+            "total_pages" => $total_pages,
+            "current_page"=> $page,
+            "per_page"    => $limit
+        ]
+    ]);
+    exit;
+}
+
 $sql = "SELECT
     tk.id_tempat,
     tk.id_kuliner,
@@ -54,9 +89,9 @@ GROUP BY
 ORDER BY
     rata_rata_rating DESC,
     jumlah_ulasan DESC
-LIMIT 10";
+LIMIT $1 OFFSET $2";
 
-$result = pg_query($conn, $sql);
+$result = pg_query_params($conn, $sql, [$limit, $offset]);
 
 if (!$result) {
     http_response_code(500);
@@ -74,9 +109,28 @@ while ($row = pg_fetch_assoc($result)) {
 
 if (empty($data)) {
     http_response_code(200);
-    echo json_encode(["status" => true, "message" => "Belum ada data rekomendasi", "data" => []]);
+    echo json_encode([
+        "status"     => true,
+        "message"    => "Belum ada data rekomendasi",
+        "data"       => [],
+        "pagination" => [
+            "total_data"  => $total_data,
+            "total_pages" => $total_pages,
+            "current_page"=> $page,
+            "per_page"    => $limit
+        ]
+    ]);
     exit;
 }
 
 http_response_code(200);
-echo json_encode(["status" => true, "data" => $data]);
+echo json_encode([
+    "status"     => true,
+    "data"       => $data,
+    "pagination" => [
+        "total_data"  => $total_data,
+        "total_pages" => $total_pages,
+        "current_page"=> $page,
+        "per_page"    => $limit
+    ]
+]);

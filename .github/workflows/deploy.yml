@@ -1,0 +1,38 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy ke VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/abig
+
+            # Pull kode terbaru dari main
+            git pull origin main
+
+            # Buat/update file .env dari secret
+            cat > .env << 'ENVEOF'
+            ${{ secrets.ENV_FILE }}
+            ENVEOF
+
+            # Build ulang dan jalankan container
+            docker compose down
+            docker compose up --build -d
+
+            # Hapus image lama yang tidak terpakai
+            docker image prune -f
+
+            echo "Deploy selesai!"

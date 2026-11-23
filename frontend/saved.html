@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,500&display=swap" rel="stylesheet" />
 
     <!-- Iconify -->
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
 
     <style>
       :root {
@@ -90,6 +90,65 @@
       }
 
       /* ==========================================================================
+         STYLING PAGINATION (DISAMAKAN DENGAN INDEX)
+         ========================================================================== */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .pagination-arrow {
+        background-color: #ffffff;
+        color: #001b7d;
+        border: 1px solid #001b7d;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .pagination-arrow:hover,
+      .pagination-arrow:active {
+        background-color: #001b7d;
+        color: #ffffff;
+      }
+
+      .pagination-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #ffffff;
+        color: #001b7d;
+      }
+
+      .pagination-number {
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        padding: 2px 4px;
+        transition: all 0.2s ease;
+      }
+
+      .pagination-number:hover {
+        color: #001b7d;
+      }
+
+      .pagination-number.active {
+        color: #001b7d !important;
+        font-weight: 700 !important;
+      }
+
+      /* ==========================================================================
          GRID KARTU KULINER (DISAMAKAN DENGAN INDEX.HTML)
          ========================================================================== */
       .saved-grid {
@@ -145,7 +204,6 @@
         text-overflow: ellipsis !important;
       }
 
-      /* Perbaikan Alamat agar tidak kepotong (multiline rapi) */
       .food-location {
         display: flex !important;
         align-items: flex-start !important;
@@ -260,13 +318,16 @@
         <div class="state-text">Belum ada kuliner yang tersimpan</div>
       </div>
 
-      <!-- 2. Kondisi Gagal Dimuat -->
+      <!-- 2. Kondisi Gagal Dimuat / Koneksi Terputus -->
       <div id="errorState" class="state-container" style="display: none">
-        <div class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
+        <div id="errorMessageText" class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
       </div>
 
       <!-- 3. Daftar Kartu Kuliner Tersimpan -->
       <div id="savedGrid" class="saved-grid" style="display: none"></div>
+
+      <!-- 4. Navigasi Pagination -->
+      <div id="paginationContainer" class="pagination-container" style="display: none"></div>
     </main>
 
     <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
@@ -274,30 +335,173 @@
     <script src="js/config.js"></script>
     <script src="js/navbar.js?v=session-api"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        loadSavedFoods();
+      window.allSavedKuliner = [];
+      window.currentPage = 1;
+      window.itemsPerPage = 20;
+      let totalSavedPages = 1;
+      const SAVED_CACHE_KEY = "mangan_yukk_saved_cache_v1";
+      const savedPageCache = new Map();
 
-        document.getElementById("retryBtn").addEventListener("click", () => {
-          loadSavedFoods();
+      document.addEventListener("DOMContentLoaded", () => {
+        loadSavedFoods(1, false);
+
+        window.addEventListener("offline", () => {
+          showConnectionLostState();
+        });
+
+        window.addEventListener("online", () => {
+          loadSavedFoods(window.currentPage, true);
         });
       });
 
-      async function loadSavedFoods() {
+      function bindRetryButton() {
+        const retryBtn = document.getElementById("retryBtn");
+        if (retryBtn) {
+          retryBtn.onclick = () => loadSavedFoods(window.currentPage, true);
+        }
+      }
+
+      function showConnectionLostState() {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const errorMessageText = document.getElementById("errorMessageText");
+        const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        if (emptyState) emptyState.style.display = "none";
+        if (savedGrid) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+        }
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
+        if (errorMessageText) {
+          errorMessageText.innerHTML = `Koneksi internet terputus, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button>`;
+          bindRetryButton();
+        }
+        if (errorState) errorState.style.display = "flex";
+      }
+
+      function showLoadErrorState() {
+        const emptyState = document.getElementById("emptyState");
+        const errorState = document.getElementById("errorState");
+        const errorMessageText = document.getElementById("errorMessageText");
+        const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        if (emptyState) emptyState.style.display = "none";
+        if (savedGrid) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+        }
+        if (paginationContainer) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+        }
+        if (errorMessageText) {
+          errorMessageText.innerHTML = `Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button>`;
+          bindRetryButton();
+        }
+        if (errorState) errorState.style.display = "flex";
+      }
+
+      function readSavedCache() {
+        try {
+          const raw = localStorage.getItem(SAVED_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            return { items: parsed, totalPages: Math.max(1, Math.ceil(parsed.length / window.itemsPerPage)) };
+          }
+          if (parsed && Array.isArray(parsed.items)) {
+            return {
+              items: parsed.items,
+              totalPages: Math.max(1, Number(parsed.totalPages) || 1),
+            };
+          }
+          return null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function writeSavedCache(items, totalPages = 1) {
+        try {
+          localStorage.setItem(
+            SAVED_CACHE_KEY,
+            JSON.stringify({ items, totalPages: Math.max(1, Number(totalPages) || 1) })
+          );
+        } catch (_) {}
+      }
+
+      function renderSavedPage(list, page = 1, totalPages = 1) {
         const emptyState = document.getElementById("emptyState");
         const errorState = document.getElementById("errorState");
         const savedGrid = document.getElementById("savedGrid");
+        const paginationContainer = document.getElementById("paginationContainer");
+
+        if (errorState) errorState.style.display = "none";
+        window.allSavedKuliner = Array.isArray(list) ? list : [];
+        window.currentPage = Math.max(1, Number(page) || 1);
+        totalSavedPages = Math.max(1, Number(totalPages) || 1);
+
+        if (window.allSavedKuliner.length === 0) {
+          savedGrid.style.display = "none";
+          savedGrid.innerHTML = "";
+          if (paginationContainer) {
+            paginationContainer.innerHTML = "";
+            paginationContainer.style.display = "none";
+          }
+          emptyState.style.display = "flex";
+          return;
+        }
 
         emptyState.style.display = "none";
-        errorState.style.display = "none";
-        savedGrid.style.display = "none";
+        const fragment = document.createDocumentFragment();
+        const tempWrapper = document.createElement("div");
+        tempWrapper.innerHTML = window.allSavedKuliner.map(renderFoodCard).join("");
+        while (tempWrapper.firstChild) {
+          fragment.appendChild(tempWrapper.firstChild);
+        }
+        savedGrid.replaceChildren(fragment);
+        savedGrid.style.display = "flex";
+
+        renderPaginationControls(totalSavedPages);
+      }
+
+      async function loadSavedFoods(page = 1, forceNoCache = false) {
+        const targetPage = Math.max(1, Number(page) || 1);
+        window.currentPage = targetPage;
+
+        if (!navigator.onLine) {
+          showConnectionLostState();
+          return;
+        }
+
+        const memCached = !forceNoCache ? savedPageCache.get(targetPage) : null;
+        const localPage1 =
+          targetPage === 1 && !forceNoCache && !memCached ? readSavedCache() : null;
+        const initial = memCached || localPage1;
+
+        if (initial && Array.isArray(initial.items) && initial.items.length > 0) {
+          renderSavedPage(initial.items, targetPage, initial.totalPages);
+        }
 
         try {
-          const response = await fetch(`${BASE_URL}/api/favorit.php`, {
+          const query = new URLSearchParams({
+            page: String(targetPage),
+            limit: String(window.itemsPerPage),
+          }).toString();
+
+          const response = await fetch(`${BASE_URL}/api/favorit.php?${query}`, {
             method: "GET",
             credentials: "include",
           });
 
           if (response.status === 401) {
+            localStorage.removeItem(SAVED_CACHE_KEY);
             window.location.href = "login.html";
             return;
           }
@@ -307,76 +511,123 @@
           const result = await response.json();
 
           if (!result.status) {
-            errorState.style.display = "flex";
+            if (!initial || !initial.items?.length) {
+              showLoadErrorState();
+            }
             return;
           }
 
-          const data = result.data || [];
+          const freshList = Array.isArray(result.data) ? result.data : [];
+          const pagination = result.pagination || {};
+          const computedPages =
+            Number(pagination.total_pages) ||
+            (Number(pagination.total_data) > 0
+              ? Math.ceil(Number(pagination.total_data) / window.itemsPerPage)
+              : Math.max(1, Math.ceil(freshList.length / window.itemsPerPage)));
 
-          if (data.length === 0) {
-            emptyState.style.display = "flex";
-            return;
+          const pageObj = {
+            items: freshList,
+            totalPages: Math.max(1, computedPages),
+          };
+          savedPageCache.set(targetPage, pageObj);
+          if (targetPage === 1) {
+            writeSavedCache(freshList, pageObj.totalPages);
           }
 
-          renderSavedCards(data);
-          savedGrid.style.display = "flex";
+          renderSavedPage(freshList, Number(pagination.current_page) || targetPage, pageObj.totalPages);
         } catch (err) {
           console.error("Gagal memuat kuliner tersimpan:", err);
-          errorState.style.display = "flex";
+          if (!navigator.onLine || err instanceof TypeError) {
+            showConnectionLostState();
+          } else if (!initial || !initial.items?.length) {
+            showLoadErrorState();
+          }
         }
       }
 
-      function renderSavedCards(items) {
-        const savedGrid = document.getElementById("savedGrid");
+      function renderPaginationControls(totalPagesInput = totalSavedPages) {
+        const paginationContainer = document.getElementById("paginationContainer");
+        if (!paginationContainer) return;
 
-        savedGrid.innerHTML = items
-          .map((item) => {
-            // foto_makanan = tk.foto (foto makanan per tempat, unik), fallback ke foto_kuliner
-            const rawPhoto = item.foto_makanan || item.foto_kuliner || item.foto || "";
-            const photo = getSafePhoto(rawPhoto);
+        const totalPages = Math.max(1, Number(totalPagesInput) || 1);
+        paginationContainer.style.display = "flex";
 
-            const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");
-            const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
-            const address = escapeHTML(item.alamat || "Alamat belum tersedia");
+        let html = `
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage - 1})" ${window.currentPage === 1 ? "disabled" : ""}>
+            <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+          </button>
+        `;
 
-            const numericPrice = Number(item.harga);
-            const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
-
-            // Mengambil rating rata-rata dari API favorit.php yang sudah dinamis
-            const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
-
-            const dataQuery = new URLSearchParams({
-              id: item.id_tempat || item.id_kuliner || "",
-              nama: item.nama_kuliner || item.nama_tempat || "Kuliner",
-              deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
-              foto: photo,
-              harga: item.harga || "0",
-              alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
-              jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
-              lat: item.latitude || "",
-              lng: item.longitude || "",
-              no_telepon: item.no_telepon || "",
-            }).toString();
-
-            return `
-            <a href="detail_kuliner.html?${dataQuery}" class="food-card" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column;">
-              <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
-              <h3 class="food-name">${name}</h3>
-              <div class="food-location">
-                <iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>
-                <span>${place} — ${address}</span>
-              </div>
-              <div class="food-meta">
-                <span>Rp. ${price}</span>
-                <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; color: #333333;">
-                  <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 18px;"></iconify-icon>
-                  <span>${ratingNum}</span>
-                </div>
-              </div>
-            </a>
+        for (let i = 1; i <= totalPages; i++) {
+          html += `
+            <button class="pagination-number ${i === window.currentPage ? "active" : ""}" onclick="changePage(${i})">
+              ${i}
+            </button>
           `;
-          })
-          .join("");
+        }
+
+        html += `
+          <button class="pagination-arrow" onclick="changePage(${window.currentPage + 1})" ${window.currentPage === totalPages ? "disabled" : ""}>
+            <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+          </button>
+        `;
+
+        paginationContainer.innerHTML = html;
+      }
+
+      function changePage(page) {
+        if (!navigator.onLine) {
+          showConnectionLostState();
+          return;
+        }
+        const target = Number(page);
+        if (target < 1 || target > totalSavedPages) return;
+        loadSavedFoods(target, false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function renderFoodCard(item) {
+        const rawPhoto = item.foto_makanan || item.foto_kuliner || item.foto || "";
+        const photo = getSafePhoto(rawPhoto);
+
+        const name = escapeHTML(item.nama_kuliner || item.nama || "Nama kuliner");
+        const place = escapeHTML(item.nama_tempat || "Tempat belum tersedia");
+        const address = escapeHTML(item.alamat || "Alamat belum tersedia");
+
+        const numericPrice = Number(item.harga);
+        const price = Number.isFinite(numericPrice) ? numericPrice.toLocaleString("id-ID") : "0";
+        const ratingNum = Number(item.rata_rata_rating || 0).toFixed(1);
+
+        const dataQuery = new URLSearchParams({
+          id: item.id_tempat || item.id_kuliner || "",
+          nama: item.nama_kuliner || item.nama_tempat || "Kuliner",
+          deskripsi: item.deskripsi || "Deskripsi belum tersedia.",
+          foto: photo,
+          harga: item.harga || "0",
+          alamat: `${item.nama_tempat ? item.nama_tempat + " — " : ""}${item.alamat || "Alamat tidak tersedia"}`,
+          jam: item.jam_buka && item.jam_tutup ? `${item.jam_buka.substring(0, 5)} - ${item.jam_tutup.substring(0, 5)}` : "09:00 - 21:00",
+          lat: item.latitude || "",
+          lng: item.longitude || "",
+          no_telepon: item.no_telepon || "",
+        }).toString();
+
+        return `
+          <a href="detail_kuliner.html?${dataQuery}" class="food-card" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column;">
+            <img class="food-photo" src="${photo}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+            <h3 class="food-name">${name}</h3>
+            <div class="food-location">
+              <iconify-icon icon="material-symbols:location-on" aria-hidden="true"></iconify-icon>
+              <span>${place} — ${address}</span>
+            </div>
+            <div class="food-meta">
+              <span>Rp. ${price}</span>
+              <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; color: #333333;">
+                <iconify-icon icon="material-symbols:star" style="color: #FFBF00; font-size: 18px;"></iconify-icon>
+                <span>${ratingNum}</span>
+              </div>
+            </div>
+          </a>
+        `;
       }
 
       function getSafePhoto(value) {

@@ -99,6 +99,51 @@ if ($method === 'GET') {
     }
 
     // --- Pencarian atau daftar semua ---
+
+    // Parameter pagination
+    $page  = max(1, intval($_GET['page']  ?? 1));
+    $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+    $offset = ($page - 1) * $limit;
+
+    // Hitung total data
+    if ($q !== '') {
+        $count_result = pg_query_params(
+            $conn,
+            "SELECT COUNT(DISTINCT tk.id_tempat) AS total
+             FROM tempat_kuliner tk
+             JOIN kuliner k ON tk.id_kuliner = k.id_kuliner
+             WHERE LOWER(k.nama_kuliner) LIKE LOWER(\$1)",
+            ['%' . $q . '%']
+        );
+    } else {
+        $count_result = pg_query($conn, "SELECT COUNT(*) AS total FROM tempat_kuliner");
+    }
+
+    if (!$count_result) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal mengambil data kuliner"]);
+        exit;
+    }
+
+    $total_data  = (int)pg_fetch_assoc($count_result)['total'];
+    $total_pages = $total_data > 0 ? (int)ceil($total_data / $limit) : 0;
+
+    if ($page > $total_pages && $total_data > 0) {
+        http_response_code(200);
+        echo json_encode([
+            "status"     => true,
+            "message"    => "Nomor halaman melebihi jumlah halaman yang tersedia",
+            "data"       => [],
+            "pagination" => [
+                "total_data"   => $total_data,
+                "total_pages"  => $total_pages,
+                "current_page" => $page,
+                "per_page"     => $limit
+            ]
+        ]);
+        exit;
+    }
+
     if ($q !== '') {
         $result = pg_query_params(
             $conn,
@@ -130,11 +175,12 @@ if ($method === 'GET') {
                 k.id_kategori, ka.nama_kategori, tk.nama_tempat, tk.alamat,
                 tk.latitude, tk.longitude, tk.jam_buka, tk.jam_tutup,
                 tk.no_telepon, tk.foto, tk.harga
-            ORDER BY k.nama_kuliner ASC",
-            ['%' . $q . '%']
+            ORDER BY k.nama_kuliner ASC
+            LIMIT $2 OFFSET $3",
+            ['%' . $q . '%', $limit, $offset]
         );
     } else {
-        $result = pg_query(
+        $result = pg_query_params(
             $conn,
             "SELECT
                 tk.id_tempat,
@@ -163,7 +209,9 @@ if ($method === 'GET') {
                 k.id_kategori, ka.nama_kategori, tk.nama_tempat, tk.alamat,
                 tk.latitude, tk.longitude, tk.jam_buka, tk.jam_tutup,
                 tk.no_telepon, tk.foto, tk.harga
-            ORDER BY tk.id_tempat ASC"
+            ORDER BY tk.id_tempat ASC
+            LIMIT $1 OFFSET $2",
+            [$limit, $offset]
         );
     }
 
@@ -178,18 +226,33 @@ if ($method === 'GET') {
         $data[] = $row;
     }
 
-    if (empty($data) && $q !== '') {
+    if (empty($data)) {
         http_response_code(200);
         echo json_encode([
-            "status"  => true,
-            "message" => "Tidak ada kuliner yang cocok dengan pencarian",
-            "data"    => []
+            "status"     => true,
+            "message"    => $q !== '' ? "Tidak ada kuliner yang cocok dengan pencarian" : "Belum ada kuliner",
+            "data"       => [],
+            "pagination" => [
+                "total_data"   => $total_data,
+                "total_pages"  => $total_pages,
+                "current_page" => $page,
+                "per_page"     => $limit
+            ]
         ]);
         exit;
     }
 
     http_response_code(200);
-    echo json_encode(["status" => true, "data" => $data]);
+    echo json_encode([
+        "status"     => true,
+        "data"       => $data,
+        "pagination" => [
+            "total_data"   => $total_data,
+            "total_pages"  => $total_pages,
+            "current_page" => $page,
+            "per_page"     => $limit
+        ]
+    ]);
     exit;
 }
 
@@ -209,10 +272,25 @@ if ($method === 'POST') {
     $latitude     = trim((string)($body['latitude']    ?? ''));
     $longitude    = trim((string)($body['longitude']   ?? ''));
     $harga        = trim((string)($body['harga']       ?? ''));
-    $jam_buka     = trim($body['jam_buka']     ?? '') ?: null;
-    $jam_tutup    = trim($body['jam_tutup']    ?? '') ?: null;
-    $no_telepon   = trim($body['no_telepon']   ?? '') ?: null;
-    $photo_url    = trim($body['photo_url']    ?? '') ?: null;
+    $jam_operasional = trim($body['jam_operasional'] ?? '') ?: null;
+    $no_telepon      = trim($body['no_telepon']      ?? '') ?: null;
+
+    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
+    if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
+        exit;
+    }
+    $photo_url       = trim($body['photo_url']       ?? '') ?: null;
+
+    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
+    $jam_buka  = null;
+    $jam_tutup = null;
+    if ($jam_operasional !== null) {
+        $parts     = explode('-', $jam_operasional, 2);
+        $jam_buka  = trim($parts[0] ?? '') ?: null;
+        $jam_tutup = trim($parts[1] ?? '') ?: null;
+    }
 
     // Validasi field wajib
     if (empty($nama_kuliner) || empty($deskripsi) || empty($id_kategori) ||
@@ -385,9 +463,26 @@ if ($method === 'PUT') {
     $latitude     = trim((string)($body['latitude']  ?? $lama['latitude']));
     $longitude    = trim((string)($body['longitude'] ?? $lama['longitude']));
     $harga        = trim((string)($body['harga']     ?? $lama['harga']));
-    $jam_buka     = array_key_exists('jam_buka',   $body) ? ($body['jam_buka']   ?: null) : $lama['jam_buka'];
-    $jam_tutup    = array_key_exists('jam_tutup',  $body) ? ($body['jam_tutup']  ?: null) : $lama['jam_tutup'];
+
+    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
+    // Kalau tidak dikirim, fallback ke nilai lama
+    if (array_key_exists('jam_operasional', $body) && $body['jam_operasional'] !== '') {
+        $parts     = explode('-', $body['jam_operasional'], 2);
+        $jam_buka  = trim($parts[0] ?? '') ?: null;
+        $jam_tutup = trim($parts[1] ?? '') ?: null;
+    } else {
+        $jam_buka  = $lama['jam_buka'];
+        $jam_tutup = $lama['jam_tutup'];
+    }
+
     $no_telepon   = array_key_exists('no_telepon', $body) ? ($body['no_telepon'] ?: null) : $lama['no_telepon'];
+
+    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
+    if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
+        exit;
+    }
 
     // Foto: kalau dikirim pakai photo_url baru, kalau tidak pertahankan lama
     $photo_url = array_key_exists('photo_url', $body)
@@ -510,6 +605,7 @@ if ($method === 'PUT') {
             "harga"        => $harga,
             "jam_buka"     => $jam_buka,
             "jam_tutup"    => $jam_tutup,
+            "jam_operasional" => ($jam_buka && $jam_tutup) ? "$jam_buka - $jam_tutup" : null,
             "no_telepon"   => $no_telepon,
             "photo_url"    => $photo_url
         ]

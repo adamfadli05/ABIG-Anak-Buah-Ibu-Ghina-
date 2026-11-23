@@ -1,141 +1,763 @@
-// State Data Kuliner (Default Data Sederhana)
-let dataKuliner = JSON.parse(localStorage.getItem('adminKulinerData')) || [
-    { id: 1, nama: "Empal Gentong", kategori: "Makanan", harga: 25000, rating: 4.8, gambar: "https://via.placeholder.com/50" },
-    { id: 2, nama: "Nasi Jamblang", kategori: "Makanan", harga: 15000, rating: 4.7, gambar: "https://via.placeholder.com/50" },
-    { id: 3, nama: "Es Tebu", kategori: "Minuman", harga: 5000, rating: 4.5, gambar: "https://via.placeholder.com/50" }
-  ];
-  
-  // Element DOM
-  const tableBody = document.getElementById('kuliner-table-body');
-  const searchInput = document.getElementById('search-input');
-  const filterKategori = document.getElementById('filter-kategori');
-  
-  const modal = document.getElementById('kuliner-modal');
-  const modalTitle = document.getElementById('modal-title');
-  const form = document.getElementById('kuliner-form');
-  
-  const btnTambah = document.getElementById('btn-tambah');
-  const btnCloseModal = document.getElementById('btn-close-modal');
-  const btnBatal = document.getElementById('btn-batal');
-  
-  // Render Tabel
-  function renderTable(data = dataKuliner) {
-    tableBody.innerHTML = '';
-    
-    if (data.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Data kuliner tidak ditemukan.</td></tr>`;
+document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE_URL = window.BASE_URL || window.location.origin;
+  const ADMIN_KULINER_CACHE_KEY = "mangan_yukk_admin_kuliner_v1";
+
+  const authState = document.getElementById("authState");
+  const adminApp = document.getElementById("adminApp");
+
+  const contentHeaderFlex = document.querySelector(".content-header-flex");
+  const searchToolbar = document.querySelector(".search-toolbar");
+  const tableCard = document.querySelector(".table-card");
+  const tableLoading = document.getElementById("tableLoading");
+  const tableError = document.getElementById("tableError");
+  const tableWrapper = document.getElementById("tableWrapper");
+  const tableEmpty = document.getElementById("tableEmpty");
+  const kulinerTableBody = document.getElementById("kulinerTableBody");
+  const searchInput = document.getElementById("searchKuliner");
+  const tableRetryButton = document.getElementById("tableRetryButton");
+
+  const editCulinarySection = document.getElementById("editCulinarySection");
+  const editCulinaryForm = document.getElementById("editCulinaryForm");
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+  const editKategoriSelect = document.getElementById("editKategori");
+  const editPhotoPreview = document.getElementById("editPhotoPreview");
+  const editPhotoInput = document.getElementById("editPhotoInput");
+
+  const successEditModal = document.getElementById("successEditModal");
+  const closeSuccessEditBtn = document.getElementById("closeSuccessEditBtn");
+
+  const errorEditModal = document.getElementById("errorEditModal");
+  const editErrorMessage = document.getElementById("editErrorMessage");
+  const retryEditBtn = document.getElementById("retryEditBtn");
+
+  const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+  const deleteConfirmMessage = document.getElementById("deleteDialogMessage");
+  const deleteConfirmState = document.getElementById("deleteConfirmState");
+  const deleteProgressState = document.getElementById("deleteProgressState");
+  const deleteSuccessState = document.getElementById("deleteSuccessState");
+  const deleteErrorState = document.getElementById("deleteErrorState");
+  const deleteErrorMessage = document.getElementById("deleteErrorMessage");
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+  const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+  const retryDeleteBtn = document.getElementById("retryDeleteBtn");
+  const closeDeleteSuccessBtn = document.getElementById("closeDeleteSuccessBtn");
+
+  let culinaryData = [];
+  let pendingDeleteId = null;
+  let deleteInProgress = false;
+
+  // State Pagination Admin (20 data kuliner per halaman)
+  let currentAdminPage = 1;
+  let totalPagesFromBE = 1;
+  const itemsPerPageAdmin = 20;
+  const pageDataCache = new Map();
+
+  function readKulinerCache() {
+    try {
+      const raw = localStorage.getItem(ADMIN_KULINER_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeKulinerCache(items) {
+    try {
+      localStorage.setItem(ADMIN_KULINER_CACHE_KEY, JSON.stringify(items));
+    } catch (_) {}
+  }
+
+  const getApiUrl = (endpoint) => {
+    return `${API_BASE_URL}/api/admin/${endpoint}`;
+  };
+
+  async function checkAdminAccessSilent() {
+    const rawRole = localStorage.getItem("role");
+
+    if (rawRole === "admin") {
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
       return;
     }
-  
-    data.forEach((item, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td><img src="${item.gambar}" alt="${item.nama}" class="img-thumb"></td>
-        <td><strong>${item.nama}</strong></td>
-        <td>${item.kategori}</td>
-        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
-        <td>⭐ ${item.rating || 5.0}</td>
-        <td>
-          <button class="btn btn-edit" onclick="editKuliner(${item.id})">Edit</button>
-          <button class="btn btn-danger" onclick="hapusKuliner(${item.id})">Hapus</button>
-        </td>
-      `;
-      tableBody.appendChild(row);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/me.php`, {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status || result.role !== "admin") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        localStorage.removeItem("admin_logged_in");
+        window.location.replace("index.html");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(result.data || {}));
+      localStorage.setItem("role", result.role);
+
+      if (adminApp) adminApp.hidden = false;
+      if (authState) authState.hidden = true;
+      initAdminApp();
+    } catch (error) {
+      console.error("Gagal memeriksa sesi admin:", error);
+      window.location.replace("index.html");
+    }
+  }
+
+  async function fetchKulinerData(forceNoCache = false, isPageSwitch = false) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    const cachedPage = !forceNoCache ? pageDataCache.get(currentAdminPage) : null;
+    const localCachedFirstPage =
+      !forceNoCache && currentAdminPage === 1 && !cachedPage ? readKulinerCache() : null;
+    const initialData = cachedPage || localCachedFirstPage;
+
+    if (initialData && initialData.length > 0) {
+      culinaryData = initialData;
+      if (tableError) tableError.hidden = true;
+      renderTableWithPagination(totalPagesFromBE);
+    } else if (!isPageSwitch) {
+      if (tableLoading) tableLoading.hidden = false;
+      if (tableError) tableError.hidden = true;
+      if (tableWrapper) tableWrapper.hidden = true;
+      if (tableEmpty) tableEmpty.hidden = true;
+      if (paginationContainer) paginationContainer.innerHTML = "";
+    }
+
+    try {
+      const url = `${getApiUrl("kuliner.php")}?page=${currentAdminPage}&limit=${itemsPerPageAdmin}`;
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Gagal mengambil data dari server.");
+
+      const result = await response.json();
+      const rawData = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result)
+          ? result
+          : [];
+      totalPagesFromBE = Number(result.pagination?.total_pages) || 1;
+
+      culinaryData = rawData;
+      pageDataCache.set(currentAdminPage, culinaryData);
+      if (currentAdminPage === 1) {
+        writeKulinerCache(culinaryData);
+      }
+      renderTableWithPagination(totalPagesFromBE);
+    } catch (error) {
+      console.error("Error fetching culinary data:", error);
+      if (tableLoading) tableLoading.hidden = true;
+      if (!initialData || initialData.length === 0) {
+        if (tableWrapper) tableWrapper.hidden = true;
+        if (tableCard) tableCard.hidden = true;
+        if (tableError) tableError.hidden = false;
+        if (paginationContainer) paginationContainer.innerHTML = "";
+      }
+    }
+  }
+
+  async function fetchKategoriOptions(selectedCategoryId = "") {
+    try {
+      const response = await fetch(getApiUrl("kategori.php"), {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+
+      const result = await response.json();
+      const categories = Array.isArray(result) ? result : result.data || [];
+
+      if (editKategoriSelect) {
+        editKategoriSelect.innerHTML = '<option value="" disabled>Pilih Kategori</option>';
+        const fragment = document.createDocumentFragment();
+        categories.forEach((cat) => {
+          const catId = cat.id_kategori || cat.id;
+          const catName = cat.nama_kategori || cat.name;
+          const option = document.createElement("option");
+          option.value = catId;
+          option.textContent = catName;
+          if (String(catId) === String(selectedCategoryId)) {
+            option.selected = true;
+          }
+          fragment.appendChild(option);
+        });
+        editKategoriSelect.appendChild(fragment);
+      }
+    } catch (error) {
+      console.error("Gagal memuat kategori:", error);
+    }
+  }
+
+  window.changeAdminPage = function (page) {
+    if (page < 1) return;
+    currentAdminPage = page;
+    renderAdminPaginationControls(totalPagesFromBE);
+    fetchKulinerData(false, true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  function renderTableWithPagination(totalPages = totalPagesFromBE) {
+    const filteredData = getFilteredCulinaryData();
+    const paginationContainer = document.getElementById("paginationContainer");
+
+    if (tableLoading) tableLoading.hidden = true;
+
+    if (!filteredData || filteredData.length === 0) {
+      if (tableCard) tableCard.hidden = true;
+      if (tableEmpty) tableEmpty.hidden = false;
+      if (paginationContainer) paginationContainer.innerHTML = "";
+      return;
+    }
+
+    if (tableCard) tableCard.hidden = false;
+    if (tableEmpty) tableEmpty.hidden = true;
+    if (tableWrapper) tableWrapper.hidden = false;
+    if (kulinerTableBody) kulinerTableBody.replaceChildren();
+
+    const startIndex = (currentAdminPage - 1) * itemsPerPageAdmin;
+    const fragment = document.createDocumentFragment();
+
+    filteredData.forEach((item, index) => {
+      const tr = document.createElement("tr");
+
+      const fotoUrl = item.photo_url || item.foto || item.image || "";
+      const namaKuliner = item.nama_kuliner || item.name || "Tanpa Nama";
+      const kategori = item.nama_kategori || item.kategori || "Umum";
+      const alamat = item.alamat || "-";
+      const itemId = item.id_tempat || item.id_kuliner || item.id;
+      const absoluteNo = startIndex + index + 1;
+
+      const tdNo = document.createElement("td");
+      tdNo.textContent = `${absoluteNo}.`;
+
+      const tdImg = document.createElement("td");
+      if (fotoUrl) {
+        const img = document.createElement("img");
+        img.src = fotoUrl;
+        img.alt = namaKuliner;
+        img.className = "table-img";
+        img.loading = index < 6 ? "eager" : "lazy";
+        img.addEventListener(
+          "error",
+          () => {
+            img.style.display = "none";
+          },
+          { once: true }
+        );
+        tdImg.appendChild(img);
+      }
+
+      const tdNama = document.createElement("td");
+      tdNama.textContent = namaKuliner;
+
+      const tdKat = document.createElement("td");
+      tdKat.textContent = kategori;
+
+      const tdAlamat = document.createElement("td");
+      tdAlamat.textContent = alamat;
+
+      const tdAction = document.createElement("td");
+      const actionWrap = document.createElement("div");
+      actionWrap.className = "action-buttons";
+
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "btn-action btn-edit";
+      btnEdit.setAttribute("data-id", itemId);
+      btnEdit.innerHTML = '<iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon> Edit';
+
+      const btnDelete = document.createElement("button");
+      btnDelete.className = "btn-action btn-delete";
+      btnDelete.setAttribute("data-id", itemId);
+      btnDelete.innerHTML = '<iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus';
+
+      actionWrap.append(btnEdit, btnDelete);
+      tdAction.appendChild(actionWrap);
+
+      tr.append(tdNo, tdImg, tdNama, tdKat, tdAlamat, tdAction);
+      fragment.appendChild(tr);
+    });
+
+    if (kulinerTableBody) kulinerTableBody.appendChild(fragment);
+
+    const hasKeyword = Boolean(searchInput && searchInput.value.trim());
+    const pagesToRender = hasKeyword
+      ? Math.max(1, Math.ceil(filteredData.length / itemsPerPageAdmin))
+      : totalPages;
+    renderAdminPaginationControls(pagesToRender);
+  }
+
+  function renderAdminPaginationControls(totalPagesInput) {
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (!paginationContainer) return;
+
+    paginationContainer.hidden = false;
+
+    const totalPages = Math.max(1, Number(totalPagesInput) || 1);
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = "";
+      return;
+    }
+
+    let html = `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        totalPages <= 5 ||
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
+      ) {
+        html += `
+          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+            ${i}
+          </button>
+        `;
+      } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
+        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+      }
+    }
+
+    html += `
+      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      </button>
+    `;
+
+    paginationContainer.innerHTML = html;
+  }
+
+  function renderTable() {
+    renderTableWithPagination(totalPagesFromBE);
+  }
+
+  async function openEditPage(id) {
+    const item = culinaryData.find((d) => String(d.id_tempat || d.id_kuliner || d.id) === String(id));
+    if (!item) {
+      alert("Data kuliner tidak ditemukan!");
+      return;
+    }
+
+    const alertBanner = document.getElementById("formAlertBanner");
+    if (alertBanner) alertBanner.hidden = true;
+
+    document.getElementById("editIdKuliner").value = id;
+    document.getElementById("editNamaKuliner").value = item.nama_kuliner || item.name || item.nama || "";
+    document.getElementById("editLatitude").value = item.latitude || item.lat || "";
+    document.getElementById("editHarga").value = item.harga || item.price || "";
+    document.getElementById("editLongitude").value = item.longitude || item.lng || item.lon || "";
+
+    const jamBukaInput = document.getElementById("editJamBuka");
+    const jamTutupInput = document.getElementById("editJamTutup");
+
+    let jamBukaVal = item.jam_buka || "";
+    let jamTutupVal = item.jam_tutup || "";
+
+    if (!jamBukaVal && item.jam_operasional) {
+      const parts = item.jam_operasional.split("-");
+      jamBukaVal = (parts[0] || "").trim();
+      jamTutupVal = (parts[1] || "").trim();
+    }
+
+    if (jamBukaInput) jamBukaInput.value = jamBukaVal;
+    if (jamTutupInput) jamTutupInput.value = jamTutupVal;
+
+    document.getElementById("editAlamat").value = item.alamat || item.address || "";
+    document.getElementById("editNoTelepon").value = item.no_telepon || item.nomor_telepon || item.phone_number || "";
+    document.getElementById("editDeskripsi").value = item.deskripsi || item.description || "";
+
+    await fetchKategoriOptions(item.id_kategori || item.category_id || item.kategori_id);
+
+    let fotoPath = item.photo_url || item.foto || item.image || item.gambar || "";
+    let fotoUrl = "";
+    if (fotoPath) {
+      if (fotoPath.startsWith("http://") || fotoPath.startsWith("https://") || fotoPath.startsWith("data:")) {
+        fotoUrl = fotoPath;
+      } else {
+        const cleanPath = fotoPath.replace(/^\/+/, "");
+        fotoUrl = window.location.origin + "/" + cleanPath;
+      }
+    }
+
+    const previewImg = document.getElementById("editPhotoPreview");
+    if (previewImg) {
+      if (fotoUrl) {
+        previewImg.src = fotoUrl;
+        previewImg.style.display = "block";
+      } else {
+        previewImg.removeAttribute("src");
+        previewImg.style.display = "none";
+      }
+    }
+
+    if (contentHeaderFlex) contentHeaderFlex.hidden = true;
+    if (searchToolbar) searchToolbar.hidden = true;
+    if (tableCard) tableCard.hidden = true;
+    if (tableEmpty) tableEmpty.hidden = true;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.hidden = true;
+
+    if (editCulinarySection) editCulinarySection.hidden = false;
+  }
+
+  function closeEditPage() {
+    if (editCulinarySection) editCulinarySection.hidden = true;
+
+    if (contentHeaderFlex) contentHeaderFlex.hidden = false;
+    if (searchToolbar) searchToolbar.hidden = false;
+    if (tableCard) tableCard.hidden = false;
+    const paginationContainer = document.getElementById("paginationContainer");
+    if (paginationContainer) paginationContainer.hidden = false;
+  }
+
+  if (kulinerTableBody) {
+    kulinerTableBody.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+
+      const id = button.getAttribute("data-id");
+
+      if (button.classList.contains("btn-edit")) {
+        openEditPage(id);
+        return;
+      }
+
+      if (button.classList.contains("btn-delete")) {
+        const name = button.closest("tr")?.querySelector("td:nth-child(3)")?.textContent.trim();
+        pendingDeleteId = id;
+        if (deleteConfirmMessage) {
+          deleteConfirmMessage.textContent = `Kuliner “${name || "kuliner ini"}” akan di hapus dari daftar kuliner.`;
+        }
+        showDeleteState("confirm");
+        if (deleteConfirmModal) deleteConfirmModal.hidden = false;
+        if (cancelDeleteBtn) cancelDeleteBtn.focus();
+      }
     });
   }
-  
-  // Simpan ke LocalStorage
-  function saveData() {
-    localStorage.setItem('adminKulinerData', JSON.stringify(dataKuliner));
-    renderTable();
+
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", closeEditPage);
   }
-  
-  // Buka Modal (Tambah)
-  btnTambah.addEventListener('click', () => {
-    form.reset();
-    document.getElementById('kuliner-id').value = '';
-    modalTitle.textContent = "Tambah Kuliner Baru";
-    modal.classList.remove('hidden');
-  });
-  
-  // Tutup Modal
-  function closeModal() {
-    modal.classList.add('hidden');
+
+  if (editPhotoInput) {
+    editPhotoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+          if (editPhotoPreview) {
+            editPhotoPreview.src = uploadEvent.target.result;
+            editPhotoPreview.style.display = "block";
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
   }
-  btnCloseModal.addEventListener('click', closeModal);
-  btnBatal.addEventListener('click', closeModal);
-  
-  // Handle Form Submit (Tambah / Edit)
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-  
-    const id = document.getElementById('kuliner-id').value;
-    const nama = document.getElementById('nama').value;
-    const kategori = document.getElementById('kategori').value;
-    const harga = parseInt(document.getElementById('harga').value);
-    const gambar = document.getElementById('gambar').value;
-  
-    if (id) {
-      // Edit Data
-      const index = dataKuliner.findIndex(item => item.id == id);
-      dataKuliner[index] = { ...dataKuliner[index], nama, kategori, harga, gambar };
-    } else {
-      // Tambah Data Baru
-      const newKuliner = {
-        id: Date.now(),
-        nama,
-        kategori,
-        harga,
-        rating: 5.0,
-        gambar
+
+  function editPhotoPreviewUrlOrExisting() {
+    const previewImg = document.getElementById("editPhotoPreview");
+    return previewImg && previewImg.src && !previewImg.src.startsWith("data:") ? previewImg.src : null;
+  }
+
+  if (editCulinaryForm) {
+    editCulinaryForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const alertBanner = document.getElementById("formAlertBanner");
+      const alertMessage = document.getElementById("formAlertMessage");
+
+      const allInputs = editCulinaryForm.querySelectorAll("input, textarea, select");
+      allInputs.forEach((el) => el.classList.remove("input-error"));
+
+      const namaInput = document.getElementById("editNamaKuliner");
+      const latInput = document.getElementById("editLatitude");
+      const hargaInput = document.getElementById("editHarga");
+      const lonInput = document.getElementById("editLongitude");
+      const katInput = document.getElementById("editKategori");
+      const alamatInput = document.getElementById("editAlamat");
+      const descInput = document.getElementById("editDeskripsi");
+
+      const nama = namaInput.value.trim();
+      const latitudeVal = latInput.value.trim();
+      const hargaVal = hargaInput.value.trim();
+      const longitudeVal = lonInput.value.trim();
+      const kategori = katInput.value;
+      const alamat = alamatInput.value.trim();
+      const deskripsi = descInput.value.trim();
+
+      const latNum = Number(latitudeVal);
+      if (!/^-?\d+\.\d+$/.test(latitudeVal) || !Number.isFinite(latNum) || latNum < -7.5 || latNum > -6.0) {
+        latInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Latitude harus berada di wilayah operasional (antara -7.5 hingga -6.0) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        latInput.focus();
+        return;
+      }
+
+      const lonNum = Number(longitudeVal);
+      if (!/^-?\d+\.\d+$/.test(longitudeVal) || !Number.isFinite(lonNum) || lonNum < 108.0 || lonNum > 109.2) {
+        lonInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Longitude harus berada di wilayah operasional (antara 108.0 hingga 109.2) dan menggunakan titik (.)";
+        if (alertBanner) alertBanner.hidden = false;
+        lonInput.focus();
+        return;
+      }
+
+      if (!nama || !hargaVal || !kategori || !alamat || !deskripsi) {
+        if (!nama) namaInput.classList.add("input-error");
+        if (!hargaVal) hargaInput.classList.add("input-error");
+        if (!kategori) katInput.classList.add("input-error");
+        if (!alamat) alamatInput.classList.add("input-error");
+        if (!deskripsi) descInput.classList.add("input-error");
+
+        if (alertMessage) alertMessage.textContent = "Mohon lengkapi data kuliner sebelum menyimpan.";
+        if (alertBanner) alertBanner.hidden = false;
+        return;
+      }
+
+      const cleanHarga = hargaVal.replace(/\./g, "").replace(/,/g, ".");
+      if (isNaN(cleanHarga) || Number(cleanHarga) <= 0) {
+        hargaInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Harga harus lebih dari 0.";
+        if (alertBanner) alertBanner.hidden = false;
+        hargaInput.focus();
+        return;
+      }
+
+      const finalHarga = parseInt(cleanHarga, 10);
+
+      if (deskripsi.length > 300) {
+        descInput.classList.add("input-error");
+        if (alertMessage) alertMessage.textContent = "Deskripsi kuliner melebihi batas maksimal 300 karakter.";
+        if (alertBanner) alertBanner.hidden = false;
+        descInput.focus();
+        return;
+      }
+      if (alertBanner) alertBanner.hidden = true;
+
+      const id = document.getElementById("editIdKuliner").value;
+      const jamBukaVal = document.getElementById("editJamBuka")?.value || "";
+      const jamTutupVal = document.getElementById("editJamTutup")?.value || "";
+      const jamOperasionalVal = jamBukaVal && jamTutupVal ? `${jamBukaVal} - ${jamTutupVal}` : null;
+
+      const payload = {
+        nama_kuliner: nama,
+        nama_tempat: nama,
+        deskripsi: deskripsi,
+        id_kategori: kategori,
+        alamat: alamat,
+        latitude: latitudeVal,
+        longitude: longitudeVal,
+        harga: finalHarga,
+        jam_operasional: jamOperasionalVal,
+        no_telepon: document.getElementById("editNoTelepon").value || null,
+        photo_url: editPhotoPreviewUrlOrExisting(),
       };
-      dataKuliner.push(newKuliner);
-    }
-  
-    saveData();
-    closeModal();
-  });
-  
-  // Edit Kuliner
-  window.editKuliner = function(id) {
-    const item = dataKuliner.find(k => k.id === id);
-    if (item) {
-      document.getElementById('kuliner-id').value = item.id;
-      document.getElementById('nama').value = item.nama;
-      document.getElementById('kategori').value = item.kategori;
-      document.getElementById('harga').value = item.harga;
-      document.getElementById('gambar').value = item.gambar;
-  
-      modalTitle.textContent = "Edit Data Kuliner";
-      modal.classList.remove('hidden');
-    }
-  };
-  
-  // Hapus Kuliner
-  window.hapusKuliner = function(id) {
-    if (confirm("Apakah Anda yakin ingin menghapus data kuliner ini?")) {
-      dataKuliner = dataKuliner.filter(item => item.id !== id);
-      saveData();
-    }
-  };
-  
-  // Filter & Pencarian
-  function filterData() {
-    const keyword = searchInput.value.toLowerCase();
-    const kategoriSelected = filterKategori.value;
-  
-    const filtered = dataKuliner.filter(item => {
-      const matchNama = item.nama.toLowerCase().includes(keyword);
-      const matchKategori = kategoriSelected === 'semua' || item.kategori === kategoriSelected;
-      return matchNama && matchKategori;
+
+      const saveBtn = document.getElementById("saveEditBtn");
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Menyimpan";
+      }
+
+      try {
+        const response = await fetch(`${getApiUrl("kuliner.php")}?id=${encodeURIComponent(id)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+
+        const textResponse = await response.text();
+        let result;
+        try {
+          result = JSON.parse(textResponse);
+        } catch (err) {
+          throw new Error("Server mengembalikan respons yang tidak valid.");
+        }
+
+        if (!response.ok || !result.status) {
+          throw new Error(result.message || "Gagal memperbarui kuliner");
+        }
+
+        pageDataCache.clear();
+        closeEditPage();
+        if (successEditModal) {
+          successEditModal.hidden = false;
+          if (closeSuccessEditBtn) closeSuccessEditBtn.focus();
+        }
+
+        fetchKulinerData(true);
+      } catch (error) {
+        console.error("Error saving culinary:", error);
+
+        if (editErrorMessage) {
+          editErrorMessage.textContent =
+            !navigator.onLine || error instanceof TypeError
+              ? "Periksa koneksi internet anda"
+              : error.message || "Gagal memperbarui kuliner";
+        }
+        if (errorEditModal) {
+          errorEditModal.hidden = false;
+          if (retryEditBtn) retryEditBtn.focus();
+        }
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Simpan";
+        }
+      }
     });
-  
-    renderTable(filtered);
   }
-  
-  searchInput.addEventListener('input', filterData);
-  filterKategori.addEventListener('change', filterData);
-  
-  // Inisialisasi Tampilan Awal
-  renderTable();
+
+  if (closeSuccessEditBtn) {
+    closeSuccessEditBtn.addEventListener("click", () => {
+      if (successEditModal) successEditModal.hidden = true;
+    });
+  }
+
+  if (successEditModal) {
+    successEditModal.addEventListener("click", (e) => {
+      if (e.target === successEditModal) successEditModal.hidden = true;
+    });
+  }
+
+  if (retryEditBtn) {
+    retryEditBtn.addEventListener("click", () => {
+      if (errorEditModal) errorEditModal.hidden = true;
+      if (editCulinaryForm) editCulinaryForm.dispatchEvent(new Event("submit"));
+    });
+  }
+
+  if (errorEditModal) {
+    errorEditModal.addEventListener("click", (e) => {
+      if (e.target === errorEditModal) errorEditModal.hidden = true;
+    });
+  }
+
+  function getFilteredCulinaryData() {
+    const rawKeyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    if (!rawKeyword) return culinaryData;
+
+    const keywords = rawKeyword.split(/\s+/);
+
+    return culinaryData.filter((item) => {
+      const name = (item.nama_kuliner || item.name || "").toLowerCase();
+      const category = (item.nama_kategori || item.kategori || "").toLowerCase();
+      const address = (item.alamat || item.address || "").toLowerCase();
+
+      const combinedText = `${name} ${category} ${address}`;
+      return keywords.every((kw) => combinedText.includes(kw));
+    });
+  }
+
+  function showDeleteState(state) {
+    if (!deleteConfirmModal) return;
+    deleteConfirmModal.dataset.state = state;
+    if (deleteConfirmState) deleteConfirmState.hidden = state !== "confirm";
+    if (deleteProgressState) deleteProgressState.hidden = state !== "progress";
+    if (deleteSuccessState) deleteSuccessState.hidden = state !== "success";
+    if (deleteErrorState) deleteErrorState.hidden = state !== "error";
+  }
+
+  function closeDeleteModal() {
+    if (deleteInProgress || !deleteConfirmModal) return;
+    deleteConfirmModal.hidden = true;
+    pendingDeleteId = null;
+  }
+
+  if (cancelDeleteBtn) cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+
+  async function deletePendingCulinary() {
+    if (!pendingDeleteId || deleteInProgress) return;
+
+    deleteInProgress = true;
+    if (confirmDeleteBtn) confirmDeleteBtn.disabled = true;
+    if (retryDeleteBtn) retryDeleteBtn.disabled = true;
+    showDeleteState("progress");
+
+    try {
+      const response = await fetch(`${getApiUrl("kuliner.php")}?id=${encodeURIComponent(pendingDeleteId)}`, {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.status) {
+        throw new Error(result.message || "Periksa koneksi internet Anda.");
+      }
+
+      culinaryData = culinaryData.filter(
+        (item) => String(item.id_tempat || item.id_kuliner || item.id) !== String(pendingDeleteId)
+      );
+      pageDataCache.clear();
+      if (currentAdminPage === 1) {
+        writeKulinerCache(culinaryData);
+      }
+
+      if (culinaryData.length === 0 && currentAdminPage > 1) {
+        currentAdminPage -= 1;
+        await fetchKulinerData(true, true);
+      } else {
+        renderTableWithPagination(totalPagesFromBE);
+      }
+
+      showDeleteState("success");
+      if (closeSuccessEditBtn) closeSuccessEditBtn.focus();
+    } catch (error) {
+      console.error("Error deleting culinary:", error);
+      if (deleteErrorMessage) {
+        deleteErrorMessage.textContent =
+          !navigator.onLine || error instanceof TypeError
+            ? "Periksa koneksi internet anda"
+            : error.message || "Terjadi kesalahan. Silakan coba lagi.";
+      }
+      showDeleteState("error");
+      if (retryDeleteBtn) retryDeleteBtn.focus();
+    } finally {
+      deleteInProgress = false;
+      if (confirmDeleteBtn) confirmDeleteBtn.disabled = false;
+      if (retryDeleteBtn) retryDeleteBtn.disabled = false;
+    }
+  }
+
+  if (confirmDeleteBtn) confirmDeleteBtn.addEventListener("click", deletePendingCulinary);
+  if (retryDeleteBtn) retryDeleteBtn.addEventListener("click", deletePendingCulinary);
+  if (closeDeleteSuccessBtn) closeDeleteSuccessBtn.addEventListener("click", closeDeleteModal);
+
+  if (deleteConfirmModal) {
+    deleteConfirmModal.addEventListener("click", (event) => {
+      if (event.target === deleteConfirmModal) closeDeleteModal();
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      renderTableWithPagination(totalPagesFromBE);
+    });
+  }
+
+  if (tableRetryButton) {
+    tableRetryButton.addEventListener("click", () => fetchKulinerData(true));
+  }
+
+  function initAdminApp() {
+    fetchKulinerData();
+  }
+
+  checkAdminAccessSilent();
+});

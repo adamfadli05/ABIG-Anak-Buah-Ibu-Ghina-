@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const AUTH_API_BASE = window.AUTH_API_BASE || window.BASE_URL || window.location.origin;
+  const resolveBaseUrl = () => {
+    const rawBase =
+      window.AUTH_API_BASE ||
+      window.API_BASE_URL ||
+      window.BASE_URL ||
+      ".";
+    return String(rawBase).replace(/\/+$/, "");
+  };
+
+  const resolveEndpoint = (overrideUrl, defaultPath) => {
+    if (overrideUrl) return String(overrideUrl);
+    const base = resolveBaseUrl();
+    const cleanPath = String(defaultPath).replace(/^\/+/, "");
+    return base ? `${base}/${cleanPath}` : `/${cleanPath}`;
+  };
+
+  const NAVBAR_TEMPLATE_URL = window.NAVBAR_TEMPLATE_URL || "components/navbar.html";
+  const SESSION_ENDPOINT = resolveEndpoint(window.SESSION_ENDPOINT, "api/me.php");
+  const LOGOUT_ENDPOINT = resolveEndpoint(window.LOGOUT_ENDPOINT, "api/logout.php");
+
   const navbarContainer = document.getElementById("navbar-container");
 
   // 1. TAMBAHKAN STYLING KUSTOM SWEETALERT UNTUK UKURAN & BORDER
@@ -57,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 2. FETCH & INJECT NAVBAR.HTML
   if (navbarContainer) {
-    fetch("components/navbar.html")
+    fetch(NAVBAR_TEMPLATE_URL)
       .then((response) => {
         if (response.ok) return response.text();
         throw new Error("Gagal memuat navbar.html");
@@ -65,57 +84,86 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((html) => {
         navbarContainer.innerHTML = html;
         window.initNavbarState();
-        return syncNavbarSession();
+
+        // Hanya sinkronkan sesi jika penyimpanan lokal menandakan ada sesi login aktif
+        if (
+          localStorage.getItem("user") ||
+          localStorage.getItem("role") ||
+          localStorage.getItem("admin_logged_in") === "true"
+        ) {
+          return syncNavbarSession();
+        }
       })
       .then(() => window.initNavbarState())
-      .catch((error) => console.error("Gagal memuat navbar:", error));
+      .catch((error) => console.warn("Gagal memuat navbar:", error));
   }
 
   async function syncNavbarSession() {
     try {
-      const response = await fetch(`${AUTH_API_BASE}/api/me.php`, {
+      const response = await fetch(SESSION_ENDPOINT, {
         credentials: "include",
       });
 
-      if (response.status === 401) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
+      if (response.status === 401 || response.status === 403) {
+        clearAuthStorage();
         return;
       }
 
-      if (!response.ok) throw new Error(`Gagal memeriksa sesi (HTTP ${response.status}).`);
+      if (!response.ok) {
+        // Aman saat me.php mengembalikan 500: pertahankan state lokal yang ada
+        return;
+      }
 
       const result = await response.json();
-      if (!result.status || !result.data || !result.role) {
-        throw new Error(result.message || "Respons sesi tidak valid.");
+      if (!result || !result.status || !result.data || !result.role) {
+        return;
       }
 
       localStorage.setItem("user", JSON.stringify(result.data));
       localStorage.setItem("role", result.role);
-    } catch (error) {
-      console.error("Gagal memeriksa sesi navbar:", error);
+      if (result.role === "admin") {
+        localStorage.setItem("admin_logged_in", "true");
+      } else {
+        localStorage.removeItem("admin_logged_in");
+      }
+    } catch (_) {
+      // Aman saat jaringan bermasalah atau respons gagal di-parse
     }
+  }
+
+  function clearAuthStorage() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("admin_logged_in");
+    localStorage.clear();
+    sessionStorage.clear();
   }
 
   function getAuthState() {
     const rawUser = localStorage.getItem("user");
     const rawRole = localStorage.getItem("role");
-    let user = null;
+    const adminLoggedIn = localStorage.getItem("admin_logged_in") === "true";
 
+    if (!rawUser && !rawRole && !adminLoggedIn) {
+      return { user: null, role: "", isLoggedIn: false };
+    }
+
+    let user = null;
     if (rawUser && rawUser !== "null" && rawUser !== "undefined") {
       try {
         const parsedUser = JSON.parse(rawUser);
         if (parsedUser && typeof parsedUser === "object") user = parsedUser;
       } catch (error) {
-        console.error("[Auth System] Data pengguna tidak valid.", error);
+        console.warn("[Auth System] Data pengguna tidak valid.", error);
       }
     }
 
     const role = rawRole && rawRole !== "null" && rawRole !== "undefined" ? rawRole : "";
-    return { user, role, isLoggedIn: Boolean(user || role) };
+    const isLoggedIn = Boolean(user || role || adminLoggedIn);
+    return { user, role, isLoggedIn };
   }
 
-  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL LOGOUT
+  // 3. FUNGSI UTAMA RENDER STATUS LOGIN & KONDISI TOMBOL
   window.initNavbarState = function () {
     const { user, role, isLoggedIn } = getAuthState();
     console.info("[Auth System] Navbar status", {
@@ -131,21 +179,37 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isLoggedIn) {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "none", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "flex", "important");
-      if (navUserName) navUserName.textContent = user?.nama || user?.name || user?.full_name || "Pengguna";
-      if (profileButton) profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
+      if (navUserName) {
+        navUserName.textContent =
+          user?.nama || user?.name || user?.full_name || "Admin Mangan Yukkk";
+      }
+      if (profileButton) {
+        profileButton.title = `Profil ${navUserName?.textContent || "Pengguna"}`;
+      }
+      const foto = user?.foto_profil;
+      if (foto && profileButton) {
+        let img = profileButton.querySelector("img.nav-avatar-img");
+        if (!img) {
+          img = document.createElement("img");
+          img.className = "nav-avatar-img";
+          img.alt = "Foto Profil";
+          img.style.cssText = "width:32px;height:32px;border-radius:50%;object-fit:cover;";
+          const icon = profileButton.querySelector("iconify-icon");
+          if (icon) {
+            icon.replaceWith(img);
+          } else {
+            profileButton.appendChild(img);
+          }
+        }
+        img.src = foto;
+      }
     } else {
       if (guestNavLinks) guestNavLinks.style.setProperty("display", "flex", "important");
       if (userNavLinks) userNavLinks.style.setProperty("display", "none", "important");
     }
-
-    if (user) {
-      console.info("[Auth System] Status: User Terautentikasi");
-    } else {
-      console.log("[Auth System] Status: Belum ada sesi login (Guest).");
-    }
   };
 
-  // 4. EVENT DELEGATION KLIK NAVBAR (MENAMPUNG SEMUA MENU & NAVIGASI)
+  // 4. EVENT DELEGATION KLIK NAVBAR
   document.addEventListener("click", function (event) {
     const navMenuToggle = event.target.closest("#navMenuToggle");
     const navDropdownMenu = document.getElementById("navDropdownMenu");
@@ -156,7 +220,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const { isLoggedIn } = getAuthState();
 
-    // Toggle Dropdown Menu
     if (navMenuToggle) {
       event.preventDefault();
       event.stopPropagation();
@@ -166,11 +229,15 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (navDropdownMenu && navDropdownMenu.classList.contains("show") && !navDropdownMenu.contains(event.target) && !navMenuToggle) {
+    if (
+      navDropdownMenu &&
+      navDropdownMenu.classList.contains("show") &&
+      !navDropdownMenu.contains(event.target) &&
+      !navMenuToggle
+    ) {
       navDropdownMenu.classList.remove("show");
     }
 
-    // Proteksi Navigasi Halaman Profil
     if (profileButton) {
       if (!isLoggedIn) {
         event.preventDefault();
@@ -179,19 +246,14 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Proteksi Navigasi Halaman Saved (Ikon Bookmark)
     if (savedButton) {
       if (!isLoggedIn) {
-        // Jika BELUM LOGIN, batalkan pindah halaman dan arahkan ke login.html
         event.preventDefault();
         window.location.href = "login.html";
       }
-      // Jika SUDAH LOGIN, biarkan kosong!
-      // Browser akan otomatis membaca href="saved.html" dari HTML dan langsung berpindah halaman dengan mulus.
       return;
     }
 
-    // Proteksi Navigasi Halaman Reviews
     if (reviewButton) {
       event.preventDefault();
       if (!isLoggedIn) {
@@ -215,7 +277,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       Swal.fire({
-        title: '<span style="color: #001b7d; font-weight: 400; font-size: 24px; display: inline-block; margin-bottom: 5px;">Apakah anda yakin<br>ingin keluar ?</span>',
+        title:
+          '<span style="color: #001b7d; font-weight: 400; font-size: 24px; display: inline-block; margin-bottom: 5px;">Apakah anda yakin<br>ingin keluar ?</span>',
         showCancelButton: true,
         confirmButtonText: "OKE",
         cancelButtonText: "Batal",
@@ -260,19 +323,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Fungsi Eksekusi Hapus Sesi Logout
+  // Fungsi Eksekusi Hapus Sesi Logout dengan Method POST & .then()
   function executeLogout() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    localStorage.clear();
+    clearAuthStorage();
 
-    fetch(AUTH_API_BASE + "/logout.php", {
-      method: "GET",
+    fetch(LOGOUT_ENDPOINT, {
+      method: "POST",
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     })
-      .catch((err) => console.error("Logout backend error:", err))
-      .finally(() => {
+      .then(() => {
+        window.location.replace("index.html");
+      })
+      .catch((err) => {
+        console.warn("Logout backend error:", err);
         window.location.replace("index.html");
       });
   }

@@ -17,6 +17,70 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+
+    <!-- Styling Pagination Ulasan -->
+    <style>
+  /* Container Pagination */
+  .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      /* Tombol Panah: Normal (Lingkaran Putih, Panah Biru) */
+      .pagination-arrow {
+        background-color: #ffffff;
+        color: #001b7d;
+        border: 1px solid #001b7d;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      /* Tombol Panah: Saat Dipencet/Hover (Lingkaran Biru Penuh, Panah Putih) */
+      .pagination-arrow:hover,
+      .pagination-arrow:active {
+        background-color: #001b7d;
+        color: #ffffff;
+      }
+
+      .pagination-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #ffffff;
+        color: #001b7d;
+      }
+
+      /* Tombol Angka Halaman (Tanpa Lingkaran) */
+      .pagination-number {
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5); /* Warna abu-abu untuk angka tidak aktif */
+        cursor: pointer;
+        padding: 2px 6px;
+        transition: all 0.2s ease;
+      }
+
+      .pagination-number:hover {
+        color: #001b7d;
+      }
+
+      /* Angka saat aktif/diklik: Biru tua tebal */
+      .pagination-number.active {
+        color: #001b7d !important;
+        font-weight: 700 !important;
+      }
+    </style>
   </head>
   <body>
     <!-- PEMGILIK NAVBAR HTML OTOMATIS -->
@@ -113,6 +177,8 @@
             <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
           </div>
         </div>
+        <!-- Navigasi Pagination Ulasan -->
+        <div id="reviewPaginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 24px;"></div>
       </section>
 
       <div class="review-composer" id="reviewComposer" hidden>
@@ -212,7 +278,9 @@
           </div>
         </div>
         <div id="reviewDeleteResult" class="review-delete-result" hidden>
-          <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          <div id="reviewDeleteResultIconWrapper">
+            <iconify-icon id="reviewDeleteResultIcon" aria-hidden="true"></iconify-icon>
+          </div>
           <p id="reviewDeleteResultMessage" class="review-delete-message"></p>
           <p id="reviewDeleteResultDetail" class="review-delete-detail" hidden></p>
           <button id="reviewDeleteResultAction" class="review-delete-result-action" type="button">Oke</button>
@@ -230,6 +298,12 @@
       (async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const idTempat = urlParams.get("id") || urlParams.get("id_tempat");
+
+        // State Pagination Ulasan (Diubah menjadi 10 ulasan per halaman)
+        let currentReviewPage = 1;
+        const reviewsPerPage = 10;
+        let ulasanList = [];
+        let reviewTotalPages = 0;
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
@@ -264,6 +338,153 @@
         let uploadedReviewPhotoUrl = null;
         let photoWasRemoved = false;
         let editingReviewId = null;
+        let inlineEditPhoto = null;
+        let inlineEditUploadedPhotoUrl = null;
+        let inlineEditPhotoPreviewUrl = null;
+        let inlineEditPhotoWasRemoved = false;
+        const reviewsContainer = document.getElementById("reviewsContainer");
+
+        // Fungsi Navigasi Halaman Ulasan
+        window.changeReviewPage = async function(page) {
+          if (page < 1 || page > reviewTotalPages) return;
+          try {
+            await loadReviewPage(page);
+            const reviewSectionEl = document.querySelector(".review-section");
+            if (reviewSectionEl) reviewSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch (error) {
+            console.error("Gagal memuat halaman ulasan:", error);
+            showReviewFeedback("Gagal memuat halaman ulasan. Silakan coba lagi.", () => window.changeReviewPage(page), true);
+          }
+        };
+
+        const renderReviewPaginationControls = () => {
+          const paginationContainer = document.getElementById("reviewPaginationContainer");
+          if (!paginationContainer) return;
+
+          const totalPages = reviewTotalPages;
+          if (totalPages <= 1) {
+            paginationContainer.innerHTML = "";
+            return;
+          }
+          let html = `
+            <button class="pagination-arrow" onclick="changeReviewPage(${currentReviewPage - 1})" ${currentReviewPage === 1 ? 'disabled' : ''}>
+              <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+            </button>
+          `;
+
+          // Tombol Angka Halaman (Tanpa Lingkaran)
+          for (let i = 1; i <= totalPages; i++) {
+            if (totalPages <= 5 || i === 1 || i === totalPages || (i >= currentReviewPage - 1 && i <= currentReviewPage + 1)) {
+              html += `
+                <button class="pagination-number ${i === currentReviewPage ? 'active' : ''}" onclick="changeReviewPage(${i})">
+                  ${i}
+                </button>
+              `;
+            } else if (i === currentReviewPage - 2 || i === currentReviewPage + 2) {
+              html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+            }
+          }
+
+          // Tombol Panah Kanan (Dengan Lingkaran Kecil)
+          html += `
+            <button class="pagination-arrow" onclick="changeReviewPage(${currentReviewPage + 1})" ${currentReviewPage === totalPages ? 'disabled' : ''}>
+              <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+            </button>
+          `;
+
+          paginationContainer.innerHTML = html;
+        };
+
+        window.renderReviews = function(list, container) {
+          const paginationContainer = document.getElementById("reviewPaginationContainer");
+          if (!list || !list.length) {
+            container.innerHTML = `
+              <div class="review-card-empty">
+                <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
+                <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
+              </div>
+            `;
+            if (paginationContainer) paginationContainer.innerHTML = "";
+            return;
+          }
+
+          let currentUserId = null;
+          try {
+            const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+            currentUserId = currentUser && currentUser.id_user != null ? String(currentUser.id_user) : null;
+          } catch (error) {
+            console.error("Data sesi pengguna tidak valid:", error);
+          }
+
+          container.innerHTML = list
+            .map((u) => {
+              const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
+              const rating = Number(u.rating);
+              const comment = getReviewComment(u);
+              const photoUrl = u.foto_url
+                ? /^(https?:\/\/)/i.test(u.foto_url)
+                  ? u.foto_url
+                  : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`
+                : "";
+              const reviewDate = formatReviewDate(u.tanggal || u.created_at);
+              return `
+                <article class="review-card" data-review-id-card="${escapeHTML(u.id_ulasan)}">
+                  <div class="review-card-header">
+                    <span class="review-user-avatar" aria-hidden="true">
+                      <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
+                    </span>
+                    <div class="review-user-details">
+                      <strong class="review-user-name">${escapeHTML(u.nama_user || "Pengguna")}</strong>
+                      <div class="review-rating-date">
+                        ${rating >= 1 && rating <= 5 ? `<span class="review-card-stars" aria-label="Rating ${rating} dari 5">${"★".repeat(rating)}</span>` : ""}
+                        <time>${escapeHTML(reviewDate)}</time>
+                      </div>
+                    </div>
+                    ${
+                      isOwner
+                        ? `
+                      <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
+                        <button class="review-action" type="button" data-review-action="edit" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Ubah ulasan">
+                          <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
+                        </button>
+                        <button class="review-action" type="button" data-review-action="delete" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Hapus ulasan">
+                          <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
+                        </button>
+                      </div>
+                    `
+                        : ""
+                    }
+                  </div>
+                  ${comment ? `<p class="review-card-comment">${escapeHTML(comment)}</p>` : ""}
+                  ${photoUrl ? `<img class="review-photo" src="${escapeHTML(photoUrl)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
+                </article>
+                `;
+            })
+            .join("");
+
+          renderReviewPaginationControls();
+        };
+
+        const loadReviewPage = async (page = 1) => {
+          const response = await fetch(
+            `${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}&page=${page}&limit=${reviewsPerPage}`,
+            { credentials: "include" }
+          );
+          const result = await response.json();
+          if (!response.ok || !result.status || !Array.isArray(result.data) || !result.pagination) {
+            throw new Error(result.message || "Gagal memuat daftar ulasan.");
+          }
+
+          const totalPages = Number(result.pagination.total_pages) || 0;
+          if (totalPages > 0 && page > totalPages) {
+            return loadReviewPage(totalPages);
+          }
+
+          ulasanList = result.data;
+          reviewTotalPages = totalPages;
+          currentReviewPage = totalPages === 0 ? 1 : (Number(result.pagination.current_page) || page);
+          renderReviews(ulasanList, reviewsContainer);
+        };
 
         const setReviewFormVisible = (visible) => {
           reviewForm.hidden = !visible;
@@ -373,14 +594,17 @@
           pendingReviewDelete = null;
         }
 
-        function showReviewDeleteResult(success, message, detail = "") {
+        function showReviewDeleteResult(success, message, detail = "", iconName = "") {
           reviewDeleteConfirm.hidden = true;
           reviewDeleteResult.hidden = false;
-          document.getElementById("reviewDeleteResultIcon").setAttribute(
-            "icon",
-            success ? "material-symbols:check-circle" : "material-symbols:error-outline"
-          );
-          document.getElementById("reviewDeleteResultIcon").classList.toggle("is-error", !success);
+          const iconWrapper = document.getElementById("reviewDeleteResultIconWrapper");
+          if (iconWrapper) {
+            if (success) {
+              iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="38" height="38" style="color: #28a745; margin-bottom: 8px;"><path fill="currentColor" d="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>`;
+            } else {
+              iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="38" height="38" style="color: #ea3829; margin-bottom: 8px;"><path fill="currentColor" d="M10 1.6a8.4 8.4 0 1 0 0 16.8 8.4 8.4 0 0 0 0-16.8zm4.789 11.461L13.06 14.79 10 11.729l-3.061 3.06L5.21 13.06 8.272 10 5.211 6.939 6.94 5.211 10 8.271l3.061-3.061 1.729 1.729L11.728 10l3.061 3.061z"/></svg>`;
+            }
+          }
           document.getElementById("reviewDeleteResultMessage").textContent = message;
           const resultDetail = document.getElementById("reviewDeleteResultDetail");
           resultDetail.textContent = detail;
@@ -389,6 +613,14 @@
           reviewDeleteResultAction.dataset.retry = String(!success);
           reviewDeleteResultAction.disabled = false;
           reviewDeleteResultAction.focus();
+        }
+
+        function getReviewDeleteError(error) {
+          return {
+            message: "Ulasan gagal di hapus",
+            detail: "",
+            icon: "entypo:circle-with-cross",
+          };
         }
 
         async function runReviewDelete() {
@@ -418,11 +650,17 @@
         }
 
         try {
-          // Fetch data detail kuliner dan data rating secara paralel dari rating.php
-          const [response, ratingResponse] = await Promise.all([
-            fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`),
-            fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
-          ]);
+          // Fetch data detail kuliner; panggil rating.php hanya jika sesi login aktif
+          const fetchPromises = [
+            fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`)
+          ];
+          if (isLoggedIn()) {
+            fetchPromises.push(
+              fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+            );
+          }
+
+          const [response, ratingResponse] = await Promise.all(fetchPromises);
 
           if (!response.ok) throw new Error("Gagal mengambil data dari server");
 
@@ -443,7 +681,8 @@
           }
 
           const data = result.data;
-          let ulasanList = result.ulasan || [];
+          ulasanList = result.ulasan || [];
+          reviewTotalPages = Math.ceil(ulasanList.length / reviewsPerPage);
 
           if (detailContent) detailContent.hidden = false;
           if (errorState) errorState.style.display = "none";
@@ -490,19 +729,35 @@
           document.getElementById("ratingScoreText").textContent = avgRating;
           document.getElementById("reviewCountText").textContent = `${totalReview} Rating`;
           updateAggregateStars(Number(avgRating));
-          updateRatingDistribution(ulasanList);
+          updateRatingDistribution(result.distribusi_rating || ulasanList);
 
-          const reviewsContainer = document.getElementById("reviewsContainer");
-          renderReviews(ulasanList, reviewsContainer);
+          currentReviewPage = 1;
+          try {
+            await loadReviewPage(1);
+          } catch (error) {
+            console.error("Gagal memuat ulasan dengan pagination:", error);
+            reviewTotalPages = 0;
+            renderReviews(ulasanList, reviewsContainer);
+            showReviewFeedback(
+              "Daftar ulasan belum berhasil diperbarui dari server. Menampilkan data yang tersedia.",
+              () => window.location.reload(),
+              true
+            );
+          }
 
           const refreshReviewData = async () => {
-            const [detailResponse, reviewsResponse, ratingRes] = await Promise.all([
-              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`), 
-              fetch(`${BASE_URL}/api/ulasan.php?id_tempat=${encodeURIComponent(idTempat)}`),
-              fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
-            ]);
-            const [refreshedDetail, refreshedReviews] = await Promise.all([detailResponse.json(), reviewsResponse.json()]);
-            if (!detailResponse.ok || !refreshedDetail.status || !reviewsResponse.ok || !refreshedReviews.status) {
+            const refreshPromises = [
+              fetch(`${BASE_URL}/api/detail_kuliner.php?id=${encodeURIComponent(idTempat)}`)
+            ];
+            if (isLoggedIn()) {
+              refreshPromises.push(
+                fetch(`${BASE_URL}/api/rating.php?id_tempat=${encodeURIComponent(idTempat)}`, { credentials: "include" }).catch(() => null)
+              );
+            }
+
+            const [detailResponse, ratingRes] = await Promise.all(refreshPromises);
+            const refreshedDetail = await detailResponse.json();
+            if (!detailResponse.ok || !refreshedDetail.status) {
               throw new Error("Gagal memperbarui daftar ulasan.");
             }
 
@@ -512,24 +767,14 @@
               if (rJson.status && rJson.data) refreshedRatingData = rJson.data;
             }
 
-            ulasanList = refreshedReviews.data || [];
+            await loadReviewPage(currentReviewPage);
             const latestRating = Number(refreshedRatingData ? refreshedRatingData.rata_rata_rating : (refreshedDetail.data.rata_rata_rating || 0)).toFixed(1);
-            const latestCount = refreshedRatingData ? refreshedRatingData.jumlah_rating : ulasanList.length;
+            const latestCount = refreshedRatingData ? refreshedRatingData.jumlah_rating : (refreshedDetail.data.jumlah_ulasan || 0);
 
             document.getElementById("ratingScoreText").textContent = latestRating;
             document.getElementById("reviewCountText").textContent = `${latestCount} Rating`;
             updateAggregateStars(Number(latestRating));
-            updateRatingDistribution(ulasanList);
-            renderReviews(ulasanList, reviewsContainer);
-          };
-
-          const updateReviewSummary = () => {
-            const ratings = ulasanList.map((review) => Number(review.rating)).filter((rating) => rating >= 1 && rating <= 5);
-            const average = ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : "0.0";
-            document.getElementById("ratingScoreText").textContent = average;
-            document.getElementById("reviewCountText").textContent = `${ulasanList.length} Rating`;
-            updateAggregateStars(Number(average));
-            updateRatingDistribution(ulasanList);
+            updateRatingDistribution(refreshedDetail.distribusi_rating || ulasanList);
           };
 
           const beginReviewEdit = (reviewId) => {
@@ -556,10 +801,18 @@
             // Cari card yang akan diedit dan ganti dengan form inline
             const articleEl = reviewsContainer.querySelector(`[data-review-id-card="${escapeHTML(review.id_ulasan)}"]`);
             if (!articleEl) return;
+            reviewsContainer.closest(".review-section")?.classList.add("is-editing");
 
             const existingPhotoUrl = review.foto_url
               ? /^(https?:\/\/)/i.test(review.foto_url) ? review.foto_url : `${BASE_URL}/${review.foto_url.replace(/^\/+/, "")}`
               : "";
+            inlineEditPhoto = null;
+            inlineEditUploadedPhotoUrl = null;
+            inlineEditPhotoWasRemoved = false;
+            if (inlineEditPhotoPreviewUrl) {
+              URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+              inlineEditPhotoPreviewUrl = null;
+            }
 
             const starsHtml = [1,2,3,4,5].map(v => `
               <label class="review-rating-option inline-edit-star" title="${v} bintang" style="cursor:pointer;">
@@ -579,21 +832,84 @@
                   </div>
                 </div>
               </div>
-              ${existingPhotoUrl ? `<img class="review-photo" src="${escapeHTML(existingPhotoUrl)}" alt="Foto ulasan" loading="lazy" style="margin-bottom:8px;" />` : ""}
-              <textarea id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200"
-                style="width:100%;border:1px solid #ccc;border-radius:20px;padding:8px 14px;font-size:14px;resize:none;box-sizing:border-box;outline:none;"
-              >${escapeHTML(review.komentar || review.review_text || "")}</textarea>
-              <div style="font-size:12px;color:#888;margin:4px 0 8px;">Maksimal ulasan adalah 200 karakter</div>
-              <div style="display:flex;justify-content:flex-end;gap:8px;">
-                <button type="button" id="inlineCancelEdit_${review.id_ulasan}"
-                  style="padding:6px 20px;border:1px solid #001b7d;border-radius:4px;background:#fff;color:#001b7d;font-size:14px;cursor:pointer;">Batal</button>
-                <button type="button" id="inlineSaveEdit_${review.id_ulasan}"
-                  style="padding:6px 20px;border:none;border-radius:4px;background:#001b7d;color:#fff;font-size:14px;cursor:pointer;">Simpan</button>
+              <div class="inline-edit-content-row${existingPhotoUrl ? "" : " has-no-review-photo"}">
+                <div class="inline-edit-photo${existingPhotoUrl ? "" : " is-empty"}">
+                  <input id="inlineEditPhotoInput_${review.id_ulasan}" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+                  <button class="inline-edit-photo-trigger" id="inlineEditPhotoTrigger_${review.id_ulasan}" type="button" aria-label="${existingPhotoUrl ? "Ganti foto ulasan" : "Tambahkan foto ulasan"}">
+                    ${existingPhotoUrl
+                      ? `<img class="inline-edit-photo-preview" src="${escapeHTML(existingPhotoUrl)}" alt="Foto ulasan" />`
+                      : `<span class="inline-edit-photo-placeholder"><iconify-icon icon="material-symbols:add" aria-hidden="true"></iconify-icon></span>`}
+                  </button>
+                  ${existingPhotoUrl
+                    ? `<button class="inline-edit-photo-remove" id="inlineRemovePhoto_${review.id_ulasan}" type="button" aria-label="Hapus foto ulasan"><iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon></button>`
+                    : ""}
+                </div>
+                <textarea class="inline-edit-comment" id="inlineEditTextarea_${review.id_ulasan}" rows="2" maxlength="200" aria-label="Teks ulasan">${escapeHTML(getReviewComment(review))}</textarea>
               </div>
-            `;
+              <div class="inline-edit-hint">Maksimal ulasan adalah 200 karakter</div>
+                <div class="inline-edit-actions">
+                  <button class="inline-edit-cancel" type="button" id="inlineCancelEdit_${review.id_ulasan}">Batal</button>
+                  <button class="inline-edit-save" type="button" id="inlineSaveEdit_${review.id_ulasan}">Simpan</button>
+                </div>
+              `;
 
-            // Update ikon bintang saat dipilih
-            articleEl.querySelectorAll(`input[name="inline_rating_${review.id_ulasan}"]`).forEach(input => {
+              articleEl.classList.add("review-card-editing");
+              const inlinePhotoInput = document.getElementById(`inlineEditPhotoInput_${review.id_ulasan}`);
+              document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`).addEventListener("click", () => inlinePhotoInput.click());
+              inlinePhotoInput.addEventListener("change", () => {
+                const file = inlinePhotoInput.files[0];
+                if (!file) return;
+                if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                  inlinePhotoInput.value = "";
+                  showReviewFeedback("Pilih foto berformat JPG, PNG, atau WEBP.", null, true);
+                  return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                  inlinePhotoInput.value = "";
+                  showReviewFeedback("Ukuran foto maksimal 5 MB.", null, true);
+                  return;
+                }
+
+                inlineEditPhoto = file;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = false;
+                if (inlineEditPhotoPreviewUrl) URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                inlineEditPhotoPreviewUrl = URL.createObjectURL(file);
+                const trigger = document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`);
+                trigger.innerHTML = `<img class="inline-edit-photo-preview" src="${inlineEditPhotoPreviewUrl}" alt="Pratinjau foto ulasan" />`;
+                trigger.setAttribute("aria-label", "Ganti foto ulasan");
+                articleEl.querySelector(".inline-edit-content-row").classList.remove("has-no-review-photo");
+                articleEl.querySelector(".inline-edit-photo").classList.remove("is-empty");
+                if (!document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)) {
+                  const removeButton = document.createElement("button");
+                  removeButton.className = "inline-edit-photo-remove";
+                  removeButton.id = `inlineRemovePhoto_${review.id_ulasan}`;
+                  removeButton.type = "button";
+                  removeButton.setAttribute("aria-label", "Hapus foto ulasan");
+                  removeButton.innerHTML = '<iconify-icon icon="material-symbols:close" aria-hidden="true"></iconify-icon>';
+                  articleEl.querySelector(".inline-edit-photo").appendChild(removeButton);
+                  removeButton.addEventListener("click", removeInlineEditPhoto);
+                }
+              });
+              const removeInlineEditPhoto = () => {
+                inlineEditPhoto = null;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = true;
+                inlinePhotoInput.value = "";
+                if (inlineEditPhotoPreviewUrl) {
+                  URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                  inlineEditPhotoPreviewUrl = null;
+                }
+                document.getElementById(`inlineEditPhotoTrigger_${review.id_ulasan}`).innerHTML =
+                  '<span class="inline-edit-photo-placeholder"><iconify-icon icon="material-symbols:add" aria-hidden="true"></iconify-icon></span>';
+                articleEl.querySelector(".inline-edit-content-row").classList.add("has-no-review-photo");
+                document.querySelector(`[data-review-id-card="${CSS.escape(String(review.id_ulasan))}"] .inline-edit-photo`)?.classList.add("is-empty");
+                document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)?.remove();
+              };
+              document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`)?.addEventListener("click", removeInlineEditPhoto);
+
+              // Update ikon bintang saat dipilih
+              articleEl.querySelectorAll(`input[name="inline_rating_${review.id_ulasan}"]`).forEach(input => {
               input.addEventListener("change", () => {
                 const val = Number(input.value);
                 articleEl.querySelectorAll(".inline-edit-star iconify-icon").forEach((icon, idx) => {
@@ -605,6 +921,14 @@
             // Batal
             document.getElementById(`inlineCancelEdit_${review.id_ulasan}`).addEventListener("click", () => {
               editingReviewId = null;
+              reviewsContainer.closest(".review-section")?.classList.remove("is-editing");
+              inlineEditPhoto = null;
+              inlineEditUploadedPhotoUrl = null;
+              inlineEditPhotoWasRemoved = false;
+              if (inlineEditPhotoPreviewUrl) {
+                URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                inlineEditPhotoPreviewUrl = null;
+              }
               renderReviews(ulasanList, reviewsContainer);
             });
 
@@ -613,15 +937,45 @@
               const saveBtn = document.getElementById(`inlineSaveEdit_${review.id_ulasan}`);
               const cancelBtn = document.getElementById(`inlineCancelEdit_${review.id_ulasan}`);
               const textarea = document.getElementById(`inlineEditTextarea_${review.id_ulasan}`);
+              const photoInput = document.getElementById(`inlineEditPhotoInput_${review.id_ulasan}`);
+              const removePhotoBtn = document.getElementById(`inlineRemovePhoto_${review.id_ulasan}`);
               const selectedRating = Number(articleEl.querySelector(`input[name="inline_rating_${review.id_ulasan}"]:checked`)?.value || review.rating);
               const newKomentar = textarea.value.trim();
 
               saveBtn.disabled = true;
               cancelBtn.disabled = true;
+              photoInput.disabled = true;
+              if (removePhotoBtn) removePhotoBtn.disabled = true;
               saveBtn.textContent = "Menyimpan...";
 
               try {
                 const payload = { id_ulasan: review.id_ulasan, rating: selectedRating, komentar: newKomentar };
+                let newPhotoUrl = inlineEditUploadedPhotoUrl;
+                if (inlineEditPhoto) {
+                  if (!newPhotoUrl) {
+                    const supabaseConfig = window.SUPABASE_CONFIG;
+                    if (!window.supabase || !supabaseConfig || !supabaseConfig.anonKey) {
+                      throw new Error("Konfigurasi upload foto belum tersedia.");
+                    }
+                    const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+                    const extensionByType = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+                    const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                      ? crypto.randomUUID()
+                      : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    const photoPath = `ulasan/${uniqueId}.${extensionByType[inlineEditPhoto.type]}`;
+                    const { error: uploadError } = await supabaseClient.storage.from(supabaseConfig.reviewPhotoBucket).upload(photoPath, inlineEditPhoto, {
+                      contentType: inlineEditPhoto.type,
+                      upsert: false,
+                    });
+                    if (uploadError) throw new Error(`Foto gagal diunggah: ${uploadError.message}`);
+                    inlineEditUploadedPhotoUrl = supabaseClient.storage.from(supabaseConfig.reviewPhotoBucket).getPublicUrl(photoPath).data.publicUrl;
+                  }
+                  newPhotoUrl = inlineEditUploadedPhotoUrl;
+                  payload.foto_url = newPhotoUrl;
+                } else if (inlineEditPhotoWasRemoved) {
+                  payload.foto_url = "";
+                }
+
                 const response = await fetch(`${BASE_URL}/api/ulasan.php`, {
                   method: "PUT",
                   credentials: "include",
@@ -632,20 +986,35 @@
                 if (response.status === 401) { window.location.href = loginUrl(window.location.href); return; }
                 if (!response.ok || !result.status) throw new Error(result.message || "Gagal menyimpan ulasan.");
 
-                // Update data lokal
-                const idx = ulasanList.findIndex(item => String(item.id_ulasan) === String(review.id_ulasan));
-                if (idx !== -1) {
-                  ulasanList[idx] = { ...ulasanList[idx], rating: selectedRating, komentar: newKomentar };
-                }
                 editingReviewId = null;
+                reviewsContainer.closest(".review-section")?.classList.remove("is-editing");
+                inlineEditPhoto = null;
+                inlineEditUploadedPhotoUrl = null;
+                inlineEditPhotoWasRemoved = false;
+                if (inlineEditPhotoPreviewUrl) {
+                  URL.revokeObjectURL(inlineEditPhotoPreviewUrl);
+                  inlineEditPhotoPreviewUrl = null;
+                }
                 renderReviews(ulasanList, reviewsContainer);
-                updateReviewSummary();
-                showReviewFeedback("Ulasan berhasil diubah");
+                let refreshFailed = false;
+                try {
+                  await refreshReviewData();
+                } catch (error) {
+                  console.error("Ulasan berhasil diubah, tetapi daftar gagal diperbarui:", error);
+                  refreshFailed = true;
+                }
+                showReviewFeedback(
+                  refreshFailed
+                    ? "Ulasan berhasil diubah. Namun daftar belum diperbarui. Muat ulang halaman."
+                    : "Ulasan berhasil diubah"
+                );
               } catch (err) {
                 saveBtn.disabled = false;
                 cancelBtn.disabled = false;
+                photoInput.disabled = false;
+                if (removePhotoBtn) removePhotoBtn.disabled = false;
                 saveBtn.textContent = "Simpan";
-                showReviewFeedback("Ulasan gagal diubah, silakan coba lagi.", "error", () => {
+                showReviewFeedback(err.message || "Ulasan gagal diubah, silakan coba lagi.", () => {
                   document.getElementById(`inlineSaveEdit_${review.id_ulasan}`)?.click();
                 }, true);
               }
@@ -694,23 +1063,16 @@
 
               ulasanList = ulasanList.filter((item) => String(item.id_ulasan) !== String(reviewId));
               renderReviews(ulasanList, reviewsContainer);
-              updateReviewSummary();
-              let refreshFailed = false;
               try {
                 await refreshReviewData();
               } catch (error) {
                 console.error("Ulasan terhapus, tetapi daftar gagal diperbarui:", error);
-                refreshFailed = true;
               }
-              showReviewDeleteResult(
-                true,
-                refreshFailed
-                  ? "Ulasan berhasil dihapus, tetapi daftar belum diperbarui. Muat ulang halaman."
-                  : "Ulasan berhasil dihapus."
-              );
+              showReviewDeleteResult(true, "Ulasan berhasil dihapus");
             } catch (error) {
               console.error("Gagal menghapus ulasan:", error);
-              showReviewDeleteResult(false, "Ulasan gagal dihapus", error.message || "Silakan coba lagi.");
+              const errorDisplay = getReviewDeleteError(error);
+              showReviewDeleteResult(false, errorDisplay.message, errorDisplay.detail, errorDisplay.icon);
               action.disabled = false;
             } finally {
               reviewDeleteConfirmButton.disabled = false;
@@ -848,9 +1210,6 @@
               }
               if (!response.ok || !result.status) throw new Error(result.message || "Ulasan gagal dikirim.");
 
-              const editedReviewId = editingReviewId;
-              const removedReviewPhoto = photoWasRemoved;
-              const editedPhotoUrl = uploadedReviewPhotoUrl;
               reviewForm.reset();
               editingReviewId = null;
               updateSelectedRating(0);
@@ -861,22 +1220,11 @@
               cancelReviewEdit.hidden = true;
 
               if (isEditing) {
-                ulasanList = ulasanList.map((review) => {
-                  if (String(review.id_ulasan) !== String(editedReviewId)) return review;
-                  return {
-                    ...review,
-                    rating,
-                    komentar,
-                    review_text: komentar,
-                    ...(editedPhotoUrl ? { foto_url: editedPhotoUrl } : {}),
-                    ...(removedReviewPhoto ? { foto_url: null } : {}),
-                  };
-                });
-                renderReviews(ulasanList, reviewsContainer);
-                updateReviewSummary();
                 const detailUrl = new URL(window.location.href);
                 detailUrl.searchParams.delete("edit_ulasan");
                 window.history.replaceState({}, "", detailUrl);
+              } else {
+                currentReviewPage = 1;
               }
 
               let refreshFailed = false;
@@ -891,8 +1239,16 @@
             } catch (error) {
               console.error("Gagal mengirim ulasan:", error);
               setReviewFormVisible(true);
+              const fallbackMessage = editingReviewId
+                ? "Ulasan gagal diubah, silakan coba lagi."
+                : "Ulasan gagal dikirim, silakan coba lagi.";
+              const failureMessage = error instanceof TypeError
+                ? fallbackMessage
+                : error instanceof Error && error.message
+                  ? error.message
+                  : fallbackMessage;
               showReviewFeedback(
-                editingReviewId ? "Ulasan gagal diubah, silakan coba lagi." : "Ulasan gagal dikirim, silakan coba lagi.",
+                failureMessage,
                 () => reviewForm.requestSubmit(),
                 true
               );
@@ -992,6 +1348,8 @@
         }
 
         async function checkBookmarkStatus() {
+          if (!isLoggedIn()) return;
+
           try {
             const res = await fetch(`${BASE_URL}/api/favorit.php`, {
               method: "GET",
@@ -1030,69 +1388,8 @@
         }
       })();
 
-      function renderReviews(ulasanList, reviewsContainer) {
-        if (!ulasanList || !ulasanList.length) {
-          reviewsContainer.innerHTML = `
-            <div class="review-card-empty">
-              <div class="review-empty-title"><iconify-icon icon="fluent:comment-error-20-regular" aria-hidden="true"></iconify-icon>Belum ada ulasan</div>
-              <div class="review-empty-description">Jadilah yang pertama memberikan ulasan untuk tempat ini</div>
-            </div>
-          `;
-          return;
-        }
-        let currentUserId = null;
-        try {
-          const currentUser = JSON.parse(localStorage.getItem("user") || "null");
-          currentUserId = currentUser && currentUser.id_user != null ? String(currentUser.id_user) : null;
-        } catch (error) {
-          console.error("Data sesi pengguna tidak valid:", error);
-        }
-
-        reviewsContainer.innerHTML = ulasanList
-          .map((u) => {
-            const isOwner = currentUserId !== null && String(u.id_user) === currentUserId;
-            const rating = Number(u.rating);
-            const comment = u.komentar || u.review_text || "";
-            const photoUrl = u.foto_url
-              ? /^(https?:\/\/)/i.test(u.foto_url)
-                ? u.foto_url
-                : `${BASE_URL}/${u.foto_url.replace(/^\/+/, "")}`
-              : "";
-            const reviewDate = formatReviewDate(u.tanggal || u.created_at);
-            return `
-              <article class="review-card" data-review-id-card="${escapeHTML(u.id_ulasan)}">
-                <div class="review-card-header">
-                  <span class="review-user-avatar" aria-hidden="true">
-                    <iconify-icon icon="material-symbols:person" aria-hidden="true"></iconify-icon>
-                  </span>
-                  <div class="review-user-details">
-                    <strong class="review-user-name">${escapeHTML(u.nama_user || "Pengguna")}</strong>
-                    <div class="review-rating-date">
-                      ${rating >= 1 && rating <= 5 ? `<span class="review-card-stars" aria-label="Rating ${rating} dari 5">${"★".repeat(rating)}</span>` : ""}
-                      <time>${escapeHTML(reviewDate)}</time>
-                    </div>
-                  </div>
-                  ${
-                    isOwner
-                      ? `
-                    <div class="review-owner-actions" aria-label="Aksi ulasan milik Anda">
-                      <button class="review-action" type="button" data-review-action="edit" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Ubah ulasan">
-                        <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
-                      </button>
-                      <button class="review-action" type="button" data-review-action="delete" data-review-id="${escapeHTML(u.id_ulasan)}" aria-label="Hapus ulasan">
-                        <iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon>
-                      </button>
-                    </div>
-                  `
-                      : ""
-                  }
-                </div>
-                ${comment ? `<p class="review-card-comment">${escapeHTML(comment)}</p>` : ""}
-                ${photoUrl ? `<img class="review-photo" src="${escapeHTML(photoUrl)}" alt="Foto dari ulasan" loading="lazy" />` : ""}
-              </article>
-              `;
-          })
-          .join("");
+      function getReviewComment(review) {
+        return String(review.komentar ?? review.review_text ?? "");
       }
 
       function formatReviewDate(value) {
@@ -1122,9 +1419,11 @@
         });
       }
 
-      function updateRatingDistribution(reviews) {
+      function updateRatingDistribution(source) {
         const counts = [1, 2, 3, 4, 5].reduce((result, rating) => {
-          result[rating] = reviews.filter((review) => Number(review.rating) === rating).length;
+          result[rating] = Array.isArray(source)
+            ? source.filter((review) => Number(review.rating) === rating).length
+            : Number(source?.[rating] || 0);
           return result;
         }, {});
         const maxCount = Math.max(0, ...Object.values(counts));

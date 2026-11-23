@@ -1,0 +1,385 @@
+.users-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.users-heading h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #172033;
+}
+
+/* Kotak Pencarian Mengikuti Desain Oval / Pill */
+.users-search-container {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.users-search {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9999px;
+  background: #fff;
+  color: #64748b;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.users-search:focus-within {
+  border-color: #001b7d;
+  box-shadow: 0 0 0 3px rgba(0, 27, 125, 0.12);
+}
+
+.users-search iconify-icon {
+  flex: 0 0 auto;
+  font-size: 22px;
+  color: #4b5563;
+}
+
+.users-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172033;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.users-search input::placeholder {
+  color: #4b5563;
+}
+
+/* Tabel Card & Scroll */
+.users-table-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.users-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+/* Header Tabel Biru Tua Sesuai Figma */
+.users-table thead th {
+  background-color: #001b7d !important;
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 16px 20px;
+  border: 1px solid #001b7d;
+}
+
+.users-table th.th-no {
+  width: 15%;
+}
+
+.users-table th.th-nama {
+  width: 42%;
+}
+
+.users-table th.th-email {
+  width: 43%;
+}
+
+/* Data Baris */
+.users-table tbody td {
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #1e293b;
+  text-align: center;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
+}
+
+.users-table tbody td.td-no {
+  font-weight: 600;
+}
+
+.users-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* State: Pengguna Tidak Ditemukan Sesuai Figma */
+.users-not-found-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.users-not-found-box iconify-icon {
+  font-size: 68px;
+  color: #475569;
+}
+
+.users-not-found-box p {
+  margin: 16px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* State: Daftar Pengguna Kosong */
+.users-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.users-state-box iconify-icon {
+  font-size: 80px;
+  color: #001b7d;
+}
+
+.users-state-box h2 {
+  margin: 20px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.users-state-box p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+/* State: Gagal Memuat Pengguna / Koneksi Terputus */
+.users-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.users-error > iconify-icon {
+  font-size: 72px;
+  color: #64748b;
+}
+
+.users-error h2 {
+  margin: 20px 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.users-error p {
+  margin: 0 0 24px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.users-reload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #001b7d;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.users-reload-button:hover {
+  background-color: #001563;
+}
+
+.users-reload-button:active {
+  transform: scale(0.98);
+}
+
+.users-reload-button iconify-icon {
+  font-size: 18px;
+}
+
+.notice {
+  padding: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  color: #475569;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 700px) {
+  .users-heading h1 {
+    font-size: 22px;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+}
+
+
+/* =========================================
+   PAGINATION PENGGUNA ADMIN
+========================================= */
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 24px;
+  margin-top: 30px;
+  box-sizing: border-box;
+}
+
+.pagination-container[hidden] {
+  display: none !important;
+}
+
+.pagination-arrow {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-arrow:hover:not(:disabled) {
+  background-color: #001b7d;
+  color: #ffffff;
+}
+
+.pagination-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-arrow iconify-icon {
+  font-size: 14px;
+}
+
+.pagination-number {
+  padding: 2px 4px;
+  background: none;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-number:hover {
+  color: #001b7d;
+}
+
+.pagination-number.active {
+  color: #001b7d;
+  font-weight: 700;
+}
+
+.pagination-dots {
+  padding: 0 4px;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.pagination-arrow:focus-visible,
+.pagination-number:focus-visible {
+  outline: 2px solid #001b7d;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .pagination-container {
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+}
+
+#paginationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 30px auto;
+  width: 100%;
+}
+
+.pagination-arrow {
+  background-color: #fff;
+  color: #001b7d;
+  border: 1px solid #001b7d;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.pagination-number {
+  background: none;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.pagination-number.active {
+  color: #001b7d;
+  font-weight: 700;
+}
