@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#001b7d" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Kuliner | Mangan Yukkk</title>
+    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/daftar_kuliner_admin.css?v=6" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/config.js?v=2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="js/supabase-config.js" defer></script>
+    <script src="js/sidebar.js?v=5" defer></script>
+    <script src="js/edit_kuliner_admin.js?v=1" defer></script>
+  </head>
+  <body>
+    <!-- State Autentikasi -->
+    <main id="authState" class="page-state" role="status" aria-live="polite">
+      <p id="authMessage">Memeriksa akses Admin...</p>
+      <button id="authRetryButton" class="button button-secondary" type="button" hidden>Coba lagi</button>
+    </main>
+
+    <!-- App Utama -->
+    <div id="adminApp" class="admin-app" hidden>
+      <div id="sidebar-container"></div>
+
+      <section class="main-panel">
+        <header class="topbar">
+          <div class="topbar-title">
+            <span class="topbar-title-text">
+              <strong>Panel</strong>
+              <span id="adminName">Admin</span>
+            </span>
+            <iconify-icon icon="lucide-extended:user-cog-filled" aria-hidden="true"></iconify-icon>
+          </div>
+        </header>
+
+        <div class="dashboard-content">
+          <!-- State Loading -->
+          <div id="editLoadingState" class="notice" role="status">Memuat data kuliner...</div>
+
+          <!-- State Koneksi Terputus -->
+          <div id="editConnectionError" class="culinary-error-state" role="alert" hidden>
+            <iconify-icon icon="fluent:wifi-warning-20-filled" width="50" height="50" aria-hidden="true"></iconify-icon>
+            <h3>Koneksi Internet Terputus</h3>
+            <p>Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button id="editPageRetryBtn" class="button button-primary" type="button">
+                <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon> Muat Ulang
+              </button>
+              <a href="daftar_kuliner_admin.html" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center;">Kembali ke Daftar</a>
+            </div>
+          </div>
+
+          <!-- SECTION FORM EDIT KULINER -->
+          <div id="editCulinarySection" class="edit-culinary-container" hidden>
+            <div class="edit-header">
+              <h2>Edit Kuliner</h2>
+            </div>
+
+            <!-- Preview Foto & Tombol Ganti Foto -->
+            <div class="edit-photo-section">
+              <div class="edit-photo-card" id="editPhotoCard">
+                <img id="editPhotoPreview" src="" alt="Preview Kuliner" style="display: none" />
+                <label for="editPhotoInput" class="btn-change-photo">
+                  <iconify-icon icon="ri:image-edit-fill" aria-hidden="true"></iconify-icon> Ganti Foto
+                </label>
+                <input type="file" id="editPhotoInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+              </div>
+            </div>
+
+            <div id="formAlertBanner" class="form-alert-banner" hidden>
+              <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+              <span id="formAlertMessage">Mohon lengkapi data kuliner sebelum menyimpan.</span>
+            </div>
+
+            <form id="editCulinaryForm" class="edit-form-grid" novalidate>
+              <input type="hidden" id="editIdKuliner" />
+
+              <!-- Baris 1: Nama & Latitude -->
+              <div class="form-group">
+                <label for="editNamaKuliner">Nama Kuliner <span class="required">*</span></label>
+                <input type="text" id="editNamaKuliner" placeholder="Masukkan nama kuliner" required />
+              </div>
+              <div class="form-group">
+                <label for="editLatitude">Latitude <span class="required">*</span></label>
+                <input type="text" id="editLatitude" placeholder="-6.7321" required />
+              </div>
+
+              <!-- Baris 2: Harga & Longitude -->
+              <div class="form-group">
+                <label for="editHarga">Harga Kuliner <span class="required">*</span></label>
+                <input type="text" id="editHarga" placeholder="20.000" required />
+              </div>
+              <div class="form-group">
+                <label for="editLongitude">Longitude <span class="required">*</span></label>
+                <input type="text" id="editLongitude" placeholder="108.5521" required />
+              </div>
+
+              <!-- Baris 3: Kategori & Jam Operasional -->
+              <div class="form-group">
+                <label for="editKategori">Kategori Kuliner <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select id="editKategori" required>
+                    <option value="" disabled selected>Pilih Kategori</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-field">
+                <label>Jam Operasional</label>
+                <div class="operating-hours">
+                  <input id="editJamBuka" name="jam_buka" type="time" aria-label="Jam buka" />
+                  <span>sampai</span>
+                  <input id="editJamTutup" name="jam_tutup" type="time" aria-label="Jam tutup" />
+                </div>
+              </div>
+
+              <!-- Baris 4: Alamat & Nomor Telepon -->
+              <div class="form-group">
+                <label for="editAlamat">Alamat Kuliner <span class="required">*</span></label>
+                <input type="text" id="editAlamat" placeholder="Jl. Raya Kedawung No. 24" required />
+              </div>
+              <div class="form-group">
+                <label for="editNoTelepon">Nomor Telepon</label>
+                <input type="text" id="editNoTelepon" placeholder="081214387580" />
+              </div>
+
+              <!-- Baris 5: Deskripsi -->
+              <div class="form-group form-group-full">
+                <label for="editDeskripsi">Deskripsi Kuliner <span class="required">*</span></label>
+                <textarea id="editDeskripsi" rows="3" placeholder="Deskripsi mengenai makanan..." required></textarea>
+              </div>
+
+              <!-- Tombol Aksi Batal & Simpan -->
+              <div class="edit-actions form-group-full">
+                <button type="button" id="cancelEditBtn" class="btn-cancel">Batal</button>
+                <button type="submit" id="saveEditBtn" class="btn-save">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MODAL VALIDASI BERHASIL EDIT -->
+    <div id="successEditModal" class="success-modal-overlay" hidden>
+      <div class="success-modal-dialog">
+        <div class="success-icon-wrapper">
+          <iconify-icon icon="lucide:check" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Berhasil memperbarui kuliner</h3>
+        <button type="button" id="closeSuccessEditBtn" class="btn-success-ok">Oke</button>
+      </div>
+    </div>
+
+    <!-- MODAL VALIDASI GAGAL EDIT -->
+    <div id="errorEditModal" class="error-modal-overlay" hidden>
+      <div class="error-modal-dialog">
+        <div class="error-icon-wrapper">
+          <iconify-icon icon="lucide:x" aria-hidden="true"></iconify-icon>
+        </div>
+        <h3>Gagal memperbarui kuliner</h3>
+        <p id="editErrorMessage">Periksa koneksi internet anda</p>
+        <button type="button" id="retryEditBtn" class="btn-error-retry">Coba lagi</button>
+      </div>
+    </div>
+  </body>
+</html>
