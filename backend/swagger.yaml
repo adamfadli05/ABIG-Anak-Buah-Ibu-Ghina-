@@ -10,6 +10,7 @@ info:
     - Batas maksimal komentar ulasan diubah dari 100 → **200 karakter** (POST & PUT)
     - Fix sensor kata terlarang: sebelumnya leet-speak lolos sensor, sekarang dinormalisasi dulu sebelum dicek
     - Semua variasi leet-speak kini tersensor otomatis menjadi ***
+    - Sensor kata dengan spasi di antara huruf (`a n j i n g` → tersensor)
 
 servers:
   - url: http://localhost/ABIG-Anak-Buah-Ibu-Ghina-/backend
@@ -742,7 +743,7 @@ paths:
       tags: [Ulasan]
       description: |
         Butuh login. Rating dan komentar tidak bergantungan — salah satu wajib diisi. Foto opsional, max 1.
-        **Kata terlarang otomatis disensor** menjadi *** sebelum disimpan ke database. Leet-speak (`4nj1ng`, `s1l1t`, dll) juga ikut tersensor karena teks dinormalisasi sebelum dicek.
+        **Kata terlarang otomatis disensor** menjadi *** sebelum disimpan ke database. Leet-speak (`4nj1ng`, `s1l1t`, dll) dan spasi di antara huruf (`a n j i n g`) juga ikut tersensor karena teks dinormalisasi sebelum dicek.
       requestBody:
         required: true
         content:

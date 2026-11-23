@@ -1811,6 +1811,21 @@
           }
         },
         {
+          "name": "POST Ulasan - Spasi di Antara Huruf Tersensor (a n j i n g)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status code is 201 or 401 or 409', function() { pm.expect(pm.response.code).to.be.oneOf([201, 401, 409]); });",
+            "if (pm.response.code === 201) {",
+            "  pm.test('Ulasan tersimpan meski pakai spasi antar huruf', function() { pm.expect(pm.response.json().message).to.eql('Ulasan berhasil disimpan'); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/ulasan.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"id_tempat\": 9,\n  \"rating\": 1,\n  \"komentar\": \"a n j i n g banget pelayanannya\"\n}" }
+          }
+        },
+        {
           "name": "POST Ulasan - Leet-Speak Bypass Tersensor (s1l1t, p4nt4t)",
           "event": [{ "listen": "test", "script": { "exec": [
             "pm.test('Status code is 201 or 401 or 409', function() { pm.expect(pm.response.code).to.be.oneOf([201, 401, 409]); });",
