@@ -267,7 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Validasi komentar jika diisi (min 5, max 100 karakter)
+    // Validasi komentar jika diisi (min 5, max 200 karakter)
     if ($komentar !== null && $komentar !== '') {
         $panjang = mb_strlen($komentar);
         if ($panjang < 5) {
@@ -278,11 +278,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             exit;
         }
-        if ($panjang > 100) {
+        if ($panjang > 200) {
             http_response_code(400);
             echo json_encode([
                 "status"  => false,
-                "message" => "Komentar maksimal 100 karakter"
+                "message" => "Komentar maksimal 200 karakter"
             ]);
             exit;
         }
@@ -419,9 +419,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             echo json_encode(["status" => false, "message" => "Komentar minimal 5 karakter"]);
             exit;
         }
-        if ($panjang > 100) {
+        if ($panjang > 200) {
             http_response_code(400);
-            echo json_encode(["status" => false, "message" => "Komentar maksimal 100 karakter"]);
+            echo json_encode(["status" => false, "message" => "Komentar maksimal 200 karakter"]);
             exit;
         }
     }
