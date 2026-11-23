@@ -11,8 +11,9 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
     <style>
       .reviews-page {
-        width: 100%;
-        padding: 112px 8px 48px;
+        width: min(100%, 1280px);
+        margin: 0 auto;
+        padding: 112px clamp(18px, 3vw, 40px) 48px;
       }
 
       .reviews-title {
@@ -732,6 +733,164 @@
           font-size: 12px;
         }
       }
+
+      @media (min-width: 391px) and (max-width: 430px) {
+        .reviews-page {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+
+        .review-card {
+          padding: 16px;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .reviews-page {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .review-card {
+          padding: 14px;
+        }
+      }
+
+      @media (max-width: 430px) {
+        .reviews-page {
+          padding-top: calc(96px + env(safe-area-inset-top));
+          padding-bottom: calc(32px + env(safe-area-inset-bottom));
+        }
+
+        .reviews-title {
+          font-size: 15px;
+        }
+
+        .reviews-list {
+          gap: 12px;
+        }
+
+        .review-card {
+          min-width: 0;
+          border-radius: 16px;
+        }
+
+        .review-card-heading {
+          align-items: flex-start;
+        }
+
+        .review-author {
+          flex: 1 1 auto;
+        }
+
+        .review-author-name {
+          overflow-wrap: anywhere;
+        }
+
+        .review-rating-date {
+          gap: 6px;
+        }
+
+        .review-comment {
+          margin: 10px 0 14px;
+          font-size: 14px;
+          line-height: 1.55;
+        }
+
+        .review-photo {
+          width: min(100%, 180px);
+          height: auto;
+          aspect-ratio: 4 / 3;
+          margin-bottom: 12px;
+        }
+
+        .review-owner-actions {
+          gap: 6px;
+        }
+
+        .review-action {
+          width: 38px;
+          height: 38px;
+        }
+
+        .review-action iconify-icon {
+          font-size: 18px;
+        }
+
+        .review-food-link {
+          min-width: 0;
+          gap: 10px;
+          padding: 9px 10px;
+        }
+
+        .review-food-photo {
+          flex-basis: 48px;
+          width: 48px;
+          height: 44px;
+        }
+
+        .review-food-name {
+          overflow-wrap: anywhere;
+        }
+
+        .review-food-address {
+          align-items: flex-start;
+          overflow-wrap: anywhere;
+          font-size: 11px;
+          line-height: 1.4;
+        }
+
+        .review-card[data-editing-review] {
+          padding-top: 16px;
+        }
+
+        .review-card[data-editing-review] .review-edit-photo {
+          width: 68px;
+          height: 68px;
+          margin: 18px 0 14px;
+        }
+
+        .review-edit-rating label {
+          min-width: 28px;
+          min-height: 32px;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .review-edit-rating iconify-icon {
+          font-size: 22px;
+        }
+
+        .review-card[data-editing-review] .review-edit-comment {
+          min-height: 100px;
+          padding: 10px 12px;
+          font-size: 14px;
+        }
+
+        .review-edit-message {
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
+        .review-edit-actions {
+          gap: 8px;
+        }
+
+        .review-edit-actions button {
+          flex: 1 1 0;
+          min-width: 0;
+          min-height: 44px;
+          padding: 8px 12px;
+          font-size: 14px;
+        }
+
+        .review-edit-feedback {
+          flex-wrap: wrap;
+          margin-right: 0;
+          margin-left: 0;
+          line-height: 1.4;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1168,7 +1327,7 @@
                   <iconify-icon icon="mdi:image-edit-outline" aria-hidden="true"></iconify-icon>
                 </button>
               </div>
-              <textarea class="review-edit-comment" data-edit-comment maxlength="100" aria-label="Teks ulasan" placeholder="Tulis ulasan (maksimal 100 karakter)">${escapeHTML(review.review_text || "")}</textarea>
+              <textarea class="review-edit-comment" data-edit-comment maxlength="200" aria-label="Teks ulasan" placeholder="Tulis ulasan (maksimal 200 karakter)">${escapeHTML(review.review_text || "")}</textarea>
               <p class="review-edit-message" data-edit-message role="alert" hidden></p>
               <div class="review-edit-actions">
                 <button class="review-edit-cancel" type="button" data-cancel-review-edit>Batal</button>
@@ -1363,8 +1522,8 @@
           showReviewEditMessage(message, "Ulasan minimal 5 karakter.");
           return;
         }
-        if (Array.from(comment).length > 100) {
-          showReviewEditMessage(message, "Ulasan maksimal 100 karakter.");
+        if (Array.from(comment).length > 200) {
+          showReviewEditMessage(message, "Ulasan maksimal 200 karakter.");
           return;
         }
 
