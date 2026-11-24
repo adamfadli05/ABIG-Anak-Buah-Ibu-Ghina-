@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return base ? `${base}/${cleanPath}` : `/${cleanPath}`;
   };
 
-  const NAVBAR_TEMPLATE_URL = window.NAVBAR_TEMPLATE_URL || "components/navbar.html";
+  const NAVBAR_TEMPLATE_URL = window.NAVBAR_TEMPLATE_URL || "components/navbar.html?v=mobile-nav-1";
   const SESSION_ENDPOINT = resolveEndpoint(window.SESSION_ENDPOINT, "api/me.php");
   const LOGOUT_ENDPOINT = resolveEndpoint(window.LOGOUT_ENDPOINT, "api/logout.php");
 
