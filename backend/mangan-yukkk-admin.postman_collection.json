@@ -1,0 +1,692 @@
+{
+  "info": {
+    "name": "Mangan Yukkk API — Admin Flow",
+    "_postman_id": "admin-flow-collection-v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "End-to-end admin flow untuk Mangan Yukkk API. Jalankan request secara berurutan."
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://manganyukkk.my.id", "type": "string" },
+    { "key": "id_tempat", "value": "44", "type": "string" },
+    { "key": "id_kategori", "value": "4", "type": "string" },
+    { "key": "id_kategori_baru", "value": "", "type": "string" },
+    { "key": "id_tempat_baru", "value": "", "type": "string" },
+    { "key": "id_user_sample", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth Admin",
+      "item": [
+        {
+          "name": "POST Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/login.php", "host": ["{{BASE_URL}}"], "path": ["api", "login.php"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"passwordsementara\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login Admin: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Login Admin: response JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test('Login Admin: role adalah admin', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('role');",
+                  "    pm.expect(json.role).to.eql('admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Dashboard",
+      "item": [
+        {
+          "name": "GET /api/admin/dashboard.php",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard.php"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Dashboard: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Dashboard: ada field total_kuliner', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.have.property('total_kuliner');",
+                  "});",
+                  "",
+                  "pm.test('Dashboard: ada field total_user', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.have.property('total_user');",
+                  "});",
+                  "",
+                  "pm.test('Dashboard: ada field ulasan_terbaru', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.have.property('ulasan_terbaru');",
+                  "});",
+                  "",
+                  "pm.test('Dashboard: ada field user_terbaru', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.have.property('user_terbaru');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Admin Kuliner",
+      "item": [
+        {
+          "name": "GET /api/admin/kuliner.php — semua data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/admin/kuliner.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "kuliner.php"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kuliner GET all: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kuliner GET all: ada data array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Admin Kuliner GET all: ada pagination', function () {",
+                  "    var json = pm.response.json();",
+                  "    var hasPagination = json.pagination !== undefined || json.page !== undefined || json.total_page !== undefined || json.current_page !== undefined;",
+                  "    pm.expect(hasPagination).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/admin/kuliner.php?id=44",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kuliner.php?id=44",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kuliner.php"],
+              "query": [{ "key": "id", "value": "44" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kuliner GET by id: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kuliner GET by id: data berupa object', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(Array.isArray(data)).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/admin/kuliner.php?q=empal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kuliner.php?q=empal",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kuliner.php"],
+              "query": [{ "key": "q", "value": "empal" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kuliner Search: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/admin/kuliner.php — tambah kuliner baru",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/kuliner.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "kuliner.php"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_kuliner\": \"Kuliner Test E2E\",\n  \"deskripsi\": \"Deskripsi kuliner test untuk end-to-end testing\",\n  \"id_kategori\": 4,\n  \"nama_tempat\": \"Warung Test E2E\",\n  \"alamat\": \"Jl. Test No. 1, Cirebon\",\n  \"latitude\": \"-6.7320\",\n  \"longitude\": \"108.5523\",\n  \"harga\": 15000,\n  \"jam_operasional\": \"08:00 - 21:00\",\n  \"no_telepon\": \"08123456789\",\n  \"photo_url\": null\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kuliner POST: status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kuliner POST: simpan id_tempat_baru dan id_kuliner_baru', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var json = pm.response.json();",
+                  "        var data = json.data !== undefined ? json.data : json;",
+                  "        if (data.id_tempat) {",
+                  "            pm.collectionVariables.set('id_tempat_baru', data.id_tempat);",
+                  "        } else if (data.id) {",
+                  "            pm.collectionVariables.set('id_tempat_baru', data.id);",
+                  "        }",
+                  "        if (data.id_kuliner) {",
+                  "            pm.collectionVariables.set('id_kuliner_baru', data.id_kuliner);",
+                  "        }",
+                  "    }",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/admin/kuliner.php?id={{id_tempat_baru}}",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kuliner.php?id={{id_tempat_baru}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kuliner.php"],
+              "query": [{ "key": "id", "value": "{{id_tempat_baru}}" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_kuliner\": \"Kuliner Test E2E Updated\",\n  \"nama_tempat\": \"Warung Test E2E Updated\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var id_tempat_baru = pm.collectionVariables.get('id_tempat_baru');",
+                  "if (!id_tempat_baru || id_tempat_baru === '') {",
+                  "    pm.collectionVariables.set('_skip_kuliner_put', 'true');",
+                  "} else {",
+                  "    pm.collectionVariables.set('_skip_kuliner_put', 'false');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var skip = pm.collectionVariables.get('_skip_kuliner_put');",
+                  "if (skip === 'true') {",
+                  "    pm.test('Admin Kuliner PUT: SKIP — id_tempat_baru belum tersedia (kuliner belum dibuat)', function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Admin Kuliner PUT: status 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/admin/kuliner.php?id={{id_tempat_baru}}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kuliner.php?id={{id_tempat_baru}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kuliner.php"],
+              "query": [{ "key": "id", "value": "{{id_tempat_baru}}" }]
+            },
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var id_tempat_baru = pm.collectionVariables.get('id_tempat_baru');",
+                  "if (!id_tempat_baru || id_tempat_baru === '') {",
+                  "    pm.collectionVariables.set('_skip_kuliner_delete', 'true');",
+                  "} else {",
+                  "    pm.collectionVariables.set('_skip_kuliner_delete', 'false');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var skip = pm.collectionVariables.get('_skip_kuliner_delete');",
+                  "if (skip === 'true') {",
+                  "    pm.test('Admin Kuliner DELETE: SKIP — id_tempat_baru belum tersedia (kuliner belum dibuat)', function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Admin Kuliner DELETE: status 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Admin Kategori",
+      "item": [
+        {
+          "name": "GET /api/admin/kategori.php — semua data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/admin/kategori.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "kategori.php"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kategori GET all: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kategori GET all: ada data array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/admin/kategori.php?id=4",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kategori.php?id=4",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kategori.php"],
+              "query": [{ "key": "id", "value": "4" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kategori GET by id: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kategori GET by id: data berupa object', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(Array.isArray(data)).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/admin/kategori.php — tambah kategori baru",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/kategori.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "kategori.php"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_kategori\": \"Kategori Test E2E\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin Kategori POST: status 201 (berhasil) atau 409 (sudah ada)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
+                  "});",
+                  "",
+                  "pm.test('Admin Kategori POST: simpan id_kategori_baru jika 201', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var json = pm.response.json();",
+                  "        var data = json.data !== undefined ? json.data : json;",
+                  "        if (data.id_kategori) {",
+                  "            pm.collectionVariables.set('id_kategori_baru', data.id_kategori);",
+                  "        } else if (data.id) {",
+                  "            pm.collectionVariables.set('id_kategori_baru', data.id);",
+                  "        }",
+                  "    }",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/admin/kategori.php?id={{id_kategori_baru}}",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kategori.php?id={{id_kategori_baru}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kategori.php"],
+              "query": [{ "key": "id", "value": "{{id_kategori_baru}}" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_kategori\": \"Kategori Test E2E Updated\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var id_kategori_baru = pm.collectionVariables.get('id_kategori_baru');",
+                  "if (!id_kategori_baru || id_kategori_baru === '') {",
+                  "    pm.collectionVariables.set('_skip_kategori_put', 'true');",
+                  "} else {",
+                  "    pm.collectionVariables.set('_skip_kategori_put', 'false');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var skip = pm.collectionVariables.get('_skip_kategori_put');",
+                  "if (skip === 'true') {",
+                  "    pm.test('Admin Kategori PUT: SKIP — id_kategori_baru belum tersedia (kategori belum dibuat atau 409)', function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Admin Kategori PUT: status 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/admin/kategori.php?id={{id_kategori_baru}}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/kategori.php?id={{id_kategori_baru}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "kategori.php"],
+              "query": [{ "key": "id", "value": "{{id_kategori_baru}}" }]
+            },
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var id_kategori_baru = pm.collectionVariables.get('id_kategori_baru');",
+                  "if (!id_kategori_baru || id_kategori_baru === '') {",
+                  "    pm.collectionVariables.set('_skip_kategori_delete', 'true');",
+                  "} else {",
+                  "    pm.collectionVariables.set('_skip_kategori_delete', 'false');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var skip = pm.collectionVariables.get('_skip_kategori_delete');",
+                  "if (skip === 'true') {",
+                  "    pm.test('Admin Kategori DELETE: SKIP — id_kategori_baru belum tersedia (kategori belum dibuat atau 409)', function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Admin Kategori DELETE: status 200', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Admin Pengguna",
+      "item": [
+        {
+          "name": "GET /api/admin/user.php — semua data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{BASE_URL}}/api/admin/user.php", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "user.php"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin User GET all: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin User GET all: ada data array', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Admin User GET all: ada pagination', function () {",
+                  "    var json = pm.response.json();",
+                  "    var hasPagination = json.pagination !== undefined || json.page !== undefined || json.total_page !== undefined || json.current_page !== undefined;",
+                  "    pm.expect(hasPagination).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Admin User GET all: password tidak ada di response', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    if (Array.isArray(data) && data.length > 0) {",
+                  "        pm.expect(data[0]).to.not.have.property('password');",
+                  "        pm.collectionVariables.set('id_user_sample', String(data[0].id_user));",
+                  "    } else {",
+                  "        pm.expect(true).to.be.true;",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/admin/user.php?id={{id_user_sample}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/user.php?id={{id_user_sample}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "user.php"],
+              "query": [{ "key": "id", "value": "{{id_user_sample}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin User GET by id: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin User GET by id: ada field id_user', function () {",
+                  "    var json = pm.response.json();",
+                  "    var data = json.data !== undefined ? json.data : json;",
+                  "    pm.expect(data).to.have.property('id_user');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/admin/user.php?q=test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/user.php?q=test",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "admin", "user.php"],
+              "query": [{ "key": "q", "value": "test" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin User Search: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Logout Admin",
+      "item": [
+        {
+          "name": "POST /logout.php",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/logout.php", "host": ["{{BASE_URL}}"], "path": ["logout.php"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Logout Admin: status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logout Admin: bersihkan semua collectionVariables', function () {",
+                  "    pm.collectionVariables.set('id_tempat_baru', '');",
+                  "    pm.collectionVariables.set('id_kategori_baru', '');",
+                  "    pm.collectionVariables.set('id_kuliner_baru', '');",
+                  "    pm.collectionVariables.set('_skip_kuliner_put', '');",
+                  "    pm.collectionVariables.set('_skip_kuliner_delete', '');",
+                  "    pm.collectionVariables.set('_skip_kategori_put', '');",
+                  "    pm.collectionVariables.set('_skip_kategori_delete', '');",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
