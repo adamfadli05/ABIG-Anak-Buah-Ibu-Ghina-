@@ -828,3 +828,30 @@ h1 {
     color: #001b7d !important;
     font-weight: 700 !important;
   }
+
+@media (max-width: 480px) {
+  .pagination-container {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    margin-top: 18px !important;
+    padding: 0 4px;
+  }
+
+  .pagination-arrow {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+  }
+
+  .pagination-number {
+    min-width: 28px;
+    min-height: 32px;
+    padding: 4px 2px;
+    font-size: 14px;
+  }
+
+  .pagination-container > span {
+    padding: 0 2px !important;
+    font-size: 14px !important;
+  }
+}

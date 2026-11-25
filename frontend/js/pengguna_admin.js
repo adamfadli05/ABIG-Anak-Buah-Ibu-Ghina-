@@ -244,12 +244,33 @@ document.addEventListener("DOMContentLoaded", () => {
       </button>
     `;
 
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <button class="pagination-number ${i === currentUserPage ? "active" : ""}" onclick="changePage(${i})">
-          ${i}
-        </button>
-      `;
+    const mobilePages =
+      totalPages > 5 && window.matchMedia("(max-width: 480px)").matches
+        ? [...new Set([1, currentUserPage - 1, currentUserPage, currentUserPage + 1, totalPages])]
+            .filter((page) => page >= 1 && page <= totalPages)
+            .sort((a, b) => a - b)
+        : null;
+
+    if (mobilePages) {
+      mobilePages.forEach((page, index) => {
+        if (index > 0 && page - mobilePages[index - 1] > 1) {
+          html += '<span class="pagination-dots" aria-hidden="true">...</span>';
+        }
+
+        html += `
+          <button class="pagination-number ${page === currentUserPage ? "active" : ""}" onclick="changePage(${page})">
+            ${page}
+          </button>
+        `;
+      });
+    } else {
+      for (let page = 1; page <= totalPages; page++) {
+        html += `
+          <button class="pagination-number ${page === currentUserPage ? "active" : ""}" onclick="changePage(${page})">
+            ${page}
+          </button>
+        `;
+      }
     }
 
     html += `

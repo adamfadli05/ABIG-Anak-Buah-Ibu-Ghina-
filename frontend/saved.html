@@ -6,7 +6,7 @@
     <title>Kuliner Tersimpan | Mangan Yukkk</title>
 
     <!-- CSS Utama -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/style.css?v=responsive-pagination-1" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -558,12 +558,33 @@
           </button>
         `;
 
-        for (let i = 1; i <= totalPages; i++) {
-          html += `
-            <button class="pagination-number ${i === window.currentPage ? "active" : ""}" onclick="changePage(${i})">
-              ${i}
-            </button>
-          `;
+        const mobilePages =
+          totalPages > 5 && window.matchMedia("(max-width: 480px)").matches
+            ? [...new Set([1, window.currentPage - 1, window.currentPage, window.currentPage + 1, totalPages])]
+                .filter((page) => page >= 1 && page <= totalPages)
+                .sort((a, b) => a - b)
+            : null;
+
+        if (mobilePages) {
+          mobilePages.forEach((page, index) => {
+            if (index > 0 && page - mobilePages[index - 1] > 1) {
+              html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+            }
+
+            html += `
+              <button class="pagination-number ${page === window.currentPage ? "active" : ""}" onclick="changePage(${page})">
+                ${page}
+              </button>
+            `;
+          });
+        } else {
+          for (let page = 1; page <= totalPages; page++) {
+            html += `
+              <button class="pagination-number ${page === window.currentPage ? "active" : ""}" onclick="changePage(${page})">
+                ${page}
+              </button>
+            `;
+          }
         }
 
         html += `
