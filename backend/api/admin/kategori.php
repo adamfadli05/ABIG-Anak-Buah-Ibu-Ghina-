@@ -142,45 +142,45 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-    $cek_duplikat = pg_query_params(
-        $conn,
-        'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
-        [$nama_kategori]
-    );
-
-    if (!$cek_duplikat) {
-        http_response_code(500);
-        echo json_encode(["status" => false, "message" => "Gagal memeriksa duplikasi kategori"]);
-        exit;
-    }
-
-    if (pg_num_rows($cek_duplikat) > 0) {
-        http_response_code(409);
-        echo json_encode(["status" => false, "message" => "Nama kategori sudah ada"]);
-        exit;
-    }
-
+    // Gabung cek duplikat + insert dalam 1 query pakai INSERT ON CONFLICT
+    // Karena tabel kategori tidak punya UNIQUE constraint on LOWER(nama_kategori),
+    // pakai CTE: cek dulu lalu insert bersyarat — 1 round-trip
     $result = pg_query_params(
         $conn,
-        'INSERT INTO kategori (nama_kategori) VALUES ($1) RETURNING id_kategori, nama_kategori',
+        'WITH cek AS (
+            SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)
+        ), ins AS (
+            INSERT INTO kategori (nama_kategori)
+            SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM cek)
+            RETURNING id_kategori, nama_kategori
+        )
+        SELECT id_kategori, nama_kategori, FALSE AS sudah_ada FROM ins
+        UNION ALL
+        SELECT id_kategori, $1 AS nama_kategori, TRUE AS sudah_ada FROM cek',
         [$nama_kategori]
     );
 
-    if (!$result || pg_num_rows($result) === 0) {
+    if (!$result) {
         http_response_code(500);
         echo json_encode(["status" => false, "message" => "Gagal menyimpan kategori"]);
         exit;
     }
 
-    $data = pg_fetch_assoc($result);
+    $row = pg_fetch_assoc($result);
+
+    if ($row['sudah_ada'] === 't') {
+        http_response_code(409);
+        echo json_encode(["status" => false, "message" => "Nama kategori sudah ada"]);
+        exit;
+    }
 
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kategori berhasil ditambahkan",
         "data"    => [
-            "id_kategori"   => (int)$data['id_kategori'],
-            "nama_kategori" => $data['nama_kategori'],
+            "id_kategori"   => (int)$row['id_kategori'],
+            "nama_kategori" => $row['nama_kategori'],
             "total_kuliner" => 0
         ]
     ]);
