@@ -158,8 +158,6 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-<<<<<<< Updated upstream
-=======
     $errValidasi = validasiNamaKategori($nama_kategori);
     if ($errValidasi !== null) {
         http_response_code(400);
@@ -168,7 +166,6 @@ if ($method === 'POST' && $actualMethod === 'POST') {
     }
 
     // Cek duplikat dulu, baru insert
->>>>>>> Stashed changes
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
@@ -199,19 +196,15 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-<<<<<<< Updated upstream
-    $data = pg_fetch_assoc($result);
-=======
     $row = pg_fetch_assoc($result);
->>>>>>> Stashed changes
 
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kategori berhasil ditambahkan",
         "data"    => [
-            "id_kategori"   => (int)$data['id_kategori'],
-            "nama_kategori" => $data['nama_kategori'],
+            "id_kategori"   => (int)$row['id_kategori'],
+            "nama_kategori" => $row['nama_kategori'],
             "total_kuliner" => 0
         ]
     ]);
