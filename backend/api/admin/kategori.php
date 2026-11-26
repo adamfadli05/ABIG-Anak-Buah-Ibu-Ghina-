@@ -33,6 +33,22 @@ function getNamaKategori(): string {
     return trim($body['nama_kategori'] ?? '');
 }
 
+// Helper: validasi nama kategori — tolak simbol khusus dan emoji
+function validasiNamaKategori(string $nama): ?string {
+    // Tolak karakter simbol khusus
+    if (preg_match('/[!@#$%^&*()_+={}\[\]|\\:;"\'<>,.?\/~`]/', $nama)) {
+        return "Nama kategori tidak boleh mengandung karakter khusus seperti !@#$%^&*()";
+    }
+
+    // Tolak emoji — deteksi karakter Unicode di luar range huruf/angka/spasi umum
+    // Range emoji: U+1F000 ke atas, serta beberapa range lain
+    if (preg_match('/[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{2300}-\x{23FF}\x{FE00}-\x{FE0F}\x{1F900}-\x{1F9FF}]/u', $nama)) {
+        return "Nama kategori tidak boleh mengandung emoji";
+    }
+
+    return null; // valid
+}
+
 // Helper: ambil id dari query string, FormData, atau JSON body
 function getKategoriId(): string {
     if (!empty($_GET['id'])) return trim($_GET['id']);
@@ -141,7 +157,15 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
         exit;
     }
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
+        exit;
+    }
 
+    // Cek duplikat dulu, baru insert
+    $cek_duplikat = pg_query_params
     // Gabung cek duplikat + insert dalam 1 query pakai INSERT ON CONFLICT
     // Karena tabel kategori tidak punya UNIQUE constraint on LOWER(nama_kategori),
     // pakai CTE: cek dulu lalu insert bersyarat — 1 round-trip
@@ -174,6 +198,20 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
+    $result = pg_query_params(
+        $conn,
+        'INSERT INTO kategori (nama_kategori) VALUES ($1) RETURNING id_kategori, nama_kategori',
+        [$nama_kategori]
+    );
+
+    if (!$result || pg_num_rows($result) === 0) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal menyimpan kategori"]);
+        exit;
+    }
+
+    $data = pg_fetch_assoc($result);
+    $row = pg_fetch_assoc($result);
     http_response_code(201);
     echo json_encode([
         "status"  => true,
@@ -233,6 +271,13 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
     if (mb_strlen($nama_kategori) > 100) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
+        exit;
+    }
+
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
         exit;
     }
 

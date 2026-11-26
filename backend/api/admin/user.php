@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $id = trim($_GET['id'] ?? '');
-$q  = trim($_GET['q']  ?? '');
+$q  = trim($_GET['q'] ?? $_GET['search'] ?? '');
 
 // =============================================================================
 // GET Detail — berdasarkan id_user

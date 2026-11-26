@@ -355,6 +355,24 @@ if ($method === 'POST') {
     // Simpan ke tabel kuliner lalu tempat_kuliner dalam satu CTE (1 round-trip)
     $ins = pg_query_params(
         $conn,
+        'INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
+         VALUES ($1, $2, $3)
+         RETURNING id_kuliner',
+        [$nama_kuliner, $deskripsi, $id_kategori]
+    );
+
+    if (!$ins_kuliner || pg_num_rows($ins_kuliner) === 0) {
+        pg_query($conn, 'ROLLBACK');
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal menyimpan data kuliner"]);
+        exit;
+    }
+    $id_kuliner = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+    $id_kuliner_baru = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+
+    $ins_tempat = pg_query_params(
+        $conn,
+        'INSERT INTO tempat_kuliner
         'WITH ins_kuliner AS (
             INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
             SELECT $1, $2, $3
@@ -367,6 +385,11 @@ if ($method === 'POST') {
         FROM ins_kuliner
         RETURNING id_tempat, (SELECT id_kuliner FROM ins_kuliner) AS id_kuliner',
         [
+            $id_kuliner, $nama_tempat, $alamat,
+            $id_kuliner_baru, $nama_tempat, $alamat,
+            $latitude, $longitude, $harga,
+            $jam_buka, $jam_tutup, $no_telepon,
+            $photo_url
             $nama_kuliner, $deskripsi, $id_kategori,
             $nama_tempat, $alamat, $latitude, $longitude,
             $harga, $jam_buka, $jam_tutup, $no_telepon, $photo_url
@@ -386,6 +409,10 @@ if ($method === 'POST') {
         exit;
     }
 
+    pg_query($conn, 'COMMIT');
+
+    $id_tempat = pg_fetch_assoc($ins_tempat)['id_tempat'];
+    $id_tempat_baru = pg_fetch_assoc($ins_tempat)['id_tempat'];
     $row = pg_fetch_assoc($ins);
 
     http_response_code(201);
@@ -393,6 +420,10 @@ if ($method === 'POST') {
         "status"  => true,
         "message" => "Kuliner berhasil ditambahkan",
         "data"    => [
+            "id_kuliner"   => (int)$id_kuliner,
+            "id_tempat"    => (int)$id_tempat,
+            "id_kuliner"   => (int)$id_kuliner_baru,
+            "id_tempat"    => (int)$id_tempat_baru,
             "id_kuliner"   => (int)$row['id_kuliner'],
             "id_tempat"    => (int)$row['id_tempat'],
             "nama_kuliner" => $nama_kuliner,
