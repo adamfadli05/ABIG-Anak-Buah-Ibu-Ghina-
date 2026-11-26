@@ -13,7 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // =============================================================================
 // Deteksi method override dari FormData (_method=PUT)
-// FE kadang kirim POST dengan _method=PUT karena FormData tidak support PUT
 // =============================================================================
 $method = $_SERVER['REQUEST_METHOD'];
 $actualMethod = $method;
@@ -35,18 +34,13 @@ function getNamaKategori(): string {
 
 // Helper: validasi nama kategori — tolak simbol khusus dan emoji
 function validasiNamaKategori(string $nama): ?string {
-    // Tolak karakter simbol khusus
-    if (preg_match('/[!@#$%^&*()_+={}\[\]|\\:;"\'<>,.?\/~`]/', $nama)) {
+    if (preg_match('/[!@#$%^&*()_+={}\[\]|\\\\:;"\'<>,.?\/~`]/', $nama)) {
         return "Nama kategori tidak boleh mengandung karakter khusus seperti !@#$%^&*()";
     }
-
-    // Tolak emoji — deteksi karakter Unicode di luar range huruf/angka/spasi umum
-    // Range emoji: U+1F000 ke atas, serta beberapa range lain
     if (preg_match('/[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{2300}-\x{23FF}\x{FE00}-\x{FE0F}\x{1F900}-\x{1F9FF}]/u', $nama)) {
         return "Nama kategori tidak boleh mengandung emoji";
     }
-
-    return null; // valid
+    return null;
 }
 
 // Helper: ambil id dari query string, FormData, atau JSON body
@@ -165,7 +159,6 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-    // Cek duplikat dulu, baru insert
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
@@ -226,7 +219,6 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
         exit;
     }
 
-    // Cek kategori ada
     $cek = pg_query_params(
         $conn,
         'SELECT id_kategori, nama_kategori FROM kategori WHERE id_kategori = $1',
@@ -267,7 +259,6 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
         exit;
     }
 
-    // Cek duplikasi nama, kecuali kategori yang sedang diubah
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1) AND id_kategori != $2',
@@ -300,7 +291,6 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
 
     $data = pg_fetch_assoc($result);
 
-    // Ambil total_kuliner setelah update
     $total = pg_query_params(
         $conn,
         'SELECT COUNT(*) AS total FROM kuliner WHERE id_kategori = $1',
@@ -323,7 +313,6 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
 
 // =============================================================================
 // DELETE — Hapus kategori berdasarkan id_kategori (hanya Admin)
-// Menolak penghapusan jika kategori masih digunakan oleh data kuliner
 // =============================================================================
 if ($method === 'DELETE') {
 
@@ -337,7 +326,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Cek kategori ada
     $cek = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE id_kategori = $1',
@@ -356,7 +344,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Cek relasi dengan kuliner — tolak jika masih digunakan
     $cek_relasi = pg_query_params(
         $conn,
         'SELECT id_kuliner FROM kuliner WHERE id_kategori = $1 LIMIT 1',
