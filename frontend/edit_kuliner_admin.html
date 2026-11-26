@@ -63,8 +63,9 @@
               <h2>Edit Kuliner</h2>
             </div>
 
-            <!-- Preview Foto & Tombol Ganti Foto -->
-            <div class="edit-photo-section">
+          <!-- Preview Foto & Tombol Ganti Foto -->
+          <div class="edit-photo-section">
+            <div class="edit-photo-wrapper">
               <div class="edit-photo-card" id="editPhotoCard">
                 <img id="editPhotoPreview" src="" alt="Preview Kuliner" style="display: none" />
                 <label for="editPhotoInput" class="btn-change-photo">
@@ -72,7 +73,10 @@
                 </label>
                 <input type="file" id="editPhotoInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
               </div>
+              <p class="photo-hint-text">Unggah foto JPG, PNG, atau WebP (maks. 5 MB).</p>
+              <p id="photoErrorText" class="photo-error-text" role="alert" hidden></p>
             </div>
+          </div>
 
             <div id="formAlertBanner" class="form-alert-banner" hidden>
               <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>

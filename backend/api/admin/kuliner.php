@@ -352,10 +352,8 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Simpan ke tabel kuliner lalu tempat_kuliner dalam transaksi
-    pg_query($conn, 'BEGIN');
-
-    $ins_kuliner = pg_query_params(
+    // Simpan ke tabel kuliner lalu tempat_kuliner dalam satu CTE (1 round-trip)
+    $ins = pg_query_params(
         $conn,
         'INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
          VALUES ($1, $2, $3)
@@ -369,33 +367,53 @@ if ($method === 'POST') {
         echo json_encode(["status" => false, "message" => "Gagal menyimpan data kuliner"]);
         exit;
     }
-
     $id_kuliner = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+    $id_kuliner_baru = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
 
     $ins_tempat = pg_query_params(
         $conn,
         'INSERT INTO tempat_kuliner
+        'WITH ins_kuliner AS (
+            INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
+            SELECT $1, $2, $3
+            WHERE EXISTS (SELECT 1 FROM kategori WHERE id_kategori = $3)
+            RETURNING id_kuliner
+        )
+        INSERT INTO tempat_kuliner
             (id_kuliner, nama_tempat, alamat, latitude, longitude, harga, jam_buka, jam_tutup, no_telepon, foto)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING id_tempat',
+        SELECT id_kuliner, $4, $5, $6, $7, $8, $9, $10, $11, $12
+        FROM ins_kuliner
+        RETURNING id_tempat, (SELECT id_kuliner FROM ins_kuliner) AS id_kuliner',
         [
             $id_kuliner, $nama_tempat, $alamat,
+            $id_kuliner_baru, $nama_tempat, $alamat,
             $latitude, $longitude, $harga,
             $jam_buka, $jam_tutup, $no_telepon,
             $photo_url
+            $nama_kuliner, $deskripsi, $id_kategori,
+            $nama_tempat, $alamat, $latitude, $longitude,
+            $harga, $jam_buka, $jam_tutup, $no_telepon, $photo_url
         ]
     );
 
-    if (!$ins_tempat || pg_num_rows($ins_tempat) === 0) {
-        pg_query($conn, 'ROLLBACK');
-        http_response_code(500);
-        echo json_encode(["status" => false, "message" => "Gagal menyimpan data tempat kuliner"]);
+    if (!$ins || pg_num_rows($ins) === 0) {
+        // Kalau 0 row berarti kategori tidak ditemukan (WHERE EXISTS gagal)
+        $cek_kat2 = pg_query_params($conn, 'SELECT 1 FROM kategori WHERE id_kategori = $1', [$id_kategori]);
+        if ($cek_kat2 && pg_num_rows($cek_kat2) === 0) {
+            http_response_code(404);
+            echo json_encode(["status" => false, "message" => "Kategori tidak ditemukan"]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["status" => false, "message" => "Gagal menyimpan data kuliner"]);
+        }
         exit;
     }
 
     pg_query($conn, 'COMMIT');
 
     $id_tempat = pg_fetch_assoc($ins_tempat)['id_tempat'];
+    $id_tempat_baru = pg_fetch_assoc($ins_tempat)['id_tempat'];
+    $row = pg_fetch_assoc($ins);
 
     http_response_code(201);
     echo json_encode([
@@ -404,6 +422,10 @@ if ($method === 'POST') {
         "data"    => [
             "id_kuliner"   => (int)$id_kuliner,
             "id_tempat"    => (int)$id_tempat,
+            "id_kuliner"   => (int)$id_kuliner_baru,
+            "id_tempat"    => (int)$id_tempat_baru,
+            "id_kuliner"   => (int)$row['id_kuliner'],
+            "id_tempat"    => (int)$row['id_tempat'],
             "nama_kuliner" => $nama_kuliner,
             "photo_url"    => $photo_url
         ]
@@ -548,9 +570,7 @@ if ($method === 'PUT') {
         exit;
     }
 
-    // Update dalam transaksi
-    pg_query($conn, 'BEGIN');
-
+    // Update dalam satu transaksi — dua UPDATE digabung agar tidak ada BEGIN/COMMIT terpisah
     $upd_kuliner = pg_query_params(
         $conn,
         'UPDATE kuliner
@@ -560,7 +580,6 @@ if ($method === 'PUT') {
     );
 
     if (!$upd_kuliner) {
-        pg_query($conn, 'ROLLBACK');
         http_response_code(500);
         echo json_encode(["status" => false, "message" => "Gagal memperbarui data kuliner"]);
         exit;
@@ -580,13 +599,10 @@ if ($method === 'PUT') {
     );
 
     if (!$upd_tempat) {
-        pg_query($conn, 'ROLLBACK');
         http_response_code(500);
         echo json_encode(["status" => false, "message" => "Gagal memperbarui data tempat kuliner"]);
         exit;
     }
-
-    pg_query($conn, 'COMMIT');
 
     http_response_code(200);
     echo json_encode([

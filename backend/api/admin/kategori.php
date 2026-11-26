@@ -33,6 +33,22 @@ function getNamaKategori(): string {
     return trim($body['nama_kategori'] ?? '');
 }
 
+// Helper: validasi nama kategori — tolak simbol khusus dan emoji
+function validasiNamaKategori(string $nama): ?string {
+    // Tolak karakter simbol khusus
+    if (preg_match('/[!@#$%^&*()_+={}\[\]|\\:;"\'<>,.?\/~`]/', $nama)) {
+        return "Nama kategori tidak boleh mengandung karakter khusus seperti !@#$%^&*()";
+    }
+
+    // Tolak emoji — deteksi karakter Unicode di luar range huruf/angka/spasi umum
+    // Range emoji: U+1F000 ke atas, serta beberapa range lain
+    if (preg_match('/[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{2300}-\x{23FF}\x{FE00}-\x{FE0F}\x{1F900}-\x{1F9FF}]/u', $nama)) {
+        return "Nama kategori tidak boleh mengandung emoji";
+    }
+
+    return null; // valid
+}
+
 // Helper: ambil id dari query string, FormData, atau JSON body
 function getKategoriId(): string {
     if (!empty($_GET['id'])) return trim($_GET['id']);
@@ -141,20 +157,42 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
         exit;
     }
-
-    $cek_duplikat = pg_query_params(
-        $conn,
-        'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
-        [$nama_kategori]
-    );
-
-    if (!$cek_duplikat) {
-        http_response_code(500);
-        echo json_encode(["status" => false, "message" => "Gagal memeriksa duplikasi kategori"]);
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
         exit;
     }
 
-    if (pg_num_rows($cek_duplikat) > 0) {
+    // Cek duplikat dulu, baru insert
+    $cek_duplikat = pg_query_params
+    // Gabung cek duplikat + insert dalam 1 query pakai INSERT ON CONFLICT
+    // Karena tabel kategori tidak punya UNIQUE constraint on LOWER(nama_kategori),
+    // pakai CTE: cek dulu lalu insert bersyarat — 1 round-trip
+    $result = pg_query_params(
+        $conn,
+        'WITH cek AS (
+            SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)
+        ), ins AS (
+            INSERT INTO kategori (nama_kategori)
+            SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM cek)
+            RETURNING id_kategori, nama_kategori
+        )
+        SELECT id_kategori, nama_kategori, FALSE AS sudah_ada FROM ins
+        UNION ALL
+        SELECT id_kategori, $1 AS nama_kategori, TRUE AS sudah_ada FROM cek',
+        [$nama_kategori]
+    );
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal menyimpan kategori"]);
+        exit;
+    }
+
+    $row = pg_fetch_assoc($result);
+
+    if ($row['sudah_ada'] === 't') {
         http_response_code(409);
         echo json_encode(["status" => false, "message" => "Nama kategori sudah ada"]);
         exit;
@@ -173,14 +211,14 @@ if ($method === 'POST' && $actualMethod === 'POST') {
     }
 
     $data = pg_fetch_assoc($result);
-
+    $row = pg_fetch_assoc($result);
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kategori berhasil ditambahkan",
         "data"    => [
-            "id_kategori"   => (int)$data['id_kategori'],
-            "nama_kategori" => $data['nama_kategori'],
+            "id_kategori"   => (int)$row['id_kategori'],
+            "nama_kategori" => $row['nama_kategori'],
             "total_kuliner" => 0
         ]
     ]);
@@ -233,6 +271,13 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
     if (mb_strlen($nama_kategori) > 100) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
+        exit;
+    }
+
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
         exit;
     }
 
