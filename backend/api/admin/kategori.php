@@ -157,9 +157,6 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
         exit;
     }
-
-<<<<<<< Updated upstream
-=======
     $errValidasi = validasiNamaKategori($nama_kategori);
     if ($errValidasi !== null) {
         http_response_code(400);
@@ -168,20 +165,34 @@ if ($method === 'POST' && $actualMethod === 'POST') {
     }
 
     // Cek duplikat dulu, baru insert
->>>>>>> Stashed changes
-    $cek_duplikat = pg_query_params(
+    $cek_duplikat = pg_query_params
+    // Gabung cek duplikat + insert dalam 1 query pakai INSERT ON CONFLICT
+    // Karena tabel kategori tidak punya UNIQUE constraint on LOWER(nama_kategori),
+    // pakai CTE: cek dulu lalu insert bersyarat — 1 round-trip
+    $result = pg_query_params(
         $conn,
-        'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
+        'WITH cek AS (
+            SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)
+        ), ins AS (
+            INSERT INTO kategori (nama_kategori)
+            SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM cek)
+            RETURNING id_kategori, nama_kategori
+        )
+        SELECT id_kategori, nama_kategori, FALSE AS sudah_ada FROM ins
+        UNION ALL
+        SELECT id_kategori, $1 AS nama_kategori, TRUE AS sudah_ada FROM cek',
         [$nama_kategori]
     );
 
-    if (!$cek_duplikat) {
+    if (!$result) {
         http_response_code(500);
-        echo json_encode(["status" => false, "message" => "Gagal memeriksa duplikasi kategori"]);
+        echo json_encode(["status" => false, "message" => "Gagal menyimpan kategori"]);
         exit;
     }
 
-    if (pg_num_rows($cek_duplikat) > 0) {
+    $row = pg_fetch_assoc($result);
+
+    if ($row['sudah_ada'] === 't') {
         http_response_code(409);
         echo json_encode(["status" => false, "message" => "Nama kategori sudah ada"]);
         exit;
@@ -199,19 +210,15 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-<<<<<<< Updated upstream
     $data = pg_fetch_assoc($result);
-=======
     $row = pg_fetch_assoc($result);
->>>>>>> Stashed changes
-
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kategori berhasil ditambahkan",
         "data"    => [
-            "id_kategori"   => (int)$data['id_kategori'],
-            "nama_kategori" => $data['nama_kategori'],
+            "id_kategori"   => (int)$row['id_kategori'],
+            "nama_kategori" => $row['nama_kategori'],
             "total_kuliner" => 0
         ]
     ]);
