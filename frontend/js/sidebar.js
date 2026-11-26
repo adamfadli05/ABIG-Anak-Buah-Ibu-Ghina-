@@ -22,6 +22,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     sidebarContainer.innerHTML = sidebarHtml;
 
+    const adminApp = document.getElementById("adminApp");
+    let topbar = document.querySelector(".main-panel > .topbar");
+    let sidebarToggle = document.getElementById("sidebarToggle");
+    let sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+    if (topbar && !sidebarToggle) {
+      sidebarToggle = document.createElement("button");
+      sidebarToggle.id = "sidebarToggle";
+      sidebarToggle.className = "icon-button";
+      sidebarToggle.type = "button";
+      sidebarToggle.setAttribute("aria-label", "Buka atau tutup menu");
+      sidebarToggle.setAttribute("aria-expanded", "true");
+      sidebarToggle.innerHTML = '<iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>';
+      topbar.prepend(sidebarToggle);
+    }
+
+    if (!sidebarBackdrop) {
+      sidebarBackdrop = document.createElement("button");
+      sidebarBackdrop.id = "sidebarBackdrop";
+      sidebarBackdrop.className = "sidebar-backdrop";
+      sidebarBackdrop.type = "button";
+      sidebarBackdrop.setAttribute("aria-label", "Tutup menu");
+      sidebarBackdrop.hidden = true;
+      adminApp?.insertAdjacentElement("afterbegin", sidebarBackdrop);
+    }
+
+    const setSidebarOpen = (isOpen) => {
+      if (adminApp) adminApp.classList.toggle("sidebar-collapsed", !isOpen);
+      if (sidebarToggle) sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+      if (sidebarBackdrop) {
+        sidebarBackdrop.hidden = !isOpen || !window.matchMedia("(max-width: 1024px)").matches;
+      }
+    };
+
+    if (window.matchMedia("(max-width: 1024px)").matches) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+
+    sidebarToggle?.addEventListener("click", () => {
+      const isCollapsed = adminApp?.classList.contains("sidebar-collapsed");
+      setSidebarOpen(Boolean(isCollapsed));
+    });
+
+    sidebarBackdrop?.addEventListener("click", () => setSidebarOpen(false));
+
+    window.matchMedia("(max-width: 1024px)").addEventListener("change", (event) => {
+      setSidebarOpen(!event.matches);
+    });
+
     const currentPath = window.location.pathname.split("/").pop() || "Dashboard_Admin.html";
     const navLinks = sidebarContainer.querySelectorAll(".nav-link");
 

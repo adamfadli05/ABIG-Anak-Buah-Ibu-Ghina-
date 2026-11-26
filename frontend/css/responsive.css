@@ -1,0 +1,217 @@
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+iconify-icon,
+table,
+iframe,
+video {
+  max-width: 100%;
+}
+
+.navbar,
+.topbar,
+.main-panel,
+.page-container,
+.profile-page,
+.detail-content,
+.dashboard-content {
+  min-width: 0;
+}
+
+.table-responsive,
+.users-table-scroll,
+.table-card,
+.users-table-card,
+.category-section {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pagination-container,
+.pagination-arrow,
+.pagination-number {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .admin-app {
+    position: relative;
+  }
+
+  .main-panel {
+    margin-left: 0 !important;
+  }
+
+  .admin-app .sidebar {
+    z-index: 1001;
+    width: min(280px, 82vw);
+    box-shadow: 12px 0 30px rgb(15 23 42 / 20%);
+  }
+
+  .admin-app:not(.sidebar-collapsed) .sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-app.sidebar-collapsed .sidebar {
+    transform: translateX(-105%);
+  }
+
+  .topbar .icon-button {
+    display: inline-grid !important;
+  }
+
+  .sidebar-backdrop:not([hidden]) {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgb(15 23 42 / 35%);
+  }
+
+  .dashboard-content,
+  .add-culinary-content {
+    width: 100%;
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .summary-grid,
+  .culinary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .form-grid,
+  .edit-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-field-wide,
+  .form-group-full,
+  .edit-photo-section {
+    grid-column: auto !important;
+  }
+
+  .content-header-flex,
+  .users-heading {
+    gap: 12px;
+  }
+}
+@media (min-width: 361px) and (max-width: 430px) {
+  body {
+    min-width: 361px;
+  }
+
+  .navbar {
+    height: 84px !important;
+    min-height: 84px !important;
+    padding: 8px 10px !important;
+  }
+
+  .navbar .brand {
+    width: 104px !important;
+  }
+
+  .navbar .brand img {
+    height: 44px !important;
+  }
+
+  .page-container,
+  .profile-page,
+  .detail-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .page-container {
+    padding: 82px 12px 32px !important;
+  }
+
+  .map-banner,
+  #map {
+    height: 150px !important;
+  }
+
+  .food-grid,
+  .card-grid,
+  .kuliner-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .food-card,
+  .food-grid .food-card {
+    height: auto !important;
+    min-height: 190px !important;
+  }
+
+  .food-grid .food-photo {
+    height: 92px !important;
+  }
+
+  .topbar {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .topbar-right-panel {
+    padding: 12px 16px !important;
+  }
+
+  .dashboard-content {
+    width: 100%;
+    padding: 24px 12px 36px;
+  }
+
+  .summary-grid,
+  .culinary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content-header-flex,
+  .users-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .content-header-flex .button-primary,
+  .users-heading .button,
+  .form-actions,
+  .edit-actions {
+    width: 100%;
+  }
+
+  .form-actions,
+  .edit-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .form-actions > *,
+  .edit-actions > * {
+    width: 100%;
+  }
+
+  .operating-hours {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .time-range-separator {
+    align-self: center;
+  }
+
+  .table-card,
+  .users-table-card {
+    border-radius: 8px;
+  }
+
+  table,
+  .users-table {
+    min-width: 720px;
+  }
+}
