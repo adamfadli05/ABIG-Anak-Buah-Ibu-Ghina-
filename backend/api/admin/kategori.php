@@ -33,6 +33,22 @@ function getNamaKategori(): string {
     return trim($body['nama_kategori'] ?? '');
 }
 
+// Helper: validasi nama kategori — tolak simbol khusus dan emoji
+function validasiNamaKategori(string $nama): ?string {
+    // Tolak karakter simbol khusus
+    if (preg_match('/[!@#$%^&*()_+={}\[\]|\\:;"\'<>,.?\/~`]/', $nama)) {
+        return "Nama kategori tidak boleh mengandung karakter khusus seperti !@#$%^&*()";
+    }
+
+    // Tolak emoji — deteksi karakter Unicode di luar range huruf/angka/spasi umum
+    // Range emoji: U+1F000 ke atas, serta beberapa range lain
+    if (preg_match('/[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{2300}-\x{23FF}\x{FE00}-\x{FE0F}\x{1F900}-\x{1F9FF}]/u', $nama)) {
+        return "Nama kategori tidak boleh mengandung emoji";
+    }
+
+    return null; // valid
+}
+
 // Helper: ambil id dari query string, FormData, atau JSON body
 function getKategoriId(): string {
     if (!empty($_GET['id'])) return trim($_GET['id']);
@@ -142,6 +158,17 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
+<<<<<<< Updated upstream
+=======
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
+        exit;
+    }
+
+    // Cek duplikat dulu, baru insert
+>>>>>>> Stashed changes
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
@@ -172,7 +199,11 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
+<<<<<<< Updated upstream
     $data = pg_fetch_assoc($result);
+=======
+    $row = pg_fetch_assoc($result);
+>>>>>>> Stashed changes
 
     http_response_code(201);
     echo json_encode([
@@ -233,6 +264,13 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
     if (mb_strlen($nama_kategori) > 100) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Nama kategori maksimal 100 karakter"]);
+        exit;
+    }
+
+    $errValidasi = validasiNamaKategori($nama_kategori);
+    if ($errValidasi !== null) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => $errValidasi]);
         exit;
     }
 

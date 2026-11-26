@@ -370,7 +370,11 @@ if ($method === 'POST') {
         exit;
     }
 
+<<<<<<< Updated upstream
     $id_kuliner = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+=======
+    $id_kuliner_baru = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+>>>>>>> Stashed changes
 
     $ins_tempat = pg_query_params(
         $conn,
@@ -379,7 +383,11 @@ if ($method === 'POST') {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING id_tempat',
         [
+<<<<<<< Updated upstream
             $id_kuliner, $nama_tempat, $alamat,
+=======
+            $id_kuliner_baru, $nama_tempat, $alamat,
+>>>>>>> Stashed changes
             $latitude, $longitude, $harga,
             $jam_buka, $jam_tutup, $no_telepon,
             $photo_url
@@ -395,15 +403,24 @@ if ($method === 'POST') {
 
     pg_query($conn, 'COMMIT');
 
+<<<<<<< Updated upstream
     $id_tempat = pg_fetch_assoc($ins_tempat)['id_tempat'];
+=======
+    $id_tempat_baru = pg_fetch_assoc($ins_tempat)['id_tempat'];
+>>>>>>> Stashed changes
 
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kuliner berhasil ditambahkan",
         "data"    => [
+<<<<<<< Updated upstream
             "id_kuliner"   => (int)$id_kuliner,
             "id_tempat"    => (int)$id_tempat,
+=======
+            "id_kuliner"   => (int)$id_kuliner_baru,
+            "id_tempat"    => (int)$id_tempat_baru,
+>>>>>>> Stashed changes
             "nama_kuliner" => $nama_kuliner,
             "photo_url"    => $photo_url
         ]
