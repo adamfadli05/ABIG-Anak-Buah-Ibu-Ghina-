@@ -48,7 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function writeUsersCache(items, totalPages = 1) {
     try {
-      localStorage.setItem(USERS_CACHE_KEY, JSON.stringify({ items, totalPages: Math.max(1, Number(totalPages) || 1) }));
+      localStorage.setItem(
+        USERS_CACHE_KEY,
+        JSON.stringify({ items, totalPages: Math.max(1, Number(totalPages) || 1) })
+      );
     } catch (_) {}
   }
 
@@ -58,19 +61,28 @@ document.addEventListener("DOMContentLoaded", () => {
       credentials: "include",
       headers: { Accept: "application/json", ...options.headers },
     });
-    let result;
+    const rawText = await response.text();
+    let result = {};
 
-    try {
-      result = await response.json();
-    } catch {
-      const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
-      error.status = response.status;
-      throw error;
+    if (rawText) {
+      try {
+        result = JSON.parse(rawText);
+      } catch {
+        const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+        error.status = response.status;
+        error.isServerError = response.status >= 500;
+        throw error;
+      }
     }
 
     if (!response.ok || (result.status !== undefined && !result.status)) {
-      const error = new Error(result.message || `Permintaan gagal (HTTP ${response.status}).`);
+      const fallbackMsg =
+        response.status >= 500
+          ? `Gangguan server sementara (HTTP ${response.status}).`
+          : `Permintaan gagal (HTTP ${response.status}).`;
+      const error = new Error(result.message || fallbackMsg);
       error.status = response.status;
+      error.isServerError = response.status >= 500;
       throw error;
     }
 
@@ -95,19 +107,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function clearAuthStorage() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    localStorage.removeItem("admin_logged_in");
-    sessionStorage.clear();
+    try {
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+      localStorage.removeItem("admin_logged_in");
+      sessionStorage.clear();
+    } catch (_) {}
   }
 
   function resolveTotalPages(result, rawData) {
-    const explicitPages = Number(result?.pagination?.total_pages ?? result?.total_pages ?? result?.meta?.total_pages);
+    const explicitPages = Number(
+      result?.pagination?.total_pages ?? result?.total_pages ?? result?.meta?.total_pages
+    );
     if (Number.isFinite(explicitPages) && explicitPages >= 1) {
       return explicitPages;
     }
 
-    const totalItems = Number(result?.pagination?.total_items ?? result?.pagination?.total ?? result?.total_items ?? result?.total);
+    const totalItems = Number(
+      result?.pagination?.total_items ??
+        result?.pagination?.total ??
+        result?.total_items ??
+        result?.total
+    );
     if (Number.isFinite(totalItems) && totalItems > 0) {
       return Math.max(1, Math.ceil(totalItems / itemsPerPageUser));
     }
@@ -123,14 +144,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
 
-    const rawUser = localStorage.getItem("user");
-    if (rawUser) {
-      try {
+    try {
+      const rawUser = localStorage.getItem("user");
+      if (rawUser) {
         const parsed = JSON.parse(rawUser);
         if (adminName) adminName.textContent = parsed?.nama || parsed?.name || "Admin";
-      } catch (e) {
-        if (adminName) adminName.textContent = "Admin";
       }
+    } catch (e) {
+      if (adminName) adminName.textContent = "Admin";
     }
 
     const cached = readUsersCache();
@@ -144,15 +165,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const result = await getJson(`${API_BASE_URL}/api/me.php`);
-      if (result.role !== "admin") {
-        localStorage.setItem("user", JSON.stringify(result.data || {}));
-        localStorage.setItem("role", result.role);
+      if (result.role && result.role !== "admin") {
+        try {
+          localStorage.setItem("user", JSON.stringify(result.data || {}));
+          localStorage.setItem("role", result.role);
+        } catch (_) {}
         window.location.replace("index.html");
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(result.data || {}));
-      localStorage.setItem("role", result.role);
+      try {
+        localStorage.setItem("user", JSON.stringify(result.data || {}));
+        if (result.role) localStorage.setItem("role", result.role);
+      } catch (_) {}
       if (adminName) adminName.textContent = result.data?.nama || "Admin";
 
       await loadUsers(Boolean(cached && cached.items.length > 0), false);
@@ -201,8 +226,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Jika BE mengembalikan semua data (> itemsPerPageUser), slice di sisi client
-    const itemsToDisplay = window.allUsers.length > itemsPerPageUser ? window.allUsers.slice((currentUserPage - 1) * itemsPerPageUser, currentUserPage * itemsPerPageUser) : window.allUsers;
+    const itemsToDisplay =
+      window.allUsers.length > itemsPerPageUser
+        ? window.allUsers.slice(
+            (currentUserPage - 1) * itemsPerPageUser,
+            currentUserPage * itemsPerPageUser
+          )
+        : window.allUsers;
 
     const startIndex = (currentUserPage - 1) * itemsPerPageUser;
     const fragment = document.createDocumentFragment();
@@ -234,6 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderPaginationControls(totalPages);
   }
+
   function renderPaginationControls(totalPagesInput = totalPagesFromBE) {
     const paginationContainer = document.getElementById("paginationContainer");
     if (!paginationContainer) return;
@@ -250,14 +281,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let html = `
-      <button class="pagination-arrow" onclick="changePage(${currentUserPage - 1})" ${currentUserPage === 1 ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman sebelumnya" onclick="changePage(${currentUserPage - 1})" ${currentUserPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
     const mobilePages =
       totalPages > 5 && window.matchMedia("(max-width: 480px)").matches
-        ? [...new Set([1, currentUserPage - 1, currentUserPage, currentUserPage + 1, totalPages])]
+        ? [
+            ...new Set([
+              1,
+              currentUserPage - 1,
+              currentUserPage,
+              currentUserPage + 1,
+              totalPages,
+            ]),
+          ]
             .filter((page) => page >= 1 && page <= totalPages)
             .sort((a, b) => a - b)
         : null;
@@ -268,16 +307,18 @@ document.addEventListener("DOMContentLoaded", () => {
           html += '<span class="pagination-dots" aria-hidden="true">...</span>';
         }
 
+        const isCurrent = page === currentUserPage;
         html += `
-          <button class="pagination-number ${page === currentUserPage ? "active" : ""}" onclick="changePage(${page})">
+          <button type="button" class="pagination-number ${isCurrent ? "active" : ""}" aria-label="Halaman ${page}" ${isCurrent ? 'aria-current="page"' : ""} onclick="changePage(${page})">
             ${page}
           </button>
         `;
       });
     } else {
       for (let page = 1; page <= totalPages; page++) {
+        const isCurrent = page === currentUserPage;
         html += `
-          <button class="pagination-number ${page === currentUserPage ? "active" : ""}" onclick="changePage(${page})">
+          <button type="button" class="pagination-number ${isCurrent ? "active" : ""}" aria-label="Halaman ${page}" ${isCurrent ? 'aria-current="page"' : ""} onclick="changePage(${page})">
             ${page}
           </button>
         `;
@@ -285,8 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     html += `
-      <button class="pagination-arrow" onclick="changePage(${currentUserPage + 1})" ${currentUserPage === totalPages ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman berikutnya" onclick="changePage(${currentUserPage + 1})" ${currentUserPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -311,7 +352,8 @@ document.addEventListener("DOMContentLoaded", () => {
       errorTitle.textContent = "Koneksi Internet Terputus";
     }
     if (errorMessage) {
-      errorMessage.textContent = "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
+      errorMessage.textContent =
+        "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
     }
     if (errorState) errorState.hidden = false;
   }
@@ -356,7 +398,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const result = await getJson(`${API_BASE_URL}/api/admin/user.php?${queryParams.toString()}`);
-      const rawData = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+      const rawData = Array.isArray(result.data)
+        ? result.data
+        : Array.isArray(result)
+          ? result
+          : [];
 
       totalPagesFromBE = resolveTotalPages(result, rawData);
 
@@ -380,7 +426,8 @@ document.addEventListener("DOMContentLoaded", () => {
             errorTitle.textContent = "Daftar Pengguna Gagal Dimuat";
           }
           if (errorMessage) {
-            errorMessage.textContent = error.message || "Terjadi kesalahan saat memuat data pengguna.";
+            errorMessage.textContent =
+              error.message || "Terjadi kesalahan saat memuat data pengguna.";
           }
           if (errorState) errorState.hidden = false;
         }

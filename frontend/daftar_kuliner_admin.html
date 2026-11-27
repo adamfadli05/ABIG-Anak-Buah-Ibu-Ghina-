@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://code.iconify.design" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <script src="js/env.js"></script>
-    <script src="js/config.js?v=2"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
+    <script src="js/env.js" defer></script>
+    <script src="js/config.js?v=2" defer></script>
     <!-- Script Sidebar Terpusat -->
     <script src="js/sidebar.js?v=9" defer></script>
     <script src="js/daftar_kuliner_admin.js?v=6" defer></script>
@@ -32,7 +33,7 @@
       <div id="sidebar-container"></div>
 
       <!-- Panel Konten Utama -->
-      <section class="main-panel">
+      <section class="main-panel" aria-label="Panel utama daftar kuliner">
         <header class="topbar">
           <div class="topbar-title">
             <span class="topbar-title-text">
@@ -50,9 +51,9 @@
               <a class="admin-page-back" href="Dashboard_Admin.html" aria-label="Kembali ke Dashboard Admin">
                 <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
               </a>
-              <h2>Daftar Kuliner</h2>
+              <h1 id="pageHeading">Daftar Kuliner</h1>
             </div>
-            <button id="btnTambahKuliner" class="button button-primary">
+            <button id="btnTambahKuliner" class="button button-primary" type="button">
               <iconify-icon icon="lucide:plus" aria-hidden="true"></iconify-icon>
               Tambah Kuliner
             </button>
@@ -61,8 +62,9 @@
           <!-- Kotak Pencarian -->
           <div id="searchToolbar" class="search-toolbar">
             <div class="search-input-wrapper">
+              <label for="searchKuliner" class="sr-only">Cari kuliner</label>
               <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
-              <input type="text" id="searchKuliner" placeholder="Cari Kuliner" />
+              <input type="text" id="searchKuliner" placeholder="Cari Kuliner" aria-label="Cari kuliner" />
             </div>
           </div>
 
@@ -71,14 +73,15 @@
             <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
             <div class="table-responsive" id="tableWrapper" hidden>
               <table class="kuliner-admin-table">
+                <caption class="sr-only">Daftar data kuliner admin</caption>
                 <thead>
                   <tr>
-                    <th>No</th>
-                    <th>Foto</th>
-                    <th>Nama Kuliner</th>
-                    <th>Kategori</th>
-                    <th>Alamat</th>
-                    <th>Aksi</th>
+                    <th scope="col">No</th>
+                    <th scope="col">Foto</th>
+                    <th scope="col">Nama Kuliner</th>
+                    <th scope="col">Kategori</th>
+                    <th scope="col">Alamat</th>
+                    <th scope="col">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="kulinerTableBody">
@@ -89,7 +92,7 @@
           </div>
 
           <!-- Kontainer Pagination Daftar Kuliner -->
-          <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
+          <nav id="paginationContainer" class="pagination-container" aria-label="Navigasi halaman daftar kuliner" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></nav>
 
           <!-- STATE KOSONG & ERROR -->
           <div id="tableEmpty" class="culinary-empty-state" role="status" hidden>
@@ -102,7 +105,7 @@
               <rect width="36" height="36" rx="2" fill="#858585"></rect>
               <path d="M10 7v9m-3-9v5a3 3 0 0 0 6 0V7m-3 8v14m10-22c-2 3-3 7-3 11h7c0-4-1-8-3-11v22" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
             </svg>
-            <h3>Belum ada kuliner</h3>
+            <h2>Belum ada kuliner</h2>
             <p>Belum ada kuliner yang ditambahkan.<br />Silakan tambahkan kuliner untuk mulai mengisi daftar.</p>
           </div>
 
@@ -119,7 +122,7 @@
               <path d="M19 30h.02" stroke="currentColor" stroke-linecap="round" stroke-width="4"></path>
               <path d="M30 22v8m0 4h.02" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
             </svg>
-            <h3 id="tableErrorTitle">Koneksi Internet Terputus</h3>
+            <h2 id="tableErrorTitle">Koneksi Internet Terputus</h2>
             <p id="tableErrorMessage">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
             <button id="tableRetryButton" class="button button-primary" type="button">
               <iconify-icon

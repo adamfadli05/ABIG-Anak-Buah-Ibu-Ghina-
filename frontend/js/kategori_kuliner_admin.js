@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_BASE_URL = window.BASE_URL || window.location.origin;
   const KATEGORI_CACHE_KEY = "mangan_yukk_admin_kategori_v1";
   const API_URL = `${API_BASE_URL}/api/admin/kategori.php`;
+  const VALID_CATEGORY_NAME_REGEX = /^[A-Za-z\s]+$/;
 
   const tableCardContainer = document.getElementById("tableCardContainer");
   const tableLoading = document.getElementById("tableLoading");
@@ -16,7 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnReloadKategori = document.getElementById("btnReloadKategori");
 
   const btnAddKategori = document.getElementById("btnAddKategori");
-  
+  const saveKategoriBtn = document.getElementById("saveKategoriBtn");
+
   // Elemen Modal Form
   const kategoriModal = document.getElementById("kategoriModal");
   const modalTitle = document.getElementById("modalTitle");
@@ -29,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const successModal = document.getElementById("successModal");
   const successMessageText = document.getElementById("successMessageText");
   const closeSuccessBtn = document.getElementById("closeSuccessBtn");
-  
+
   const errorModal = document.getElementById("errorModal");
   const errorModalTitle = document.getElementById("errorModalTitle");
   const errorMessageText = document.getElementById("errorMessageText");
@@ -40,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteConfirmText = document.getElementById("deleteConfirmText");
   const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
   const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+  const retryDeleteBtn = document.getElementById("retryDeleteBtn");
 
   const categoryInUseModal = document.getElementById("categoryInUseModal");
   const inUseMessageText = document.getElementById("inUseMessageText");
@@ -47,8 +50,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let kategoriData = [];
   let selectedDeleteId = null;
-  let activeErrorAction = null; // Melacak aksi terakhir untuk tombol Coba Lagi
+  let activeErrorAction = null;
+  let isSavingKategori = false;
+  let isDeletingKategori = false;
   const isMobileCategoryLayout = () => window.matchMedia("(max-width: 480px)").matches;
+
+  function showPopup(modalEl) {
+    if (!modalEl) return;
+    modalEl.hidden = false;
+    modalEl.style.display = "flex";
+  }
+
+  function hidePopup(modalEl) {
+    if (!modalEl) return;
+    modalEl.hidden = true;
+    modalEl.style.display = "none";
+  }
+
+  function openErrorPopup(title, message, action = null) {
+    activeErrorAction = action;
+    if (errorModalTitle) errorModalTitle.textContent = title;
+    if (errorMessageText) errorMessageText.textContent = message;
+    showPopup(errorModal);
+  }
+
+  function openSuccessPopup(message) {
+    if (successMessageText) successMessageText.textContent = message;
+    showPopup(successModal);
+  }
+
+  async function parseJsonSafe(response) {
+    try {
+      const text = await response.text();
+      if (!text) return {};
+      return JSON.parse(text);
+    } catch (_) {
+      return {};
+    }
+  }
 
   function readKategoriCache() {
     try {
@@ -67,12 +106,29 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (_) {}
   }
 
-  // --- CEK AKSES ADMIN SECARA SENYAP (SILENT CHECK) ---
+  function clearKategoriCache() {
+    try {
+      localStorage.removeItem(KATEGORI_CACHE_KEY);
+    } catch (_) {}
+  }
+
+  function extractCategoryCount(item) {
+    const rawCount =
+      item.jumlah_kuliner ??
+      item.total_kuliner ??
+      item.count_kuliner ??
+      item.jml_kuliner ??
+      item.jml ??
+      0;
+    const parsed = Number(rawCount);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  }
+
   async function checkAdminAccessSilent() {
     const rawRole = localStorage.getItem("role");
-    
+
     if (rawRole === "admin") {
-      fetchKategoriData();
+      await fetchKategoriData();
       return;
     }
 
@@ -80,9 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const meUrl = `${API_BASE_URL}/api/me.php`;
       const response = await fetch(meUrl, {
         credentials: "include",
-        headers: { Accept: "application/json" }
+        headers: { Accept: "application/json" },
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
+
+      if (response.status >= 500) {
+        await fetchKategoriData();
+        return;
+      }
 
       if (!response.ok || !result.status || result.role !== "admin") {
         localStorage.removeItem("user");
@@ -94,15 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("user", JSON.stringify(result.data || {}));
       localStorage.setItem("role", result.role);
-      
-      fetchKategoriData();
-    } catch (error) {
-      console.error("Gagal memeriksa sesi admin:", error);
-      fetchKategoriData();
+
+      await fetchKategoriData();
+    } catch (_) {
+      await fetchKategoriData();
     }
   }
 
-  // Fungsi menampilkan UI Koneksi Terputus Sesuai Figma
   function showTableErrorUI(isOffline) {
     if (tableCardContainer) tableCardContainer.hidden = true;
     if (categoryEmptyMobile) categoryEmptyMobile.hidden = true;
@@ -120,7 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Mengambil Data dari kategori.php dengan Cache Instan
   async function fetchKategoriData(forceNoCache = false) {
     const cached = !forceNoCache ? readKategoriCache() : null;
 
@@ -146,7 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(API_URL, {
+      const url = forceNoCache ? `${API_URL}?_t=${Date.now()}` : API_URL;
+      const response = await fetch(url, {
         method: "GET",
         headers: { Accept: "application/json" },
         credentials: "include",
@@ -156,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`Server merespons dengan status ${response.status}`);
       }
 
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
       if (Array.isArray(result)) {
         kategoriData = result;
       } else if (result && Array.isArray(result.data)) {
@@ -169,12 +228,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       writeKategoriCache(kategoriData);
       renderTable(kategoriData);
-    } catch (error) {
-      console.error("Gagal mengambil data kategori:", error);
+    } catch (_) {
       if (tableLoading) tableLoading.hidden = true;
       if (!cached || cached.length === 0) {
-        const isOffline = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
-        showTableErrorUI(isOffline);
+        showTableErrorUI(!navigator.onLine);
       }
     }
   }
@@ -183,7 +240,6 @@ document.addEventListener("DOMContentLoaded", () => {
     btnReloadKategori.addEventListener("click", () => fetchKategoriData(true));
   }
 
-  // Render Tabel Kategori & Jumlah Kuliner dari Database
   function renderTable(data) {
     if (tableLoading) tableLoading.hidden = true;
     if (tableErrorState) tableErrorState.hidden = true;
@@ -195,6 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tableWrapper) tableWrapper.hidden = true;
       if (tableEmpty) tableEmpty.hidden = showMobileEmpty;
       if (categoryEmptyMobile) categoryEmptyMobile.hidden = !showMobileEmpty;
+      if (kategoriTableBody) kategoriTableBody.replaceChildren();
       return;
     }
 
@@ -207,9 +264,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     data.forEach((item, index) => {
       const tr = document.createElement("tr");
-      const id = item.id_kategori || item.id;
-      const nama = item.nama_kategori || item.name || "-";
-      const jumlah = Number(item.jumlah_kuliner ?? item.total_kuliner ?? item.count_kuliner ?? item.jml ?? 0);
+      const id = String(item.id_kategori ?? item.id ?? "").trim();
+      const nama = String(item.nama_kategori ?? item.name ?? "-").trim() || "-";
+      const jumlah = extractCategoryCount(item);
 
       tr.innerHTML = `
         <td>${index + 1}.</td>
@@ -234,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Buka Modal Tambah
   if (btnAddKategori) {
     btnAddKategori.addEventListener("click", () => {
       if (modalTitle) modalTitle.textContent = "Tambah Kategori";
@@ -245,14 +301,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const alertBanner = document.getElementById("formAlertBanner");
       if (alertBanner) alertBanner.hidden = true;
-      if (kategoriModal) kategoriModal.hidden = false;
+      showPopup(kategoriModal);
       if (namaKategoriInput) namaKategoriInput.focus();
     });
   }
 
-  // Tutup Modal Form
   function closeModal() {
-    if (kategoriModal) kategoriModal.hidden = true;
+    hidePopup(kategoriModal);
     if (namaKategoriInput) namaKategoriInput.classList.remove("input-error");
     const alertBanner = document.getElementById("formAlertBanner");
     if (alertBanner) alertBanner.hidden = true;
@@ -268,14 +323,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Event Klik Edit & Hapus
   if (kategoriTableBody) {
-    kategoriTableBody.addEventListener("click", async (e) => {
+    kategoriTableBody.addEventListener("click", (e) => {
       const button = e.target.closest("button");
       if (!button) return;
 
-      const id = button.getAttribute("data-id");
-      const nama = button.getAttribute("data-nama");
+      const id = String(button.getAttribute("data-id") || "").trim();
+      const nama = String(button.getAttribute("data-nama") || "").trim();
 
       if (button.classList.contains("btn-edit")) {
         if (modalTitle) modalTitle.textContent = "Edit Kategori";
@@ -286,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const alertBanner = document.getElementById("formAlertBanner");
         if (alertBanner) alertBanner.hidden = true;
-        if (kategoriModal) kategoriModal.hidden = false;
+        showPopup(kategoriModal);
         if (namaKategoriInput) namaKategoriInput.focus();
       }
 
@@ -297,7 +351,12 @@ document.addEventListener("DOMContentLoaded", () => {
           if (inUseMessageText) {
             inUseMessageText.textContent = `Kategori "${nama}" masih digunakan oleh beberapa kuliner.`;
           }
-          if (categoryInUseModal) categoryInUseModal.hidden = false;
+          showPopup(categoryInUseModal);
+          return;
+        }
+
+        if (!id) {
+          openErrorPopup("Kategori gagal di hapus", "ID kategori tidak ditemukan.", null);
           return;
         }
 
@@ -305,95 +364,124 @@ document.addEventListener("DOMContentLoaded", () => {
         if (deleteConfirmText) {
           deleteConfirmText.textContent = `Kategori "${nama}" akan dihapus dari daftar kategori.`;
         }
-        if (deleteConfirmModal) deleteConfirmModal.hidden = false;
+        showPopup(deleteConfirmModal);
       }
     });
   }
 
-  // Tombol Batal pada Modal Konfirmasi Hapus
   if (cancelDeleteBtn) {
     cancelDeleteBtn.addEventListener("click", () => {
-      if (deleteConfirmModal) deleteConfirmModal.hidden = true;
+      hidePopup(deleteConfirmModal);
       selectedDeleteId = null;
     });
   }
 
-  // Fungsi Proses Hapus Kategori
   async function executeDelete() {
-    if (!selectedDeleteId) return;
+    if (!selectedDeleteId || isDeletingKategori) return;
+
+    const targetId = String(selectedDeleteId);
+    isDeletingKategori = true;
+    if (confirmDeleteBtn) confirmDeleteBtn.disabled = true;
+    if (retryDeleteBtn) retryDeleteBtn.disabled = true;
 
     try {
-      const response = await fetch(`${API_URL}?id=${encodeURIComponent(selectedDeleteId)}`, {
+      const response = await fetch(`${API_URL}?id=${encodeURIComponent(targetId)}`, {
         method: "DELETE",
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      const result = await response.json();
-      if (!response.ok || !result.status) {
-        throw new Error(result.message || "Gagal menghapus kategori.");
+
+      const result = await parseJsonSafe(response);
+      const isSuccess =
+        response.ok &&
+        (result.status === true || result.success === true || result.status === undefined);
+
+      if (!isSuccess) {
+        throw new Error(result.message || `Gagal menghapus kategori (HTTP ${response.status}).`);
       }
-      
+
       selectedDeleteId = null;
-      if (successMessageText) successMessageText.textContent = "Kategori berhasil di hapus";
-      if (successModal) successModal.hidden = false;
-      fetchKategoriData(true);
+      kategoriData = kategoriData.filter(
+        (item) => String(item.id_kategori ?? item.id ?? "").trim() !== targetId
+      );
+      clearKategoriCache();
+      renderTable(kategoriData);
+
+      openSuccessPopup("Kategori berhasil di hapus");
+      void fetchKategoriData(true);
     } catch (error) {
-      console.error(error);
-      activeErrorAction = "delete";
-      if (errorModalTitle) errorModalTitle.textContent = "Kategori gagal di hapus";
-      
-      const isConnectionError = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
-      if (errorMessageText) {
-        errorMessageText.textContent = isConnectionError ? "Periksa koneksi internet anda" : (error.message || "Periksa koneksi internet anda");
-      }
-      if (errorModal) errorModal.hidden = false;
+      const isConnectionError =
+        !navigator.onLine ||
+        error instanceof TypeError ||
+        (error && typeof error.message === "string" && error.message.includes("Failed to fetch"));
+
+      openErrorPopup(
+        "Kategori gagal di hapus",
+        isConnectionError
+          ? "Periksa koneksi internet anda"
+          : (error && error.message) || "Gagal menghapus kategori.",
+        "delete"
+      );
+    } finally {
+      isDeletingKategori = false;
+      if (confirmDeleteBtn) confirmDeleteBtn.disabled = false;
+      if (retryDeleteBtn) retryDeleteBtn.disabled = false;
     }
   }
 
-  // Tombol Hapus (Konfirmasi)
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener("click", async () => {
-      if (deleteConfirmModal) deleteConfirmModal.hidden = true;
+      hidePopup(deleteConfirmModal);
       await executeDelete();
     });
   }
 
-  // Tutup Modal "Kategori Masih Digunakan"
   if (closeInUseBtn) {
     closeInUseBtn.addEventListener("click", () => {
-      if (categoryInUseModal) categoryInUseModal.hidden = true;
+      hidePopup(categoryInUseModal);
     });
   }
 
-  // Fungsi Proses Submit Form (Tambah/Edit)
   async function executeFormSubmit() {
-    const id = editIdKategori.value;
-    const nama_kategori = namaKategoriInput.value.trim();
+    if (isSavingKategori) return;
+
+    const id = editIdKategori ? editIdKategori.value : "";
+    const nama_kategori = namaKategoriInput ? namaKategoriInput.value.trim() : "";
     const alertBanner = document.getElementById("formAlertBanner");
     const alertMessage = document.getElementById("formAlertMessage");
 
     if (!nama_kategori) {
-      namaKategoriInput.classList.add("input-error");
+      if (namaKategoriInput) namaKategoriInput.classList.add("input-error");
       if (alertMessage) alertMessage.textContent = "Mohon isi nama kategori sebelum menyimpan";
       if (alertBanner) alertBanner.hidden = false;
       return;
     }
 
+    if (!VALID_CATEGORY_NAME_REGEX.test(nama_kategori)) {
+      if (namaKategoriInput) namaKategoriInput.classList.add("input-error");
+      if (alertMessage) {
+        alertMessage.textContent =
+          "Nama kategori tidak boleh mengandung angka dan karakter khusus atau unicode.";
+      }
+      if (alertBanner) alertBanner.hidden = false;
+      return;
+    }
+
     const currentId = id ? String(id) : null;
-    const isDuplicate = kategoriData.some(item => {
-      const itemId = String(item.id_kategori || item.id || "");
-      const itemName = (item.nama_kategori || item.name || "").trim().toLowerCase();
+    const isDuplicate = kategoriData.some((item) => {
+      const itemId = String(item.id_kategori ?? item.id ?? "");
+      const itemName = String(item.nama_kategori ?? item.name ?? "").trim().toLowerCase();
       return itemName === nama_kategori.toLowerCase() && itemId !== currentId;
     });
 
     if (isDuplicate) {
-      namaKategoriInput.classList.add("input-error");
+      if (namaKategoriInput) namaKategoriInput.classList.add("input-error");
       if (alertMessage) alertMessage.textContent = "Kategori sudah tersedia, silahkan gunakan nama lain.";
       if (alertBanner) alertBanner.hidden = false;
       return;
     }
 
-    namaKategoriInput.classList.remove("input-error");
+    if (namaKategoriInput) namaKategoriInput.classList.remove("input-error");
     if (alertBanner) alertBanner.hidden = true;
 
     const formData = new FormData();
@@ -403,6 +491,9 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("_method", "PUT");
     }
 
+    isSavingKategori = true;
+    if (saveKategoriBtn) saveKategoriBtn.disabled = true;
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -411,37 +502,35 @@ document.addEventListener("DOMContentLoaded", () => {
         credentials: "include",
       });
 
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
       if (!response.ok || !result.status) {
         throw new Error(result.message || "Gagal menyimpan kategori.");
       }
 
+      clearKategoriCache();
       closeModal();
-
-      if (successMessageText) {
-        successMessageText.textContent = id ? "Kategori berhasil di perbarui" : "Kategori berhasil disimpan";
-      }
-
-      if (successModal) successModal.hidden = false;
-      fetchKategoriData(true);
+      openSuccessPopup(id ? "Kategori berhasil di perbarui" : "Kategori berhasil disimpan");
+      void fetchKategoriData(true);
     } catch (error) {
-      console.error(error);
       closeModal();
-      activeErrorAction = "submit";
+      const isConnectionError =
+        !navigator.onLine ||
+        error instanceof TypeError ||
+        (error && typeof error.message === "string" && error.message.includes("Failed to fetch"));
 
-      if (errorModalTitle) {
-        errorModalTitle.textContent = id ? "Kategori gagal di perbarui" : "Kategori gagal disimpan";
-      }
-
-      const isConnectionError = !navigator.onLine || error instanceof TypeError || (error.message && error.message.includes("Failed to fetch"));
-      if (errorMessageText) {
-        errorMessageText.textContent = isConnectionError ? "Periksa koneksi internet anda" : (error.message || "Periksa koneksi internet anda");
-      }
-      if (errorModal) errorModal.hidden = false;
+      openErrorPopup(
+        id ? "Kategori gagal di perbarui" : "Kategori gagal disimpan",
+        isConnectionError
+          ? "Periksa koneksi internet anda"
+          : (error && error.message) || "Periksa koneksi internet anda",
+        "submit"
+      );
+    } finally {
+      isSavingKategori = false;
+      if (saveKategoriBtn) saveKategoriBtn.disabled = false;
     }
   }
 
-  // Submit Form dengan Validasi Kosong & Cek Duplikat Nama
   if (kategoriForm) {
     kategoriForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -449,25 +538,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Tombol Oke pada pop-up sukses
   if (closeSuccessBtn) {
     closeSuccessBtn.addEventListener("click", () => {
-      if (successModal) successModal.hidden = true;
+      hidePopup(successModal);
     });
   }
 
-  // Tombol Coba lagi pada pop-up gagal
   if (retryErrorBtn) {
     retryErrorBtn.addEventListener("click", async () => {
-      if (errorModal) errorModal.hidden = true;
+      hidePopup(errorModal);
       if (activeErrorAction === "delete") {
         await executeDelete();
       } else {
-        if (kategoriModal) kategoriModal.hidden = false;
+        showPopup(kategoriModal);
       }
     });
   }
 
-  // Jalankan pemeriksaan akses secara senyap saat halaman dimuat
   checkAdminAccessSilent();
 });

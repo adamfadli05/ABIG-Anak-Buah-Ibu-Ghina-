@@ -46,6 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const itemsPerPageAdmin = 20;
   const pageDataCache = new Map();
 
+  async function parseJsonSafe(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      return {};
+    }
+  }
+
   function readKulinerCache() {
     try {
       const raw = localStorage.getItem(ADMIN_KULINER_CACHE_KEY);
@@ -153,7 +163,14 @@ document.addEventListener("DOMContentLoaded", () => {
         credentials: "include",
         headers: { Accept: "application/json" },
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
+
+      if (response.status >= 500) {
+        if (adminApp) adminApp.hidden = false;
+        if (authState) authState.hidden = true;
+        initAdminApp();
+        return;
+      }
 
       if (!response.ok || !result.status || result.role !== "admin") {
         localStorage.removeItem("user");
@@ -214,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (!response.ok) throw new Error("Gagal mengambil semua data kuliner.");
 
-        const result = await response.json();
+        const result = await parseJsonSafe(response);
         let combined = Array.isArray(result.data)
           ? [...result.data]
           : Array.isArray(result)
@@ -230,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { Accept: "application/json" },
                 credentials: "include",
               })
-                .then((res) => (res.ok ? res.json() : null))
+                .then((res) => (res.ok ? parseJsonSafe(res) : null))
                 .catch(() => null)
             );
           }
@@ -314,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`Gagal mengambil data dari server (HTTP ${response.status}).`);
       }
 
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
       const rawData = Array.isArray(result.data)
         ? result.data
         : Array.isArray(result)
@@ -417,9 +434,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (fotoUrl) {
         const img = document.createElement("img");
         img.src = fotoUrl;
-        img.alt = namaKuliner;
+        img.alt = `Foto ${namaKuliner}`;
         img.className = "table-img";
         img.loading = "eager";
+        img.decoding = "async";
         img.addEventListener(
           "error",
           () => {
@@ -444,13 +462,17 @@ document.addEventListener("DOMContentLoaded", () => {
       actionWrap.className = "action-buttons";
 
       const btnEdit = document.createElement("button");
+      btnEdit.type = "button";
       btnEdit.className = "btn-action btn-edit";
       btnEdit.setAttribute("data-id", itemId);
+      btnEdit.setAttribute("aria-label", `Edit ${namaKuliner}`);
       btnEdit.innerHTML = '<iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon> Edit';
 
       const btnDelete = document.createElement("button");
+      btnDelete.type = "button";
       btnDelete.className = "btn-action btn-delete";
       btnDelete.setAttribute("data-id", itemId);
+      btnDelete.setAttribute("aria-label", `Hapus ${namaKuliner}`);
       btnDelete.innerHTML = '<iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus';
 
       actionWrap.append(btnEdit, btnDelete);
@@ -485,8 +507,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let html = `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman sebelumnya" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -497,19 +519,20 @@ document.addEventListener("DOMContentLoaded", () => {
         i === totalPages ||
         (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
       ) {
+        const isCurrent = i === currentAdminPage;
         html += `
-          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+          <button type="button" class="pagination-number ${isCurrent ? "active" : ""}" aria-label="Halaman ${i}" ${isCurrent ? 'aria-current="page"' : ""} onclick="changeAdminPage(${i})">
             ${i}
           </button>
         `;
       } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
-        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+        html += `<span aria-hidden="true" style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
       }
     }
 
     html += `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman berikutnya" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -606,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
 
       if (!response.ok || !result.status) {
         throw new Error(result.message || "Periksa koneksi internet Anda.");

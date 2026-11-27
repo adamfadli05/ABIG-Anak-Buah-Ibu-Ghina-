@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://code.iconify.design" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <script src="js/env.js"></script>
-    <script src="js/config.js?v=2"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
+    <script src="js/env.js" defer></script>
+    <script src="js/config.js?v=2" defer></script>
     <!-- Script Sidebar Terpusat -->
     <script src="js/sidebar.js?v=9" defer></script>
     <script src="js/pengguna_admin.js?v=responsive-pagination-3" defer></script>
@@ -32,7 +33,7 @@
 
       <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Tutup menu" hidden></button>
 
-      <section class="main-panel">
+      <section class="main-panel" aria-label="Panel utama daftar pengguna">
         <header class="topbar">
           <button id="sidebarToggle" class="icon-button" type="button" aria-label="Buka atau tutup menu"
             aria-expanded="true">
@@ -47,7 +48,7 @@
           </div>
         </header>
 
-        <main class="dashboard-content">
+        <section class="dashboard-content" aria-label="Konten daftar pengguna">
           <header class="users-heading">
             <div class="users-title-with-back">
               <a class="users-page-back" href="Dashboard_Admin.html" aria-label="Kembali ke Dashboard Admin">
@@ -59,8 +60,9 @@
 
           <div class="users-search-container">
             <label class="users-search" for="searchUsers">
+              <span class="sr-only">Cari pengguna</span>
               <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
-              <input id="searchUsers" type="search" placeholder="Cari Pengguna" autocomplete="off" />
+              <input id="searchUsers" type="search" placeholder="Cari Pengguna" aria-label="Cari pengguna" autocomplete="off" />
             </label>
           </div>
 
@@ -98,6 +100,7 @@
           <div id="usersTableCard" class="users-table-card" hidden>
             <div class="users-table-scroll">
               <table class="users-table">
+                <caption class="sr-only">Daftar pengguna terdaftar</caption>
                 <thead>
                   <tr>
                     <th scope="col" class="th-no">No</th>
@@ -110,8 +113,8 @@
             </div>
           </div>
           <!-- Navigasi Pagination -->
-          <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px"></div>
-        </main>
+          <nav id="paginationContainer" class="pagination-container" aria-label="Navigasi halaman daftar pengguna" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px"></nav>
+        </section>
       </section>
     </div>
   </body>

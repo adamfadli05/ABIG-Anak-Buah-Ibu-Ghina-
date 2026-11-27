@@ -5,14 +5,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Pengguna | Mangan Yukkk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://code.iconify.design" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/profile.css?v=31" />
   <link rel="stylesheet" href="css/responsive.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js?v=profile-photo-upload-1"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase-config.js?v=profile-photo-upload-1" defer></script>
 </head>
 
 <body>
@@ -31,7 +36,7 @@
       <div id="profileContent" class="profile-layout" hidden>
         <aside class="profile-sidebar" aria-label="Menu akun">
           <div class="profile-avatar-wrap">
-            <img id="profileAvatar" class="profile-avatar" alt="Foto profil" hidden />
+            <img id="profileAvatar" class="profile-avatar" alt="Foto profil" decoding="async" hidden />
             <span id="profileAvatarFallback" class="profile-avatar-fallback" aria-hidden="true"><i
                 class="fa-solid fa-user"></i></span>
             <button id="editPhotoButton" class="avatar-edit-button" type="button" title="Ubah foto profil"
@@ -239,10 +244,10 @@
       <button id="retryConnectionButton" class="connection-retry-button" type="button">Coba lagi</button>
     </section>
   </div>
-  <script src="js/env.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/navbar.js?v=mobile-nav-1"></script>
-  <script src="js/profile.js?v=18"></script>
+  <script src="js/env.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/navbar.js?v=mobile-nav-1" defer></script>
+  <script src="js/profile.js?v=18" defer></script>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 const PROFILE_API_BASE = window.PROFILE_API_BASE || window.BASE_URL || window.location.origin;
 const OFFLINE_ERROR = "Koneksi internet terputus. Periksa koneksi Anda dan coba lagi.";
 const SERVER_CONNECTION_ERROR = "Server profil tidak dapat dihubungi. Pastikan Apache dan backend berjalan, lalu coba lagi.";
+const SERVER_500_ERROR = "Terjadi gangguan pada server (500). Silakan coba beberapa saat lagi.";
 
 // Fallback UUID generator — crypto.randomUUID() hanya tersedia di HTTPS/localhost
 function generateUUID() {
@@ -14,11 +15,24 @@ function generateUUID() {
   });
 }
 
+async function parseJsonSafe(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    return {};
+  }
+}
+
 let currentProfile = null;
 let nameUpdateTimeout = null;
 let isProfilePhotoUploading = false;
 
-document.addEventListener("DOMContentLoaded", () => {
+function initProfilePage() {
+  if (document.body.dataset.profileInitialized === "true") return;
+  document.body.dataset.profileInitialized = "true";
+
   document.getElementById("retryProfile").addEventListener("click", loadProfile);
   document.getElementById("retryConnectionButton").addEventListener("click", loadProfile);
   document.getElementById("nameEditForm").addEventListener("submit", saveName);
@@ -53,7 +67,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("cancelPasswordEdit").addEventListener("click", closePasswordEditor);
   document.addEventListener("click", closePhotoMenuOnOutsideClick);
   loadProfile();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initProfilePage);
+} else {
+  initProfilePage();
+}
 
 async function loadProfile() {
   const loading = document.getElementById("profileLoading");
@@ -79,7 +99,10 @@ async function loadProfile() {
       return;
     }
 
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status || !result.data) {
       throw new Error(result.message || "Gagal memuat profil.");
     }
@@ -91,6 +114,10 @@ async function loadProfile() {
   } catch (requestError) {
     loading.hidden = true;
     const errorMessage = getRequestErrorMessage(requestError, "Gagal memuat profil.");
+    if (cachedProfile && !currentProfile) {
+      renderProfile(cachedProfile);
+      content.hidden = false;
+    }
     if (!currentProfile) {
       error.hidden = false;
       document.getElementById("profileErrorText").textContent = errorMessage;
@@ -142,7 +169,9 @@ function renderProfile(user) {
   document.getElementById("displayEmail").textContent = user.email || "";
   document.getElementById("sidebarName").textContent = name;
   setProfilePhoto(user.foto_profil || "");
-  localStorage.setItem("user", JSON.stringify(user));
+  try {
+    localStorage.setItem("user", JSON.stringify(user));
+  } catch (_) {}
 }
 
 async function saveName(event) {
@@ -183,7 +212,10 @@ async function saveName(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nama: name }),
     });
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status || !result.data) {
       throw new Error(result.message || "Gagal memperbarui nama pengguna.");
     }
@@ -246,7 +278,10 @@ async function changePassword(event) {
         konfirmasi_baru: confirmPassword.value,
       }),
     });
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status) {
       throw new Error(result.message || "Gagal mengubah kata sandi.");
     }
@@ -289,7 +324,10 @@ async function logout() {
       credentials: "include",
       headers: { "X-Requested-With": "XMLHttpRequest" },
     });
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status) {
       throw new Error(result.message || "Gagal mengakhiri sesi. Silakan coba lagi.");
     }
@@ -610,7 +648,10 @@ async function handlePhotoFileSelection(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ foto_profil: photoUrl }),
     });
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status || !result.data) {
       throw new Error(result.message || "Gagal memperbarui foto profil.");
     }
@@ -687,7 +728,10 @@ async function confirmRemovePhoto() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ foto_profil: null }),
     });
-    const result = await response.json();
+    const result = await parseJsonSafe(response);
+    if (response.status >= 500) {
+      throw new Error(result.message || SERVER_500_ERROR);
+    }
     if (!response.ok || !result.status || !result.data) {
       throw new Error(result.message || "Gagal menghapus foto profil.");
     }
