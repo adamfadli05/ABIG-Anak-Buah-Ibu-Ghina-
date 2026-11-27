@@ -159,6 +159,12 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
+    if (preg_match('/^\d+$/', $nama_kategori)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nama kategori tidak boleh berupa angka saja"]);
+        exit;
+    }
+
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
@@ -256,6 +262,12 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
     if ($errValidasi !== null) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => $errValidasi]);
+        exit;
+    }
+
+    if (preg_match('/^\d+$/', $nama_kategori)) {
+        http_response_code(400);
+        echo json_encode(["status" => false, "message" => "Nama kategori tidak boleh berupa angka saja"]);
         exit;
     }
 
