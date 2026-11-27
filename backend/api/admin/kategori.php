@@ -32,13 +32,16 @@ function getNamaKategori(): string {
     return trim($body['nama_kategori'] ?? '');
 }
 
-// Helper: validasi nama kategori — tolak simbol khusus dan emoji
+// Helper: validasi nama kategori — tolak simbol khusus, emoji, dan angka
 function validasiNamaKategori(string $nama): ?string {
     if (preg_match('/[!@#$%^&*()_+={}\[\]|\\\\:;"\'<>,.?\/~`]/', $nama)) {
         return "Nama kategori tidak boleh mengandung karakter khusus seperti !@#$%^&*()";
     }
     if (preg_match('/[\x{1F000}-\x{1FFFF}\x{2600}-\x{27BF}\x{2300}-\x{23FF}\x{FE00}-\x{FE0F}\x{1F900}-\x{1F9FF}]/u', $nama)) {
         return "Nama kategori tidak boleh mengandung emoji";
+    }
+    if (preg_match('/\d/', $nama)) {
+        return "Nama kategori tidak boleh mengandung angka";
     }
     return null;
 }
@@ -159,12 +162,6 @@ if ($method === 'POST' && $actualMethod === 'POST') {
         exit;
     }
 
-    if (preg_match('/^\d+$/', $nama_kategori)) {
-        http_response_code(400);
-        echo json_encode(["status" => false, "message" => "Nama kategori tidak boleh berupa angka saja"]);
-        exit;
-    }
-
     $cek_duplikat = pg_query_params(
         $conn,
         'SELECT id_kategori FROM kategori WHERE LOWER(nama_kategori) = LOWER($1)',
@@ -262,12 +259,6 @@ if ($method === 'PUT' || $actualMethod === 'PUT') {
     if ($errValidasi !== null) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => $errValidasi]);
-        exit;
-    }
-
-    if (preg_match('/^\d+$/', $nama_kategori)) {
-        http_response_code(400);
-        echo json_encode(["status" => false, "message" => "Nama kategori tidak boleh berupa angka saja"]);
         exit;
     }
 
