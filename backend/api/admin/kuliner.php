@@ -1,6 +1,6 @@
 <?php
 /**
- * API Kuliner Admin — Task 31.3, 32.3, 33.3, 34.3
+ * API Kuliner Admin
  *
  * GET    /api/admin/kuliner.php              — daftar semua kuliner
  * GET    /api/admin/kuliner.php?q=...        — pencarian berdasarkan nama kuliner
@@ -8,9 +8,6 @@
  * POST   /api/admin/kuliner.php              — tambah kuliner baru (JSON)
  * PUT    /api/admin/kuliner.php?id=...       — ubah kuliner berdasarkan id_tempat (JSON)
  * DELETE /api/admin/kuliner.php?id=...       — hapus kuliner berdasarkan id_tempat
- *
- * Catatan: foto diterima sebagai URL (photo_url) karena upload file
- * dilakukan langsung dari FE ke Supabase Storage.
  */
 
 require_once __DIR__ . '/../../env.php';
@@ -25,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Autentikasi & role Admin
 requireAdmin();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -38,7 +34,6 @@ if ($method === 'GET') {
     $id = trim($_GET['id'] ?? '');
     $q  = trim($_GET['q']  ?? '');
 
-    // --- Detail kuliner ---
     if ($id !== '') {
         if (!ctype_digit($id)) {
             http_response_code(400);
@@ -98,14 +93,10 @@ if ($method === 'GET') {
         exit;
     }
 
-    // --- Pencarian atau daftar semua ---
-
-    // Parameter pagination
-    $page  = max(1, intval($_GET['page']  ?? 1));
-    $limit = min(20, max(1, intval($_GET['limit'] ?? 20)));
+    $page   = max(1, intval($_GET['page']  ?? 1));
+    $limit  = min(20, max(1, intval($_GET['limit'] ?? 20)));
     $offset = ($page - 1) * $limit;
 
-    // Hitung total data
     if ($q !== '') {
         $count_result = pg_query_params(
             $conn,
@@ -257,33 +248,30 @@ if ($method === 'GET') {
 }
 
 // =============================================================================
-// POST — Tambah kuliner baru (JSON)
-// foto diterima sebagai photo_url (URL Supabase Storage dari FE)
+// POST — Tambah kuliner baru
 // =============================================================================
 if ($method === 'POST') {
 
     $body = json_decode(file_get_contents("php://input"), true) ?? [];
 
-    $nama_kuliner = trim($body['nama_kuliner'] ?? '');
-    $deskripsi    = trim($body['deskripsi']    ?? '');
-    $id_kategori  = trim((string)($body['id_kategori'] ?? ''));
-    $nama_tempat  = trim($body['nama_tempat']  ?? '');
-    $alamat       = trim($body['alamat']       ?? '');
-    $latitude     = trim((string)($body['latitude']    ?? ''));
-    $longitude    = trim((string)($body['longitude']   ?? ''));
-    $harga        = trim((string)($body['harga']       ?? ''));
+    $nama_kuliner    = trim($body['nama_kuliner'] ?? '');
+    $deskripsi       = trim($body['deskripsi']    ?? '');
+    $id_kategori     = trim((string)($body['id_kategori'] ?? ''));
+    $nama_tempat     = trim($body['nama_tempat']  ?? '');
+    $alamat          = trim($body['alamat']       ?? '');
+    $latitude        = trim((string)($body['latitude']  ?? ''));
+    $longitude       = trim((string)($body['longitude'] ?? ''));
+    $harga           = trim((string)($body['harga']     ?? ''));
     $jam_operasional = trim($body['jam_operasional'] ?? '') ?: null;
     $no_telepon      = trim($body['no_telepon']      ?? '') ?: null;
+    $photo_url       = trim($body['photo_url']       ?? '') ?: null;
 
-    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
     if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
         exit;
     }
-    $photo_url       = trim($body['photo_url']       ?? '') ?: null;
 
-    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
     $jam_buka  = null;
     $jam_tutup = null;
     if ($jam_operasional !== null) {
@@ -292,7 +280,6 @@ if ($method === 'POST') {
         $jam_tutup = trim($parts[1] ?? '') ?: null;
     }
 
-    // Validasi field wajib
     if (empty($nama_kuliner) || empty($deskripsi) || empty($id_kategori) ||
         empty($nama_tempat)  || empty($alamat)    ||
         $latitude === ''     || $longitude === ''  || $harga === '') {
@@ -301,14 +288,12 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Validasi id_kategori numerik
     if (!ctype_digit($id_kategori)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "ID kategori tidak valid"]);
         exit;
     }
 
-    // Validasi kategori ada di database
     $cek_kat = pg_query_params($conn, 'SELECT id_kategori FROM kategori WHERE id_kategori = $1', [$id_kategori]);
     if (!$cek_kat) {
         http_response_code(500);
@@ -321,14 +306,12 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Validasi harga
     if (!is_numeric($harga) || (float)$harga < 0) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Harga tidak valid"]);
         exit;
     }
 
-    // Validasi koordinat
     if (!is_numeric($latitude) || !is_numeric($longitude)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Latitude dan longitude harus berupa angka"]);
@@ -345,15 +328,15 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Validasi photo_url jika diisi
     if ($photo_url !== null && !filter_var($photo_url, FILTER_VALIDATE_URL)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Format URL foto tidak valid"]);
         exit;
     }
 
-    // Simpan ke tabel kuliner lalu tempat_kuliner dalam satu CTE (1 round-trip)
-    $ins = pg_query_params(
+    pg_query($conn, 'BEGIN');
+
+    $ins_kuliner = pg_query_params(
         $conn,
         'INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
          VALUES ($1, $2, $3)
@@ -367,65 +350,40 @@ if ($method === 'POST') {
         echo json_encode(["status" => false, "message" => "Gagal menyimpan data kuliner"]);
         exit;
     }
-    $id_kuliner = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
+
     $id_kuliner_baru = pg_fetch_assoc($ins_kuliner)['id_kuliner'];
 
     $ins_tempat = pg_query_params(
         $conn,
         'INSERT INTO tempat_kuliner
-        'WITH ins_kuliner AS (
-            INSERT INTO kuliner (nama_kuliner, deskripsi, id_kategori)
-            SELECT $1, $2, $3
-            WHERE EXISTS (SELECT 1 FROM kategori WHERE id_kategori = $3)
-            RETURNING id_kuliner
-        )
-        INSERT INTO tempat_kuliner
             (id_kuliner, nama_tempat, alamat, latitude, longitude, harga, jam_buka, jam_tutup, no_telepon, foto)
-        SELECT id_kuliner, $4, $5, $6, $7, $8, $9, $10, $11, $12
-        FROM ins_kuliner
-        RETURNING id_tempat, (SELECT id_kuliner FROM ins_kuliner) AS id_kuliner',
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING id_tempat',
         [
-            $id_kuliner, $nama_tempat, $alamat,
             $id_kuliner_baru, $nama_tempat, $alamat,
             $latitude, $longitude, $harga,
-            $jam_buka, $jam_tutup, $no_telepon,
-            $photo_url
-            $nama_kuliner, $deskripsi, $id_kategori,
-            $nama_tempat, $alamat, $latitude, $longitude,
-            $harga, $jam_buka, $jam_tutup, $no_telepon, $photo_url
+            $jam_buka, $jam_tutup, $no_telepon, $photo_url
         ]
     );
 
-    if (!$ins || pg_num_rows($ins) === 0) {
-        // Kalau 0 row berarti kategori tidak ditemukan (WHERE EXISTS gagal)
-        $cek_kat2 = pg_query_params($conn, 'SELECT 1 FROM kategori WHERE id_kategori = $1', [$id_kategori]);
-        if ($cek_kat2 && pg_num_rows($cek_kat2) === 0) {
-            http_response_code(404);
-            echo json_encode(["status" => false, "message" => "Kategori tidak ditemukan"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["status" => false, "message" => "Gagal menyimpan data kuliner"]);
-        }
+    if (!$ins_tempat || pg_num_rows($ins_tempat) === 0) {
+        pg_query($conn, 'ROLLBACK');
+        http_response_code(500);
+        echo json_encode(["status" => false, "message" => "Gagal menyimpan data tempat kuliner"]);
         exit;
     }
 
     pg_query($conn, 'COMMIT');
 
-    $id_tempat = pg_fetch_assoc($ins_tempat)['id_tempat'];
     $id_tempat_baru = pg_fetch_assoc($ins_tempat)['id_tempat'];
-    $row = pg_fetch_assoc($ins);
 
     http_response_code(201);
     echo json_encode([
         "status"  => true,
         "message" => "Kuliner berhasil ditambahkan",
         "data"    => [
-            "id_kuliner"   => (int)$id_kuliner,
-            "id_tempat"    => (int)$id_tempat,
             "id_kuliner"   => (int)$id_kuliner_baru,
             "id_tempat"    => (int)$id_tempat_baru,
-            "id_kuliner"   => (int)$row['id_kuliner'],
-            "id_tempat"    => (int)$row['id_tempat'],
             "nama_kuliner" => $nama_kuliner,
             "photo_url"    => $photo_url
         ]
@@ -434,8 +392,7 @@ if ($method === 'POST') {
 }
 
 // =============================================================================
-// PUT — Ubah kuliner berdasarkan id_tempat (JSON)
-// foto diterima sebagai photo_url; null = pertahankan foto lama
+// PUT — Ubah kuliner berdasarkan id_tempat
 // =============================================================================
 if ($method === 'PUT') {
 
@@ -447,7 +404,6 @@ if ($method === 'PUT') {
         exit;
     }
 
-    // Cek kuliner ada dan ambil data lama
     $cek = pg_query_params(
         $conn,
         "SELECT tk.id_tempat, tk.id_kuliner, tk.foto AS photo_url,
@@ -474,9 +430,7 @@ if ($method === 'PUT') {
         exit;
     }
 
-    $body = json_decode(file_get_contents("php://input"), true) ?? [];
-
-    // Ambil nilai baru, fallback ke nilai lama jika tidak dikirim
+    $body         = json_decode(file_get_contents("php://input"), true) ?? [];
     $nama_kuliner = trim($body['nama_kuliner'] ?? $lama['nama_kuliner']);
     $deskripsi    = trim($body['deskripsi']    ?? $lama['deskripsi']);
     $id_kategori  = trim((string)($body['id_kategori'] ?? $lama['id_kategori']));
@@ -486,8 +440,6 @@ if ($method === 'PUT') {
     $longitude    = trim((string)($body['longitude'] ?? $lama['longitude']));
     $harga        = trim((string)($body['harga']     ?? $lama['harga']));
 
-    // Parsing jam_operasional → jam_buka & jam_tutup (format: "08:00 - 21:00")
-    // Kalau tidak dikirim, fallback ke nilai lama
     if (array_key_exists('jam_operasional', $body) && $body['jam_operasional'] !== '') {
         $parts     = explode('-', $body['jam_operasional'], 2);
         $jam_buka  = trim($parts[0] ?? '') ?: null;
@@ -497,21 +449,18 @@ if ($method === 'PUT') {
         $jam_tutup = $lama['jam_tutup'];
     }
 
-    $no_telepon   = array_key_exists('no_telepon', $body) ? ($body['no_telepon'] ?: null) : $lama['no_telepon'];
+    $no_telepon = array_key_exists('no_telepon', $body) ? ($body['no_telepon'] ?: null) : $lama['no_telepon'];
 
-    // Validasi no_telepon jika diisi — hanya boleh angka, +, -, (, ), spasi
     if ($no_telepon !== null && !preg_match('/^[0-9+\-() ]+$/', $no_telepon)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Nomor telepon hanya boleh berisi angka"]);
         exit;
     }
 
-    // Foto: kalau dikirim pakai photo_url baru, kalau tidak pertahankan lama
     $photo_url = array_key_exists('photo_url', $body)
         ? (trim($body['photo_url']) ?: null)
         : $lama['photo_url'];
 
-    // Validasi field wajib
     if (empty($nama_kuliner) || empty($deskripsi) || empty($id_kategori) ||
         empty($nama_tempat)  || empty($alamat)    ||
         $latitude === ''     || $longitude === ''  || $harga === '') {
@@ -520,7 +469,6 @@ if ($method === 'PUT') {
         exit;
     }
 
-    // Validasi id_kategori
     if (!ctype_digit((string)$id_kategori)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "ID kategori tidak valid"]);
@@ -539,14 +487,12 @@ if ($method === 'PUT') {
         exit;
     }
 
-    // Validasi harga
     if (!is_numeric($harga) || (float)$harga < 0) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Harga tidak valid"]);
         exit;
     }
 
-    // Validasi koordinat
     if (!is_numeric($latitude) || !is_numeric($longitude)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Latitude dan longitude harus berupa angka"]);
@@ -563,14 +509,12 @@ if ($method === 'PUT') {
         exit;
     }
 
-    // Validasi photo_url jika diisi
     if ($photo_url !== null && !filter_var($photo_url, FILTER_VALIDATE_URL)) {
         http_response_code(400);
         echo json_encode(["status" => false, "message" => "Format URL foto tidak valid"]);
         exit;
     }
 
-    // Update dalam satu transaksi — dua UPDATE digabung agar tidak ada BEGIN/COMMIT terpisah
     $upd_kuliner = pg_query_params(
         $conn,
         'UPDATE kuliner
@@ -609,21 +553,21 @@ if ($method === 'PUT') {
         "status"  => true,
         "message" => "Kuliner berhasil diperbarui",
         "data"    => [
-            "id_tempat"    => (int)$id,
-            "id_kuliner"   => (int)$lama['id_kuliner'],
-            "nama_kuliner" => $nama_kuliner,
-            "deskripsi"    => $deskripsi,
-            "id_kategori"  => (int)$id_kategori,
-            "nama_tempat"  => $nama_tempat,
-            "alamat"       => $alamat,
-            "latitude"     => $latitude,
-            "longitude"    => $longitude,
-            "harga"        => $harga,
-            "jam_buka"     => $jam_buka,
-            "jam_tutup"    => $jam_tutup,
+            "id_tempat"       => (int)$id,
+            "id_kuliner"      => (int)$lama['id_kuliner'],
+            "nama_kuliner"    => $nama_kuliner,
+            "deskripsi"       => $deskripsi,
+            "id_kategori"     => (int)$id_kategori,
+            "nama_tempat"     => $nama_tempat,
+            "alamat"          => $alamat,
+            "latitude"        => $latitude,
+            "longitude"       => $longitude,
+            "harga"           => $harga,
+            "jam_buka"        => $jam_buka,
+            "jam_tutup"       => $jam_tutup,
             "jam_operasional" => ($jam_buka && $jam_tutup) ? "$jam_buka - $jam_tutup" : null,
-            "no_telepon"   => $no_telepon,
-            "photo_url"    => $photo_url
+            "no_telepon"      => $no_telepon,
+            "photo_url"       => $photo_url
         ]
     ]);
     exit;
@@ -631,7 +575,6 @@ if ($method === 'PUT') {
 
 // =============================================================================
 // DELETE — Hapus kuliner berdasarkan id_tempat (hard delete)
-// Menghapus ulasan & favorit terkait dalam satu transaksi agar konsisten
 // =============================================================================
 if ($method === 'DELETE') {
 
@@ -643,12 +586,9 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Cek kuliner ada
     $cek = pg_query_params(
         $conn,
-        "SELECT tk.id_tempat, tk.id_kuliner
-         FROM tempat_kuliner tk
-         WHERE tk.id_tempat = $1",
+        "SELECT tk.id_tempat, tk.id_kuliner FROM tempat_kuliner tk WHERE tk.id_tempat = $1",
         [$id]
     );
 
@@ -668,10 +608,8 @@ if ($method === 'DELETE') {
 
     $id_kuliner = $data['id_kuliner'];
 
-    // Hapus dalam transaksi: ulasan & favorit dulu, lalu tempat, lalu kuliner
     pg_query($conn, 'BEGIN');
 
-    // Hapus ulasan terkait
     $del_ulasan = pg_query_params($conn, 'DELETE FROM ulasan WHERE id_tempat = $1', [$id]);
     if (!$del_ulasan) {
         pg_query($conn, 'ROLLBACK');
@@ -680,7 +618,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Hapus favorit terkait
     $del_favorit = pg_query_params($conn, 'DELETE FROM favorit WHERE id_tempat = $1', [$id]);
     if (!$del_favorit) {
         pg_query($conn, 'ROLLBACK');
@@ -689,7 +626,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Hapus tempat kuliner
     $del_tempat = pg_query_params($conn, 'DELETE FROM tempat_kuliner WHERE id_tempat = $1', [$id]);
     if (!$del_tempat) {
         pg_query($conn, 'ROLLBACK');
@@ -698,7 +634,6 @@ if ($method === 'DELETE') {
         exit;
     }
 
-    // Hapus data kuliner jika tidak ada tempat lain yang mereferensikan
     $cek_lain = pg_query_params(
         $conn,
         'SELECT id_tempat FROM tempat_kuliner WHERE id_kuliner = $1 LIMIT 1',
