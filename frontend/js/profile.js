@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logoutButton").addEventListener("click", openLogoutConfirmation);
   document.getElementById("cancelLogoutButton").addEventListener("click", closeLogoutConfirmation);
   document.getElementById("confirmLogoutButton").addEventListener("click", logout);
+  document.getElementById("retryLogoutButton").addEventListener("click", logout);
   document.getElementById("finishLogoutButton").addEventListener("click", finishLogout);
   document.getElementById("logoutModal").addEventListener("click", handleLogoutOverlayClick);
   document.addEventListener("keydown", handleLogoutDialogKeydown);
@@ -123,6 +124,13 @@ function showConnectionError(message) {
     : message;
   modal.hidden = false;
   document.getElementById("retryConnectionButton").focus();
+}
+
+function showLogoutFailure() {
+  document.getElementById("logoutConfirmDialog").hidden = true;
+  document.getElementById("logoutSuccessDialog").hidden = true;
+  document.getElementById("logoutFailureDialog").hidden = false;
+  document.getElementById("retryLogoutButton").focus();
 }
 
 function renderProfile(user) {
@@ -247,7 +255,9 @@ async function changePassword(event) {
     clearPasswordValidation();
     showChangeResult(true, "");
   } catch (requestError) {
-    const detail = getRequestErrorMessage(requestError, "Silakan periksa data dan coba lagi.");
+    const detail = !navigator.onLine || requestError instanceof TypeError
+      ? "Periksa koneksi internet anda"
+      : getRequestErrorMessage(requestError, "Silakan periksa data dan coba lagi.");
     if (detail === "Kata sandi lama tidak sesuai") {
       setPasswordFieldError("currentPassword", "Kata sandi saat ini tidak sesuai.");
       currentPassword.focus();
@@ -262,8 +272,11 @@ async function changePassword(event) {
 async function logout() {
   const button = document.getElementById("confirmLogoutButton");
   const error = document.getElementById("logoutErrorMessage");
+  const retryButton = document.getElementById("retryLogoutButton");
+  const isRetry = !document.getElementById("logoutFailureDialog").hidden;
   button.disabled = true;
   document.getElementById("cancelLogoutButton").disabled = true;
+  if (isRetry) retryButton.disabled = true;
   error.hidden = true;
 
   try {
@@ -284,16 +297,18 @@ async function logout() {
     localStorage.clear();
     sessionStorage.clear();
     document.getElementById("logoutConfirmDialog").hidden = true;
+    document.getElementById("logoutFailureDialog").hidden = true;
     document.getElementById("logoutSuccessDialog").hidden = false;
     document.getElementById("finishLogoutButton").focus();
   } catch (logoutError) {
-    const isOffline = !navigator.onLine;
+    const isOffline = !navigator.onLine || logoutError instanceof TypeError;
     if (isOffline) {
-      closeLogoutConfirmation();
-      showConnectionError(OFFLINE_ERROR);
+      showLogoutFailure();
       return;
     }
 
+    document.getElementById("logoutFailureDialog").hidden = true;
+    document.getElementById("logoutConfirmDialog").hidden = false;
     error.textContent = getRequestErrorMessage(logoutError, "Gagal mengakhiri sesi. Silakan coba lagi.");
     error.hidden = false;
     button.textContent = "Coba lagi";
@@ -301,6 +316,7 @@ async function logout() {
   } finally {
     button.disabled = false;
     document.getElementById("cancelLogoutButton").disabled = false;
+    retryButton.disabled = false;
   }
 }
 
@@ -309,6 +325,7 @@ function openLogoutConfirmation() {
   const confirmButton = document.getElementById("confirmLogoutButton");
   document.getElementById("logoutConfirmDialog").hidden = false;
   document.getElementById("logoutSuccessDialog").hidden = true;
+  document.getElementById("logoutFailureDialog").hidden = true;
   document.getElementById("logoutErrorMessage").hidden = true;
   confirmButton.textContent = "OKE";
   confirmButton.disabled = false;
@@ -319,6 +336,7 @@ function openLogoutConfirmation() {
 
 function closeLogoutConfirmation() {
   document.getElementById("logoutModal").hidden = true;
+  document.getElementById("logoutFailureDialog").hidden = true;
   document.getElementById("logoutErrorMessage").hidden = true;
   document.getElementById("logoutButton").focus();
 }
@@ -480,7 +498,7 @@ function showChangeResult(success, detail, returnToNameEditor = false) {
   const message = document.getElementById("passwordResultMessage");
   dialog.classList.toggle("is-error", !success);
   icon.className = `fa-solid ${success ? "fa-circle-check" : "fa-circle-xmark"} password-result-icon`;
-  title.textContent = success ? "Perubahan berhasil disimpan" : "Perubahan gagal di simpan";
+  title.textContent = success ? "Perubahan berhasil di simpan" : "Perubahan gagal di simpan";
   message.textContent = detail;
   message.hidden = !detail;
   document.getElementById("passwordResultAction").textContent = success ? "Oke" : "Coba lagi";
@@ -623,8 +641,8 @@ function openRemovePhotoModal() {
   const resultSub = document.getElementById("removePhotoResultSub");
 
   document.getElementById("removePhotoConfirmMessage").textContent =
-    "Apakah Anda yakin ingin menghapus foto profil?";
-  confirmButton.textContent = "OKE";
+    "Apakah anda yakin ingin menghapus foto profile ?";
+  confirmButton.textContent = "Oke";
   confirmButton.disabled = false;
   document.getElementById("cancelRemovePhotoButton").disabled = false;
   resultButton.textContent = "Oke";
@@ -678,7 +696,10 @@ async function confirmRemovePhoto() {
     showPhotoRemoveResult(true);
   } catch (removeError) {
     console.error("[Profile] Gagal menghapus foto profil:", removeError);
-    showPhotoRemoveResult(false, getRequestErrorMessage(removeError, "Silakan coba lagi."));
+    const detail = !navigator.onLine || removeError instanceof TypeError
+      ? "Periksa koneksi internet anda"
+      : getRequestErrorMessage(removeError, "Silakan coba lagi.");
+    showPhotoRemoveResult(false, detail);
   } finally {
     isProfilePhotoUploading = false;
     editButton.disabled = false;
@@ -696,16 +717,18 @@ function showPhotoRemoveResult(success, detail = "") {
   const message = document.getElementById("removePhotoResultMessage");
   const sub = document.getElementById("removePhotoResultSub");
   const actionButton = document.getElementById("finishRemovePhotoButton");
+  const resultDialog = document.getElementById("removePhotoResultDialog");
 
   icon.className = `fa-solid ${success ? "fa-circle-check" : "fa-circle-xmark"} logout-success-icon`;
   icon.style.color = success ? "" : "#e53e3e";
-  message.textContent = `Foto profil ${success ? "berhasil" : "gagal"} dihapus`;
+  message.textContent = `Foto Profile ${success ? "berhasil" : "gagal"} di hapus`;
   sub.textContent = detail;
   sub.hidden = !detail;
   actionButton.textContent = success ? "Oke" : "Coba lagi";
+  resultDialog.classList.toggle("is-error", !success);
   modal.dataset.success = String(success);
   document.getElementById("removePhotoConfirmDialog").hidden = true;
-  document.getElementById("removePhotoResultDialog").hidden = false;
+  resultDialog.hidden = false;
 }
 
 function finishRemovePhoto() {

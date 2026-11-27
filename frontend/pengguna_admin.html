@@ -5,9 +5,9 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Daftar Pengguna | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
-    <link rel="stylesheet" href="css/pengguna_admin.css" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
+    <link rel="stylesheet" href="css/pengguna_admin.css?v=3" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,8 +15,8 @@
     <script src="js/env.js"></script>
     <script src="js/config.js?v=2"></script>
     <!-- Script Sidebar Terpusat -->
-    <script src="js/sidebar.js?v=5" defer></script>
-    <script src="js/pengguna_admin.js?v=responsive-pagination-1" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
+    <script src="js/pengguna_admin.js?v=responsive-pagination-3" defer></script>
   </head>
 
   <body>
@@ -49,7 +49,12 @@
 
         <main class="dashboard-content">
           <header class="users-heading">
-            <h1>Daftar Pengguna</h1>
+            <div class="users-title-with-back">
+              <a class="users-page-back" href="Dashboard_Admin.html" aria-label="Kembali ke Dashboard Admin">
+                <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+              </a>
+              <h1>Daftar Pengguna</h1>
+            </div>
           </header>
 
           <div class="users-search-container">
@@ -66,13 +71,21 @@
             <h2 id="usersErrorTitle">Koneksi Internet Terputus</h2>
             <p id="usersErrorMessage">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
             <button id="usersRetryButton" class="users-reload-button" type="button">
-              <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon>
+              <iconify-icon class="users-reload-icon-desktop" icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon>
+              <svg class="users-reload-icon-mobile" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13.5 5.5V2.8m0 0h-2.7m2.7 0-2 2A5.5 5.5 0 1 0 13.3 9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+              </svg>
               <span>Muat Ulang</span>
             </button>
           </section>
 
           <div id="usersEmpty" class="users-state-box" role="status" hidden>
-            <iconify-icon icon="mdi:account-group" aria-hidden="true"></iconify-icon>
+            <iconify-icon class="users-state-icon-desktop" icon="mdi:account-group" aria-hidden="true"></iconify-icon>
+            <svg class="users-state-icon-mobile" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="15" cy="12" r="5" fill="currentColor"></circle>
+              <circle cx="27" cy="13" r="4" fill="currentColor"></circle>
+              <path d="M5 31c0-6 4-10 10-10s10 4 10 10v2H5zm19-9c6-2 12 2 12 9v2H27v-2c0-4-1-7-3-9z" fill="currentColor"></path>
+            </svg>
             <h2>Belum ada pengguna</h2>
             <p>Belum ada pengguna yang terdaftar. Data pengguna yang mendaftar akan ditampilkan di halaman ini.</p>
           </div>

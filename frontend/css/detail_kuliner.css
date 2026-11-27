@@ -97,6 +97,14 @@ iconify-icon {
   display: block;
 }
 
+.detail-back-button {
+  display: none;
+}
+
+.detail-back-button iconify-icon {
+  font-size: 24px;
+}
+
 .food-detail-title {
   font-size: clamp(24px, 2.4vw, 34px);
   font-weight: 700;
@@ -323,6 +331,59 @@ iconify-icon {
   text-decoration: none;
   font-size: 12px;
   font-weight: 600;
+}
+
+@media (min-width: 641px) {
+  .bookmark-toast {
+    left: 5%;
+    width: 70%;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .bookmark-toast.show {
+    transform: translateY(0);
+  }
+
+  .bookmark-toast.is-error {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .bookmark-toast.is-error #bookmarkToastIcon,
+  .bookmark-toast.is-error #toastKelolaBtn {
+    display: none !important;
+  }
+
+  .toast-content-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .toast-content-wrapper > span {
+    white-space: nowrap;
+  }
+
+  .bookmark-toast.is-error .toast-content-wrapper {
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .toast-content-wrapper iconify-icon {
+    font-size: 16px;
+  }
+
+  .btn-toast-kelola {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 9px;
+  }
 }
 
 /* Tombol Bookmark Melayang di Foto */
@@ -887,6 +948,35 @@ iconify-icon {
 }
 
 @media (max-width: 640px) {
+  body.detail-page-loaded #navbar-container {
+    display: none !important;
+  }
+
+  body.detail-page-loaded .page-container {
+    margin: 0 auto 24px !important;
+    min-height: calc(100vh - 24px) !important;
+    padding: 30px 12px 32px !important;
+    border-radius: 0 0 16px 16px;
+  }
+
+  body.detail-page-loaded .detail-back-button {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 6;
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 12%);
+    cursor: pointer;
+  }
+
   .page-container {
     margin-top: 72px;
     min-height: calc(100vh - 72px);
@@ -948,6 +1038,13 @@ iconify-icon {
 
   .review-rating-inputs {
     justify-content: flex-start;
+  }
+}
+
+@media (min-width: 641px) {
+  #navbar-container > .navbar {
+    height: 84px;
+    min-height: 84px;
   }
 }
 
@@ -1398,16 +1495,56 @@ iconify-icon {
   }
 
   .bookmark-toast {
+    left: 5%;
+    width: 70%;
     max-width: calc(100% - 24px);
+    justify-content: space-between;
     gap: 8px;
     padding: 8px 10px;
     white-space: normal;
+    transform: translateY(20px);
+  }
+
+  .bookmark-toast.show {
+    transform: translateY(0);
+  }
+
+  .bookmark-toast.is-error {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .bookmark-toast.is-error #bookmarkToastIcon,
+  .bookmark-toast.is-error #toastKelolaBtn {
+    display: none !important;
   }
 
   .toast-content-wrapper {
+    flex: 1 1 auto;
     min-width: 0;
-    gap: 6px;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 9px;
+  }
+
+  .toast-content-wrapper > span {
+    white-space: nowrap;
+  }
+
+  .bookmark-toast.is-error .toast-content-wrapper {
+    justify-content: center;
+    text-align: center;
+    font-size: 8px;
+    font-weight: 500;
+  }
+
+  .toast-content-wrapper iconify-icon {
+    font-size: 14px;
+  }
+
+  .btn-toast-kelola {
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 8px;
   }
 
   .btn-toast-kelola {

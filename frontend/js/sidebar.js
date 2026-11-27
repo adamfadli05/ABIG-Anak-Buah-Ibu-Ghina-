@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!sidebarContainer) return;
 
   const currentDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
-  const sidebarUrl = `${window.location.origin}${currentDir}components/sidebar.html`;
+  const sidebarUrl = `${window.location.origin}${currentDir}components/sidebar.html?v=3`;
 
   let sidebarHtml = null;
 
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const adminApp = document.getElementById("adminApp");
     let topbar = document.querySelector(".main-panel > .topbar");
     let sidebarToggle = document.getElementById("sidebarToggle");
+    let sidebarCollapseButton = document.getElementById("sidebarCollapseButton");
     let sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
     if (topbar && !sidebarToggle) {
@@ -36,6 +37,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       sidebarToggle.setAttribute("aria-expanded", "true");
       sidebarToggle.innerHTML = '<iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>';
       topbar.prepend(sidebarToggle);
+    }
+
+    if (!sidebarCollapseButton) {
+      const sidebar = sidebarContainer.querySelector(".sidebar");
+      if (sidebar) {
+        sidebarCollapseButton = document.createElement("button");
+        sidebarCollapseButton.id = "sidebarCollapseButton";
+        sidebarCollapseButton.className = "sidebar-collapse-button";
+        sidebarCollapseButton.type = "button";
+        sidebarCollapseButton.setAttribute("aria-label", "Tutup menu");
+        sidebarCollapseButton.innerHTML = '<iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>';
+        sidebar.append(sidebarCollapseButton);
+      }
     }
 
     if (!sidebarBackdrop) {
@@ -67,6 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setSidebarOpen(Boolean(isCollapsed));
     });
 
+    sidebarCollapseButton?.addEventListener("click", () => setSidebarOpen(false));
     sidebarBackdrop?.addEventListener("click", () => setSidebarOpen(false));
 
     window.matchMedia("(max-width: 1024px)").addEventListener("change", (event) => {
@@ -98,20 +113,28 @@ function initLogoutHandler() {
     const modalHTML = `
         <div id="logoutModalOverlay" class="modal-overlay" hidden>
           <div id="logoutConfirmDialog" class="logout-dialog" role="alertdialog" aria-modal="true">
-            <p class="logout-dialog-message">Apakah anda ingin keluar ?</p>
+            <p class="logout-dialog-message">Apakah anda yakin ingin keluar ?</p>
             <div class="logout-dialog-actions">
               <button id="cancelLogoutBtn" class="button button-cancel" type="button">Batal</button>
               <button id="confirmLogoutBtn" class="button button-secondary" type="button">OKE</button>
             </div>
           </div>
           <div id="logoutSuccessDialog" class="logout-dialog logout-success-dialog" hidden>
-            <iconify-icon icon="mdi:check-circle" class="logout-success-icon" aria-hidden="true"></iconify-icon>
+            <svg class="logout-success-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" fill="#24a148"></circle>
+              <path d="m7 12.5 3.2 3.2 6.8-7" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
             <p class="logout-dialog-message">Anda berhasil keluar</p>
             <button id="closeLogoutSuccessBtn" class="logout-success-button" type="button">Oke</button>
           </div>
-          <div id="logoutErrorDialog" class="logout-dialog" hidden>
-            <p class="logout-error-message" id="logoutErrorMessage">Gagal keluar. Periksa koneksi internet.</p>
-            <button id="retryLogoutBtn" class="button button-secondary" type="button">Coba lagi</button>
+          <div id="logoutErrorDialog" class="logout-dialog logout-error-dialog" role="alertdialog" aria-modal="true" hidden>
+            <svg class="logout-error-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" fill="#e53935"></circle>
+              <path d="m8.5 8.5 7 7m0-7-7 7" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2"></path>
+            </svg>
+            <p class="logout-dialog-message logout-error-title">Anda gagal keluar</p>
+            <p class="logout-error-description" id="logoutErrorMessage">Periksa koneksi internet anda</p>
+            <button id="retryLogoutBtn" class="logout-success-button logout-retry-button" type="button">Coba lagi</button>
           </div>
         </div>
       `;
@@ -127,6 +150,7 @@ function initLogoutHandler() {
   const confirmBtn = document.getElementById("confirmLogoutBtn");
   const retryBtn = document.getElementById("retryLogoutBtn");
   const okSuccessBtn = document.getElementById("closeLogoutSuccessBtn");
+  const errorMessage = document.getElementById("logoutErrorMessage");
 
   function showState({ confirm, success, error }) {
     if (confirmDialog) confirmDialog.hidden = !confirm;
@@ -172,6 +196,11 @@ function initLogoutHandler() {
       showState({ confirm: false, success: true, error: false });
     } catch (error) {
       console.error("Logout error:", error);
+      if (errorMessage) {
+        errorMessage.textContent = !navigator.onLine || error instanceof TypeError
+          ? "Periksa koneksi internet anda"
+          : error.message || "Silakan coba lagi.";
+      }
       showState({ confirm: false, success: false, error: true });
     } finally {
       if (confirmBtn) confirmBtn.disabled = false;

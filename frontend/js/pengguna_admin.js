@@ -16,8 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableBody = document.getElementById("usersTableBody");
   const searchInput = document.getElementById("searchUsers");
   const searchContainer = document.querySelector(".users-search-container");
-  const sidebarToggle = document.getElementById("sidebarToggle");
-  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
   let currentUserPage = 1;
   let totalPagesFromBE = 1;
@@ -184,12 +182,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (emptyState) emptyState.hidden = !isEmpty || hasKeyword;
     if (noResultsState) noResultsState.hidden = !(isEmpty && hasKeyword);
-    if (searchContainer) searchContainer.hidden = isEmpty && !hasKeyword;
+    if (searchContainer) {
+      const keepSearchForMobileEmpty = window.matchMedia("(max-width: 700px)").matches;
+      searchContainer.hidden = isEmpty && !hasKeyword && !keepSearchForMobileEmpty;
+    }
     if (tableCard) tableCard.hidden = isEmpty;
 
     if (isEmpty) {
       if (tableBody) tableBody.replaceChildren();
-      if (paginationContainer && !hasKeyword) paginationContainer.innerHTML = "";
+      if (paginationContainer) {
+        if (window.matchMedia("(max-width: 700px)").matches) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.hidden = true;
+        } else if (!hasKeyword) {
+          paginationContainer.innerHTML = "";
+        }
+      }
       return;
     }
 
@@ -235,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalPages = Math.max(1, Number(totalPagesInput) || 1);
     if (totalPages <= 1) {
       paginationContainer.innerHTML = "";
+      if (window.matchMedia("(max-width: 700px)").matches) {
+        paginationContainer.hidden = true;
+      }
       return;
     }
 
@@ -289,7 +300,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tableCard) tableCard.hidden = true;
     if (searchContainer) searchContainer.hidden = true;
     const paginationContainer = document.getElementById("paginationContainer");
-    if (paginationContainer) paginationContainer.innerHTML = "";
+    if (paginationContainer) {
+      paginationContainer.innerHTML = "";
+      if (window.matchMedia("(max-width: 700px)").matches) {
+        paginationContainer.hidden = true;
+      }
+    }
 
     if (errorTitle) {
       errorTitle.textContent = "Koneksi Internet Terputus";
@@ -375,16 +391,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function setSidebarOpen(isOpen) {
-    const isMobile = window.matchMedia("(max-width: 700px)").matches;
-    if (adminApp) adminApp.classList.toggle("sidebar-collapsed", !isOpen);
-    if (sidebarToggle) {
-      sidebarToggle.setAttribute("aria-expanded", String(isOpen));
-      sidebarToggle.setAttribute("aria-label", isOpen ? "Tutup menu" : "Buka menu");
-    }
-    if (sidebarBackdrop) sidebarBackdrop.hidden = !isMobile || !isOpen;
-  }
-
   window.addEventListener("offline", () => {
     if (!readUsersCache()?.items?.length) {
       showOfflineState();
@@ -406,22 +412,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (retryButton) {
     retryButton.addEventListener("click", () => loadUsers(false, false));
   }
-
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener("click", () => {
-      setSidebarOpen(adminApp ? adminApp.classList.contains("sidebar-collapsed") : false);
-    });
-  }
-
-  if (sidebarBackdrop) {
-    sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
-  }
-
-  window.addEventListener("resize", () => {
-    if (sidebarBackdrop) {
-      sidebarBackdrop.hidden = !window.matchMedia("(max-width: 700px)").matches || (adminApp ? adminApp.classList.contains("sidebar-collapsed") : false);
-    }
-  });
 
   checkAdminAccessSilent();
 });

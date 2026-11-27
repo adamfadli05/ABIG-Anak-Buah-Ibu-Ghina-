@@ -60,6 +60,24 @@
   background-color: #fef2f2 !important;
 }
 
+@media (min-width: 769px) {
+  .photo-picker.input-error {
+    border-width: 1px !important;
+    border-radius: 10px !important;
+    background-color: #d9d9d9 !important;
+  }
+
+  .photo-picker.missing-photo-error {
+    height: 230px;
+    background-color: #fcecec !important;
+  }
+
+  .photo-picker.missing-photo-error + .photo-help {
+    margin-top: 4px;
+    color: #111827;
+  }
+}
+
 .photo-picker:focus-visible,
 .button-cancel:focus-visible,
 .button-primary:focus-visible {
@@ -94,6 +112,27 @@
 
 .photo-help.input-error-text {
   color: #ef4444;
+}
+
+@media (min-width: 1025px) {
+  .add-culinary-page .sidebar-collapse-button {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .add-culinary-page .form-alert-banner.photo-missing-alert {
+    width: min(100%, 420px);
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 4px auto 8px;
+  }
+
+  .add-culinary-page .form-alert-banner.photo-missing-alert span {
+    flex: 0 1 auto;
+    text-align: center;
+  }
 }
 
 /* Banner Peringatan Validasi */
@@ -437,10 +476,38 @@ input[type="number"] {
   opacity: 0.75;
 }
 
+.admin-page-back {
+  display: none;
+}
+
 /* Responsif Layar Kecil */
 @media (max-width: 768px) {
   .add-culinary-content {
     padding: 20px 16px;
+  }
+
+  .content-title-with-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .admin-page-back {
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    place-items: center;
+    border-radius: 50%;
+    background: #001b7d;
+    color: #fff;
+    font-size: 18px;
+    text-decoration: none;
+  }
+
+  .content-header-flex h1 {
+    font-size: 13px !important;
+    font-weight: 500;
   }
 
   .form-grid {
@@ -454,11 +521,40 @@ input[type="number"] {
 
   .form-actions {
     width: 100%;
+    justify-content: flex-end;
   }
 
   .button-cancel,
   .button-primary {
-    flex: 1;
-    padding: 10px 16px;
+    padding: 8px 16px;
+  }
+
+  /* Modal Hasil Simpan Mobile Sesuai Desain */
+  .save-result-dialog {
+    width: min(100%, 260px) !important;
+    padding: 20px 18px 14px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+  }
+
+  .save-result-dialog h2 {
+    font-size: 13px !important;
+    color: #001b7d !important;
+  }
+
+  .save-success-icon,
+  .save-error-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 18px !important;
+  }
+
+  .save-error-dialog p {
+    font-size: 10px !important;
+    color: #001b7d !important;
+  }
+
+  .save-result-action {
+    font-size: 11px !important;
   }
 }

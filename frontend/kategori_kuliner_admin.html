@@ -5,15 +5,15 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kategori Kuliner - Admin ManganYukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
-    <link rel="stylesheet" href="css/kategori_kuliner_admin.css" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
+    <link rel="stylesheet" href="css/kategori_kuliner_admin.css?v=3" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <!-- Iconify Icons -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="js/env.js"></script>
     <script src="js/config.js?v=2"></script>
-    <script src="js/sidebar.js?v=5" defer></script>
-    <script src="js/kategori_kuliner_admin.js" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
+    <script src="js/kategori_kuliner_admin.js?v=2" defer></script>
   </head>
   <body>
     <div id="adminApp" class="admin-app">
@@ -35,7 +35,12 @@
         <div class="dashboard-content">
           <!-- Toolbar & Judul Daftar Kategori -->
           <div class="content-header-flex">
-            <h2>Daftar Kategori</h2>
+            <div class="category-title-with-back">
+              <a class="category-page-back" href="Dashboard_Admin.html" aria-label="Kembali ke Dashboard Admin">
+                <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+              </a>
+              <h2>Daftar Kategori</h2>
+            </div>
             <button type="button" id="btnAddKategori" class="btn-primary-custom">
               <iconify-icon icon="lucide:plus" aria-hidden="true"></iconify-icon> Tambah Kategori
             </button>
@@ -43,7 +48,12 @@
 
           <!-- TANDA TAMBAHAN: Tampilan Koneksi Terputus Sesuai Figma -->
           <div id="tableErrorState" class="offline-state-container" hidden>
-            <iconify-icon icon="fluent:wifi-warning-20-filled" class="offline-wifi-icon" aria-hidden="true"></iconify-icon>
+            <iconify-icon icon="fluent:wifi-warning-20-filled" class="offline-wifi-icon offline-wifi-icon-desktop" aria-hidden="true"></iconify-icon>
+            <svg class="offline-wifi-icon-mobile" viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M4 13a25 25 0 0 1 32 0M9 19a17 17 0 0 1 18-3M14 25a9 9 0 0 1 8-2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+              <path d="M19 30h.02" stroke="currentColor" stroke-linecap="round" stroke-width="4"></path>
+              <path d="M30 22v8m0 4h.02" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+            </svg>
             <h3 id="tableErrorTitle" class="offline-title">Koneksi Internet Terputus</h3>
             <p id="tableErrorDesc" class="offline-desc">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
             <button type="button" id="btnReloadKategori" class="btn-reload-figma">
@@ -73,6 +83,16 @@
                 </tbody>
               </table>
             </div>
+          </div>
+          <div id="categoryEmptyMobile" class="category-empty-mobile" role="status" hidden>
+            <svg class="category-empty-icon" viewBox="0 0 32 32" aria-hidden="true">
+              <rect x="4" y="4" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+              <rect x="20" y="4" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+              <rect x="4" y="20" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+              <rect x="20" y="20" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+            </svg>
+            <h3>Belum ada kategori</h3>
+            <p>Belum ada kategori yang ditambahkan. Silakan tambahkan kategori untuk mulai mengisi daftar.</p>
           </div>
         </div>
       </section>
@@ -107,7 +127,10 @@
     <div id="successModal" class="success-modal-overlay" hidden>
       <div class="success-modal-dialog">
         <div class="success-icon-wrapper">
-          <iconify-icon icon="lucide:check" aria-hidden="true"></iconify-icon>
+          <iconify-icon class="category-state-icon-desktop" icon="lucide:check" aria-hidden="true"></iconify-icon>
+          <svg class="category-state-icon-mobile" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+          </svg>
         </div>
         <h3 id="successMessageText">Kategori berhasil disimpan</h3>
         <button type="button" id="closeSuccessBtn" class="btn-success-ok">Oke</button>
@@ -118,7 +141,10 @@
     <div id="errorModal" class="error-modal-overlay" hidden>
       <div class="error-modal-dialog">
         <div class="error-icon-wrapper">
-          <iconify-icon icon="lucide:x" aria-hidden="true"></iconify-icon>
+          <iconify-icon class="category-state-icon-desktop" icon="lucide:x" aria-hidden="true"></iconify-icon>
+          <svg class="category-state-icon-mobile" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+          </svg>
         </div>
         <h3 id="errorModalTitle">Kategori gagal disimpan</h3>
         <p id="errorMessageText">Periksa koneksi internet anda</p>
@@ -145,7 +171,11 @@
     <div id="categoryInUseModal" class="modal-overlay" hidden>
       <div class="success-modal-dialog">
         <div class="error-icon-wrapper">
-          <iconify-icon icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+          <iconify-icon class="category-state-icon-desktop" icon="tabler:alert-circle" aria-hidden="true"></iconify-icon>
+          <svg class="category-state-icon-mobile" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <path d="M12 7v6m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+          </svg>
         </div>
         <h3>Kategori Tidak Dapat Dihapus</h3>
         <p id="inUseMessageText">Kategori ini masih digunakan oleh beberapa kuliner.</p>

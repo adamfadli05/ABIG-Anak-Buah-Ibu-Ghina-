@@ -5,9 +5,9 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Kuliner | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
     <link rel="stylesheet" href="css/daftar_kuliner_admin.css?v=6" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,7 +16,7 @@
     <script src="js/config.js?v=2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="js/supabase-config.js" defer></script>
-    <script src="js/sidebar.js?v=5" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
     <script src="js/edit_kuliner_admin.js?v=1" defer></script>
   </head>
   <body>
@@ -61,7 +61,12 @@
           <!-- SECTION FORM EDIT KULINER -->
           <div id="editCulinarySection" class="edit-culinary-container" hidden>
             <div class="edit-header">
-              <h2>Edit Kuliner</h2>
+              <div class="content-title-with-back">
+                <a class="admin-page-back" href="daftar_kuliner_admin.html" aria-label="Kembali ke Daftar Kuliner">
+                  <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+                </a>
+                <h2>Edit Kuliner</h2>
+              </div>
             </div>
 
           <!-- Preview Foto & Tombol Ganti Foto -->

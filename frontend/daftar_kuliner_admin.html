@@ -5,9 +5,9 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Daftar Kuliner | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
-    <link rel="stylesheet" href="css/daftar_kuliner_admin.css?v=6" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
+    <link rel="stylesheet" href="css/daftar_kuliner_admin.css?v=10" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,8 +15,8 @@
     <script src="js/env.js"></script>
     <script src="js/config.js?v=2"></script>
     <!-- Script Sidebar Terpusat -->
-    <script src="js/sidebar.js?v=5" defer></script>
-    <script src="js/daftar_kuliner_admin.js?v=2" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
+    <script src="js/daftar_kuliner_admin.js?v=6" defer></script>
     <script src="js/kuliner-navigation.js" defer></script>
   </head>
   <body>
@@ -27,7 +27,7 @@
     </main>
 
     <!-- App Utama -->
-    <div id="adminApp" class="admin-app" hidden>
+    <div id="adminApp" class="admin-app culinary-list-page" hidden>
       <!-- PEMANGGILAN SIDEBAR DINAMIS -->
       <div id="sidebar-container"></div>
 
@@ -46,7 +46,12 @@
         <div class="dashboard-content">
           <!-- Header Bagian Halaman -->
           <div class="content-header-flex">
-            <h2>Daftar Kuliner</h2>
+            <div class="content-title-with-back">
+              <a class="admin-page-back" href="Dashboard_Admin.html" aria-label="Kembali ke Dashboard Admin">
+                <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+              </a>
+              <h2>Daftar Kuliner</h2>
+            </div>
             <button id="btnTambahKuliner" class="button button-primary">
               <iconify-icon icon="lucide:plus" aria-hidden="true"></iconify-icon>
               Tambah Kuliner
@@ -54,7 +59,7 @@
           </div>
 
           <!-- Kotak Pencarian -->
-          <div class="search-toolbar">
+          <div id="searchToolbar" class="search-toolbar">
             <div class="search-input-wrapper">
               <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon>
               <input type="text" id="searchKuliner" placeholder="Cari Kuliner" />
@@ -65,7 +70,7 @@
           <div class="table-card">
             <div id="tableLoading" class="notice" role="status">Memuat data kuliner...</div>
             <div class="table-responsive" id="tableWrapper" hidden>
-              <table>
+              <table class="kuliner-admin-table">
                 <thead>
                   <tr>
                     <th>No</th>
@@ -92,12 +97,40 @@
             <p>Kuliner Tidak Ditemukan</p>
           </div>
 
+          <div id="tableNoData" class="culinary-no-data-state" role="status" hidden>
+            <svg class="culinary-no-data-icon" viewBox="0 0 36 36" aria-hidden="true">
+              <rect width="36" height="36" rx="2" fill="#858585"></rect>
+              <path d="M10 7v9m-3-9v5a3 3 0 0 0 6 0V7m-3 8v14m10-22c-2 3-3 7-3 11h7c0-4-1-8-3-11v22" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+            <h3>Belum ada kuliner</h3>
+            <p>Belum ada kuliner yang ditambahkan.<br />Silakan tambahkan kuliner untuk mulai mengisi daftar.</p>
+          </div>
+
           <div id="tableError" class="culinary-error-state" role="alert" hidden>
-            <iconify-icon icon="fluent:wifi-warning-20-filled" width="50" height="50" aria-hidden="true"></iconify-icon>
-            <h3>Koneksi Internet Terputus</h3>
-            <p>Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+            <iconify-icon
+              class="culinary-error-icon-desktop"
+              icon="fluent:wifi-warning-20-filled"
+              width="50"
+              height="50"
+              aria-hidden="true"
+            ></iconify-icon>
+            <svg class="culinary-error-icon-mobile" viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M4 13a25 25 0 0 1 32 0M9 19a17 17 0 0 1 18-3M14 25a9 9 0 0 1 8-2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+              <path d="M19 30h.02" stroke="currentColor" stroke-linecap="round" stroke-width="4"></path>
+              <path d="M30 22v8m0 4h.02" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+            </svg>
+            <h3 id="tableErrorTitle">Koneksi Internet Terputus</h3>
+            <p id="tableErrorMessage">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
             <button id="tableRetryButton" class="button button-primary" type="button">
-              <iconify-icon icon="bitcoin-icons:refresh-filled" aria-hidden="true"></iconify-icon> Muat Ulang
+              <iconify-icon
+                class="table-reload-icon-desktop"
+                icon="bitcoin-icons:refresh-filled"
+                aria-hidden="true"
+              ></iconify-icon>
+              <svg class="table-reload-icon-mobile" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13.5 5.5V2.8m0 0h-2.7m2.7 0-2 2A5.5 5.5 0 1 0 13.3 9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+              </svg>
+              Muat Ulang
             </button>
           </div>
         </div>

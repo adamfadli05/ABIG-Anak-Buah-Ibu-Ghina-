@@ -8,7 +8,7 @@
 
     <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css?v=responsive-home-1" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/responsive.css?v=4" />
 
     <style>
       .map-banner {
@@ -199,6 +199,30 @@
         display: -webkit-box !important;
         -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
+      }
+      @media (max-width: 700px) {
+        .gm-style-iw-c {
+          max-width: 150px !important;
+          padding: 10px !important;
+          border-radius: 14px !important;
+        }
+        .map-popup-card {
+          width: 130px !important;
+          max-width: 130px !important;
+        }
+        .map-popup-img {
+          height: 52px !important;
+          border-radius: 12px !important;
+          margin-bottom: 5px !important;
+        }
+        .map-popup-title {
+          margin-bottom: 3px !important;
+          font-size: 10px !important;
+        }
+        .map-popup-address {
+          font-size: 8px !important;
+          line-height: 1.2 !important;
+        }
       }
       .recommendations-section {
         margin: 20px 0 28px;
@@ -924,7 +948,7 @@
     </script>
 
     <!-- 2. Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHTH_5addYM6qrSlMYvbb-38WBQDe6_ms&callback=initMap" onerror="showMapError()" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxDQISpWFVekTn9vmVP3D16LUecysum0M&callback=initMap" onerror="showMapError()" async defer></script>
 
     <!-- 3. Styling Fallback Error Box -->
     <style>

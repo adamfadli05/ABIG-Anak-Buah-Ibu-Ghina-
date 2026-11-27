@@ -1,43 +1,41 @@
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-img,
-iconify-icon,
-table,
-iframe,
-video {
-  max-width: 100%;
-}
-
-.navbar,
-.topbar,
-.main-panel,
-.page-container,
-.profile-page,
-.detail-content,
-.dashboard-content {
-  min-width: 0;
-}
-
-.table-responsive,
-.users-table-scroll,
-.table-card,
-.users-table-card,
-.category-section {
-  max-width: 100%;
-  -webkit-overflow-scrolling: touch;
-}
-
-.pagination-container,
-.pagination-arrow,
-.pagination-number {
-  flex-wrap: wrap;
-}
-
 @media (max-width: 1024px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  iconify-icon,
+  table,
+  iframe,
+  video {
+    max-width: 100%;
+  }
+
+  .navbar,
+  .topbar,
+  .main-panel,
+  .page-container,
+  .profile-page,
+  .detail-content,
+  .dashboard-content {
+    min-width: 0;
+  }
+
+  .table-responsive,
+  .users-table-scroll,
+  .table-card,
+  .users-table-card,
+  .category-section {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pagination-container {
+    flex-wrap: wrap;
+  }
+
   .admin-app {
     position: relative;
   }
@@ -102,10 +100,6 @@ video {
   }
 }
 @media (min-width: 361px) and (max-width: 430px) {
-  body {
-    min-width: 361px;
-  }
-
   .navbar {
     height: 84px !important;
     min-height: 84px !important;
@@ -121,7 +115,6 @@ video {
   }
 
   .page-container,
-  .profile-page,
   .detail-content {
     width: 100% !important;
     max-width: 100% !important;
@@ -213,5 +206,138 @@ video {
   table,
   .users-table {
     min-width: 720px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar #navUserName {
+    display: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #adminApp .sidebar {
+    width: min(180px, 62vw) !important;
+  }
+
+  #adminApp .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  #adminApp .culinary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #logoutModalOverlay:not([hidden]) {
+    padding: 16px !important;
+  }
+
+  #logoutModalOverlay .logout-dialog {
+    width: min(260px, calc(100vw - 32px)) !important;
+    min-height: 140px !important;
+    padding: 16px 18px 12px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
+  }
+
+  #logoutModalOverlay #logoutConfirmDialog .logout-dialog-message {
+    max-width: 180px !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+  }
+
+  #logoutModalOverlay #logoutConfirmDialog {
+    justify-content: center !important;
+    gap: 14px !important;
+  }
+
+  #logoutModalOverlay .logout-dialog-actions {
+    width: auto !important;
+    gap: 16px !important;
+    margin-top: 0 !important;
+  }
+
+  #logoutModalOverlay .logout-dialog-actions button {
+    flex: 0 0 70px !important;
+    min-height: 26px !important;
+    padding: 0 8px !important;
+    border-radius: 0 !important;
+    font-size: 10px !important;
+  }
+
+  #logoutModalOverlay .logout-success-dialog,
+  #logoutModalOverlay .logout-error-dialog {
+    min-height: 140px !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+    padding: 16px 18px 12px !important;
+  }
+
+  #logoutModalOverlay .logout-success-icon,
+  #logoutModalOverlay .logout-error-icon {
+    width: 26px !important;
+    height: 26px !important;
+    margin: 0 !important;
+    font-size: 26px !important;
+  }
+
+  #logoutModalOverlay .logout-success-dialog .logout-dialog-message,
+  #logoutModalOverlay .logout-error-title {
+    max-width: 240px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+  }
+
+  #logoutModalOverlay .logout-error-description {
+    margin: 0 !important;
+    color: #001b7d !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+  }
+
+  #logoutModalOverlay .logout-success-button {
+    align-self: flex-end !important;
+    margin-top: auto !important;
+    padding: 0 4px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #adminApp .kuliner-admin-table {
+    min-width: 0 !important;
+  }
+}
+
+#adminApp .sidebar .sidebar-collapse-button {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  #adminApp .sidebar .sidebar-collapse-button {
+    position: absolute;
+    top: 12px;
+    right: -13px;
+    bottom: auto;
+    left: auto;
+    z-index: 1002;
+    display: grid;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    min-height: 26px;
+    margin: 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 25%);
+    color: #001b7d;
+    cursor: pointer;
+    font-size: 22px;
   }
 }

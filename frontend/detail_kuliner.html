@@ -6,8 +6,8 @@
     <title>Detail Kuliner | Mangan Yukkk</title>
 
     <!-- CSS Eksternal -->
-    <link rel="stylesheet" href="css/detail_kuliner.css?v=responsive-user-detail-1" />
-    <link rel="stylesheet" href="css/responsive.css?v=1" />
+    <link rel="stylesheet" href="css/detail_kuliner.css?v=responsive-user-detail-6" />
+    <link rel="stylesheet" href="css/responsive.css?v=4" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -95,11 +95,14 @@
         <div class="detail-left-col">
           <div class="food-photo-container" style="position: relative">
             <img id="foodPhoto" class="food-detail-photo" src="" alt="Foto Kuliner" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+            <button id="detailBackButton" class="detail-back-button" type="button" aria-label="Kembali">
+              <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+            </button>
 
             <!-- Kotak Pesan Validasi / Toast Sesuai Figma -->
-            <div id="bookmarkToast" class="bookmark-toast">
+            <div id="bookmarkToast" class="bookmark-toast" role="status" aria-live="polite" aria-atomic="true">
               <div class="toast-content-wrapper">
-                <iconify-icon icon="material-symbols:check-circle"></iconify-icon>
+                <iconify-icon id="bookmarkToastIcon" icon="material-symbols:check-circle" aria-hidden="true"></iconify-icon>
                 <span id="toastText">Kuliner Tersimpan</span>
               </div>
               <a href="#" id="toastKelolaBtn" class="btn-toast-kelola">Kelola</a>
@@ -308,6 +311,7 @@
 
         const detailContent = document.getElementById("detailContent");
         const errorState = document.getElementById("errorState");
+        const detailBackButton = document.getElementById("detailBackButton");
         const reviewForm = document.getElementById("reviewForm");
         const reviewComment = document.getElementById("reviewComment");
         const reviewRatingInputs = Array.from(reviewForm.querySelectorAll('input[name="rating"]'));
@@ -328,6 +332,17 @@
         const reviewDeleteModal = document.getElementById("reviewDeleteModal");
         const reviewDeleteConfirm = document.getElementById("reviewDeleteConfirm");
         const reviewDeleteResult = document.getElementById("reviewDeleteResult");
+
+        if (detailBackButton) {
+          detailBackButton.addEventListener("click", () => {
+            const previousPage = document.referrer;
+            if (previousPage && new URL(previousPage).origin === window.location.origin) {
+              window.history.back();
+            } else {
+              window.location.href = "index.html";
+            }
+          });
+        }
         const reviewDeleteConfirmButton = document.getElementById("reviewDeleteConfirmButton");
         const reviewDeleteCancel = document.getElementById("reviewDeleteCancel");
         const reviewDeleteResultAction = document.getElementById("reviewDeleteResultAction");
@@ -685,6 +700,7 @@
           ulasanList = result.ulasan || [];
           reviewTotalPages = Math.ceil(ulasanList.length / reviewsPerPage);
 
+          document.body.classList.add("detail-page-loaded");
           if (detailContent) detailContent.hidden = false;
           if (errorState) errorState.style.display = "none";
 
@@ -1260,6 +1276,7 @@
           });
         } catch (error) {
           console.error("Gagal memuat detail kuliner dari backend:", error);
+          document.body.classList.remove("detail-page-loaded");
           if (detailContent) detailContent.hidden = true;
           if (errorState) errorState.style.display = "flex";
         }
@@ -1308,10 +1325,10 @@
                   isSavedState = true;
                   updateBookmarkUI(true);
                   toastText.textContent = "Kuliner Tersimpan";
-                  showToastMessage();
+                  showToastMessage(true);
                 } else {
-                  toastText.textContent = resData.message || "Gagal menyimpan";
-                  showToastMessage();
+                  console.error("Gagal menyimpan kuliner ke favorit:", resData.message || res.statusText);
+                  showBookmarkFailure(resData.message || "Gagal menyimpan");
                 }
               } else {
                 const res = await fetch(`${BASE_URL}/api/favorit.php`, {
@@ -1332,16 +1349,15 @@
                   isSavedState = false;
                   updateBookmarkUI(false);
                   toastText.textContent = "Kuliner Dihapus";
-                  showToastMessage();
+                  showToastMessage(true);
                 } else {
-                  toastText.textContent = resData.message || "Gagal menghapus";
-                  showToastMessage();
+                  console.error("Gagal menghapus kuliner dari favorit:", resData.message || res.statusText);
+                  showBookmarkFailure(resData.message || "Gagal menghapus");
                 }
               }
             } catch (err) {
               console.error("Error bookmarking:", err);
-              toastText.textContent = "Terjadi kesalahan koneksi";
-              showToastMessage();
+              showBookmarkFailure("Terjadi kesalahan koneksi");
             } finally {
               btnBookmark.disabled = false;
             }
@@ -1380,12 +1396,23 @@
           }
         }
 
-        function showToastMessage() {
+        function showToastMessage(isSuccess) {
           if (!bookmarkToast) return;
+          bookmarkToast.classList.toggle("is-error", !isSuccess);
           bookmarkToast.classList.add("show");
           setTimeout(() => {
             bookmarkToast.classList.remove("show");
           }, 3000);
+        }
+
+        function showBookmarkFailure(fallbackMessage) {
+          const usesDesignValidation =
+            window.matchMedia("(max-width: 430px)").matches ||
+            window.matchMedia("(min-width: 641px)").matches;
+          toastText.textContent = usesDesignValidation
+            ? "Terjadi Kesalahan. Harap Coba Lagi"
+            : fallbackMessage;
+          showToastMessage(!usesDesignValidation);
         }
       })();
 

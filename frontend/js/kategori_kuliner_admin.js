@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableError = document.getElementById("tableError");
   const tableWrapper = document.getElementById("tableWrapper");
   const tableEmpty = document.getElementById("tableEmpty");
+  const categoryEmptyMobile = document.getElementById("categoryEmptyMobile");
   const kategoriTableBody = document.getElementById("kategoriTableBody");
   const tableErrorState = document.getElementById("tableErrorState");
   const tableErrorTitle = document.getElementById("tableErrorTitle");
@@ -47,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let kategoriData = [];
   let selectedDeleteId = null;
   let activeErrorAction = null; // Melacak aksi terakhir untuk tombol Coba Lagi
+  const isMobileCategoryLayout = () => window.matchMedia("(max-width: 480px)").matches;
 
   function readKategoriCache() {
     try {
@@ -103,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fungsi menampilkan UI Koneksi Terputus Sesuai Figma
   function showTableErrorUI(isOffline) {
     if (tableCardContainer) tableCardContainer.hidden = true;
+    if (categoryEmptyMobile) categoryEmptyMobile.hidden = true;
     if (btnAddKategori) btnAddKategori.hidden = true;
     if (tableErrorState) {
       if (tableErrorTitle) {
@@ -187,14 +190,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnAddKategori) btnAddKategori.hidden = false;
 
     if (!data || data.length === 0) {
-      if (tableCardContainer) tableCardContainer.hidden = false;
+      const showMobileEmpty = isMobileCategoryLayout();
+      if (tableCardContainer) tableCardContainer.hidden = showMobileEmpty;
       if (tableWrapper) tableWrapper.hidden = true;
-      if (tableEmpty) tableEmpty.hidden = false;
+      if (tableEmpty) tableEmpty.hidden = showMobileEmpty;
+      if (categoryEmptyMobile) categoryEmptyMobile.hidden = !showMobileEmpty;
       return;
     }
 
     if (tableCardContainer) tableCardContainer.hidden = false;
     if (tableEmpty) tableEmpty.hidden = true;
+    if (categoryEmptyMobile) categoryEmptyMobile.hidden = true;
     if (tableWrapper) tableWrapper.hidden = false;
 
     const fragment = document.createDocumentFragment();

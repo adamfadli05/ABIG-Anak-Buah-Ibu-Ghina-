@@ -3,6 +3,9 @@
   const adminApp = document.getElementById("adminApp");
   const authState = document.getElementById("authState");
   const authRetryButton = document.getElementById("authRetryButton");
+  const dashboardContent = document.getElementById("dashboardContent");
+  const dashboardOfflineState = document.getElementById("dashboardOfflineState");
+  const dashboardReloadButton = document.getElementById("dashboardReloadButton");
   const summaryCards = document.getElementById("summaryCards");
   const totalCulinary = document.getElementById("totalCulinary");
   const totalCategories = document.getElementById("totalCategories");
@@ -17,6 +20,16 @@
   let allKulinerData = [];
   let currentAdminPage = 1;
   const itemsPerPageAdmin = 20;
+
+  function showDashboardOffline() {
+    if (dashboardContent) dashboardContent.hidden = true;
+    if (dashboardOfflineState) dashboardOfflineState.hidden = false;
+  }
+
+  function hideDashboardOffline() {
+    if (dashboardOfflineState) dashboardOfflineState.hidden = true;
+    if (dashboardContent) dashboardContent.hidden = false;
+  }
 
   function readDashboardCache() {
     try {
@@ -60,6 +73,11 @@
   async function checkAdminAccess() {
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
+    if (!navigator.onLine) {
+      showDashboardOffline();
+      return;
+    }
+    hideDashboardOffline();
 
     const cached = readDashboardCache();
     if (cached) {
@@ -272,11 +290,26 @@
     if (summaryCards) summaryCards.setAttribute("aria-busy", "true");
 
     try {
+      if (!navigator.onLine) {
+        showDashboardOffline();
+        return;
+      }
+
       const [dashSettled, culinarySettled] = await Promise.allSettled([
         getJson(`${API_BASE_URL}/api/admin/dashboard.php`),
         getJson(`${API_BASE_URL}/api/tempat_kuliner.php`),
       ]);
 
+      const requestResults = [dashSettled, culinarySettled];
+      const networkFailures = requestResults.filter(
+        (result) => result.status === "rejected" && result.reason instanceof TypeError
+      ).length;
+      if (!navigator.onLine || networkFailures === requestResults.length) {
+        showDashboardOffline();
+        return;
+      }
+
+      hideDashboardOffline();
       let nextSummary = cachedData?.summary || null;
       let nextCulinary = Array.isArray(cachedData?.culinary) ? cachedData.culinary : null;
 
@@ -323,9 +356,12 @@
   }
 
   if (authRetryButton) authRetryButton.addEventListener("click", checkAdminAccess);
+  if (dashboardReloadButton) {
+    dashboardReloadButton.addEventListener("click", () => window.location.reload());
+  }
 
   window.addEventListener("offline", () => {
-    if (adminApp && !adminApp.hidden) loadDashboardSummary(readDashboardCache());
+    if (adminApp && !adminApp.hidden) showDashboardOffline();
   });
   window.addEventListener("online", () => {
     if (adminApp && !adminApp.hidden) checkAdminAccess();

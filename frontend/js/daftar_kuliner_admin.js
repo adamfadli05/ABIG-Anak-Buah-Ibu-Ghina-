@@ -10,8 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableCard = document.querySelector(".table-card");
   const tableLoading = document.getElementById("tableLoading");
   const tableError = document.getElementById("tableError");
+  const tableErrorTitle = document.getElementById("tableErrorTitle");
+  const tableErrorMessage = document.getElementById("tableErrorMessage");
   const tableWrapper = document.getElementById("tableWrapper");
   const tableEmpty = document.getElementById("tableEmpty");
+  const tableNoData = document.getElementById("tableNoData");
+  const searchToolbar = document.getElementById("searchToolbar");
+  const addCulinaryButton = document.getElementById("btnTambahKuliner");
   const kulinerTableBody = document.getElementById("kulinerTableBody");
   const searchInput = document.getElementById("searchKuliner");
   const tableRetryButton = document.getElementById("tableRetryButton");
@@ -95,15 +100,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showTableConnectionLost() {
     const paginationContainer = document.getElementById("paginationContainer");
+    const isMobileLayout = window.matchMedia("(max-width: 480px)").matches;
     if (tableLoading) tableLoading.hidden = true;
     if (tableWrapper) tableWrapper.hidden = true;
     if (tableCard) tableCard.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
+    if (tableNoData) tableNoData.hidden = true;
+    if (searchToolbar) searchToolbar.hidden = isMobileLayout;
+    if (addCulinaryButton) addCulinaryButton.hidden = isMobileLayout;
     if (paginationContainer) {
       paginationContainer.innerHTML = "";
       paginationContainer.hidden = true;
     }
     if (tableError) tableError.hidden = false;
+    if (tableErrorTitle) tableErrorTitle.textContent = "Koneksi Internet Terputus";
+    if (tableErrorMessage) {
+      tableErrorMessage.textContent = "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
+    }
+  }
+
+  function showTableRequestError(error) {
+    showTableConnectionLost();
+    if (tableErrorTitle) tableErrorTitle.textContent = "Daftar Kuliner Gagal Dimuat";
+
+    const status = error instanceof Error ? error.message.match(/HTTP \d+/) : null;
+    if (tableErrorMessage) {
+      tableErrorMessage.textContent = status
+        ? `Server mengembalikan ${status[0]}. Periksa backend dan database lokal, lalu coba lagi.`
+        : "Backend lokal gagal memuat data. Periksa sesi Admin dan database, lalu coba lagi.";
+    }
   }
 
   async function checkAdminAccessSilent() {
@@ -262,6 +287,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tableError) tableError.hidden = true;
       if (tableWrapper) tableWrapper.hidden = true;
       if (tableEmpty) tableEmpty.hidden = true;
+      if (tableNoData) tableNoData.hidden = true;
+      if (searchToolbar) searchToolbar.hidden = false;
+      if (addCulinaryButton) addCulinaryButton.hidden = false;
       if (paginationContainer) paginationContainer.innerHTML = "";
     }
 
@@ -272,7 +300,19 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Gagal mengambil data dari server.");
+      if (!response.ok) {
+        if (
+          window.matchMedia("(max-width: 480px)").matches &&
+          (response.status === 401 || response.status === 403)
+        ) {
+          localStorage.removeItem("user");
+          localStorage.removeItem("role");
+          localStorage.removeItem("admin_logged_in");
+          window.location.replace("index.html");
+          return;
+        }
+        throw new Error(`Gagal mengambil data dari server (HTTP ${response.status}).`);
+      }
 
       const result = await response.json();
       const rawData = Array.isArray(result.data)
@@ -299,8 +339,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("Error fetching culinary data:", error);
-      if (!navigator.onLine || error instanceof TypeError || !initialData || initialData.length === 0) {
+      if (!navigator.onLine || error instanceof TypeError) {
         showTableConnectionLost();
+      } else if (!initialData || initialData.length === 0) {
+        if (window.matchMedia("(max-width: 480px)").matches) {
+          showTableRequestError(error);
+        } else {
+          showTableConnectionLost();
+        }
       }
     }
   }
@@ -327,7 +373,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!filteredData || filteredData.length === 0) {
       if (tableCard) tableCard.hidden = true;
-      if (tableEmpty) tableEmpty.hidden = false;
+      const showNoData =
+        window.matchMedia("(max-width: 480px)").matches && !hasKeyword && culinaryData.length === 0;
+      if (tableEmpty) tableEmpty.hidden = showNoData;
+      if (tableNoData) tableNoData.hidden = !showNoData;
+      if (searchToolbar) searchToolbar.hidden = showNoData;
+      if (addCulinaryButton) {
+        addCulinaryButton.hidden = window.matchMedia("(max-width: 480px)").matches && hasKeyword;
+      }
       if (paginationContainer) {
         paginationContainer.innerHTML = "";
         paginationContainer.hidden = true;
@@ -337,6 +390,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tableCard) tableCard.hidden = false;
     if (tableEmpty) tableEmpty.hidden = true;
+    if (tableNoData) tableNoData.hidden = true;
+    if (searchToolbar) searchToolbar.hidden = false;
+    if (addCulinaryButton) addCulinaryButton.hidden = false;
     if (tableWrapper) tableWrapper.hidden = false;
     if (kulinerTableBody) kulinerTableBody.replaceChildren();
 
