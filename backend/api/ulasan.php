@@ -476,7 +476,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     }
 
     http_response_code(200);
-    echo json_encode(["status" => true, "message" => "Ulasan berhasil diubah", "id_ulasan" => $id_ulasan]);
+    echo json_encode([
+        "status"    => true,
+        "message"   => "Ulasan berhasil diubah",
+        "id_ulasan" => $id_ulasan,
+        "komentar"  => $komentar_baru,
+        "rating"    => $rating_baru
+    ]);
     exit;
 }
 
