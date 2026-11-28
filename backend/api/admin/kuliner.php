@@ -440,7 +440,7 @@ if ($method === 'PUT') {
     $longitude    = trim((string)($body['longitude'] ?? $lama['longitude']));
     $harga        = trim((string)($body['harga']     ?? $lama['harga']));
 
-    if (array_key_exists('jam_operasional', $body) && $body['jam_operasional'] !== '') {
+    if (array_key_exists('jam_operasional', $body) && $body['jam_operasional'] !== '' && $body['jam_operasional'] !== null) {
         $parts     = explode('-', $body['jam_operasional'], 2);
         $jam_buka  = trim($parts[0] ?? '') ?: null;
         $jam_tutup = trim($parts[1] ?? '') ?: null;
