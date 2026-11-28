@@ -8,6 +8,7 @@
 
     <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css?v=responsive-home-1" />
+    <link rel="stylesheet" href="css/responsive.css?v=4" />
 
     <style>
       .map-banner {
@@ -17,9 +18,39 @@
       #map {
         width: 100% !important;
         height: 100% !important;
+        min-height: 180px;
         margin: 0 !important;
         border-radius: inherit !important;
         background-color: #e0e0e0;
+      }
+      .map-error-box {
+        width: 100%;
+        height: 100%;
+        min-height: 180px;
+        background-color: #d9d9d9;
+        border: 2.5px solid #0052cc;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      .map-error-title {
+        color: #0b1a50;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      .map-error-btn {
+        background: transparent;
+        border: none;
+        color: #7a7a7a;
+        font-size: 13px;
+        text-decoration: underline;
+        cursor: pointer;
+        padding: 0;
       }
       #responseModal {
         display: none;
@@ -50,7 +81,6 @@
         box-sizing: border-box !important;
         overflow: hidden !important;
       }
-
       #responseModal .modal-text {
         font-family: "Inter", sans-serif !important;
         font-size: 16px !important;
@@ -88,11 +118,9 @@
         cursor: pointer !important;
         transition: opacity 0.2s ease !important;
       }
-
       .category-btn:hover {
         opacity: 0.9 !important;
       }
-
       .category-btn.active {
         background-color: #001b7d !important;
         color: #ffffff !important;
@@ -108,7 +136,6 @@
         gap: 10px;
         margin-top: 30px;
       }
-
       .pagination-arrow {
         background-color: #ffffff;
         color: #001b7d;
@@ -122,20 +149,17 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
-
       .pagination-arrow:hover,
       .pagination-arrow:active {
         background-color: #001b7d;
         color: #ffffff;
       }
-
       .pagination-arrow:disabled {
         opacity: 0.3;
         cursor: not-allowed;
         background-color: #ffffff;
         color: #001b7d;
       }
-
       .pagination-number {
         background: none;
         border: none;
@@ -147,11 +171,9 @@
         padding: 2px 4px;
         transition: all 0.2s ease;
       }
-
       .pagination-number:hover {
         color: #001b7d;
       }
-
       .pagination-number.active {
         color: #001b7d !important;
         font-weight: 700 !important;
@@ -198,6 +220,30 @@
         display: -webkit-box !important;
         -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
+      }
+      @media (max-width: 700px) {
+        .gm-style-iw-c {
+          max-width: 150px !important;
+          padding: 10px !important;
+          border-radius: 14px !important;
+        }
+        .map-popup-card {
+          width: 130px !important;
+          max-width: 130px !important;
+        }
+        .map-popup-img {
+          height: 52px !important;
+          border-radius: 12px !important;
+          margin-bottom: 5px !important;
+        }
+        .map-popup-title {
+          margin-bottom: 3px !important;
+          font-size: 10px !important;
+        }
+        .map-popup-address {
+          font-size: 8px !important;
+          line-height: 1.2 !important;
+        }
       }
       .recommendations-section {
         margin: 20px 0 28px;
@@ -280,7 +326,7 @@
     <!-- File JavaScript External -->
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
-    <script src="js/navbar.js?v=session-api"></script>
+    <script src="js/navbar.js?v=mobile-nav-1"></script>
 
     <script>
       window.map = null;
@@ -289,21 +335,40 @@
       window.allKulinerMaster = [];
       window.cachedTempat = null;
       window.cachedKuliner = null;
+      window.cachedKategori = null;
       window.selectedCategory = "semua";
       window.currentPage = 1;
       window.itemsPerPage = 20;
+
+      let _inflightBundlePromise = null;
+      let _inflightKategoriPromise = null;
+      let _kulinerLoading = false;
+      let _mapInitialized = false;
+
+      function clearMarkers() {
+        if (Array.isArray(window.markers)) {
+          window.markers.forEach((marker) => {
+            if (marker && typeof marker.setMap === "function") {
+              marker.setMap(null);
+            }
+          });
+        }
+        window.markers = [];
+      }
 
       function renderMapErrorUI() {
         const mapElement = document.getElementById("map");
         if (!mapElement) return;
 
-        mapElement.style.cssText += ";position: relative !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important;";
-
         mapElement.innerHTML = `
-          <h4 style="margin: 0 0 6px 0; padding: 0; font-size: 16px; font-weight: 700; color: #001b7d; line-height: 1.2; text-align: center;">Peta Gagal Di Muat</h4>
-          <button onclick="window.location.reload()" style="background: transparent; border: none; color: #8a8a8a; font-size: 14px; font-weight: 400; text-decoration: underline; cursor: pointer; padding: 0; margin: 0; outline: none; line-height: 1.2;">Coba lagi</button>
+          <div class="map-error-box">
+            <div class="map-error-title">Peta Gagal Di Muat</div>
+            <button type="button" class="map-error-btn" onclick="window.location.reload()">Coba lagi</button>
+          </div>
         `;
       }
+
+      window.showMapError = renderMapErrorUI;
 
       window.gm_authFailure = function () {
         renderMapErrorUI();
@@ -314,12 +379,14 @@
       });
 
       window.addEventListener("online", () => {
+        _mapInitialized = false;
         if (typeof window.initMap === "function") {
           window.initMap();
         }
       });
 
       window.initMap = function () {
+        if (_mapInitialized && window.map) return;
         const mapElement = document.getElementById("map");
         if (!mapElement) return;
 
@@ -340,12 +407,27 @@
             mapTypeControl: false,
             gestureHandling: "cooperative",
           });
+          _mapInitialized = true;
           loadKulinerMarkers();
         } catch (error) {
           console.error("Gagal inisialisasi Peta:", error);
           renderMapErrorUI();
         }
       };
+
+      function scheduleMapInit() {
+        if (_mapInitialized) return;
+        const run = () => {
+          if (typeof window.initMap === "function") {
+            window.initMap();
+          }
+        };
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(run, { timeout: 1200 });
+        } else {
+          setTimeout(run, 400);
+        }
+      }
 
       async function fetchTempatDanKulinerCached(forceRefresh = false) {
         if (!forceRefresh && Array.isArray(window.cachedTempat) && Array.isArray(window.cachedKuliner)) {
@@ -355,32 +437,44 @@
           };
         }
 
-        const [resTempat, resKuliner] = await Promise.all([
-          fetch(`${BASE_URL}/api/tempat_kuliner.php`),
-          fetch(`${BASE_URL}/api/kuliner.php`),
-        ]);
-
-        if (!resTempat.ok || !resKuliner.ok) {
-          throw new Error("Gagal mengambil data dari server.");
+        if (!forceRefresh && _inflightBundlePromise) {
+          return _inflightBundlePromise;
         }
 
-        const jsonTempat = await resTempat.json();
-        const jsonKuliner = await resKuliner.json();
+        _inflightBundlePromise = (async () => {
+          const [resTempat, resKuliner] = await Promise.all([
+            fetch(`${BASE_URL}/api/tempat_kuliner.php`),
+            fetch(`${BASE_URL}/api/kuliner.php`),
+          ]);
 
-        if (!jsonTempat.status || !Array.isArray(jsonTempat.data)) {
-          throw new Error("Format data tempat kuliner tidak sesuai.");
-        }
-        if (!jsonKuliner.status || !Array.isArray(jsonKuliner.data)) {
-          throw new Error("Format data kuliner tidak sesuai.");
-        }
+          if (!resTempat.ok || !resKuliner.ok) {
+            throw new Error("Gagal mengambil data dari server.");
+          }
 
-        window.cachedTempat = jsonTempat.data;
-        window.cachedKuliner = jsonKuliner.data;
+          const [jsonTempat, jsonKuliner] = await Promise.all([
+            resTempat.json(),
+            resKuliner.json(),
+          ]);
 
-        return {
-          tempat: window.cachedTempat,
-          kuliner: window.cachedKuliner,
-        };
+          if (!jsonTempat.status || !Array.isArray(jsonTempat.data)) {
+            throw new Error("Format data tempat kuliner tidak sesuai.");
+          }
+          if (!jsonKuliner.status || !Array.isArray(jsonKuliner.data)) {
+            throw new Error("Format data kuliner tidak sesuai.");
+          }
+
+          window.cachedTempat = jsonTempat.data;
+          window.cachedKuliner = jsonKuliner.data;
+
+          return {
+            tempat: window.cachedTempat,
+            kuliner: window.cachedKuliner,
+          };
+        })().finally(() => {
+          _inflightBundlePromise = null;
+        });
+
+        return _inflightBundlePromise;
       }
 
       // 1. MARKER LOKASI MAPS (MEMAKAI CACHE DATA YANG SUDAH DI-FETCH)
@@ -388,6 +482,7 @@
         if (!window.map || !window.google?.maps) return;
         try {
           const { tempat, kuliner } = await fetchTempatDanKulinerCached();
+          clearMarkers();
 
           const kulinerMap = new Map();
           kuliner.forEach((k) => {
@@ -419,7 +514,7 @@
               const alamat = item.alamat || "-";
 
               content.innerHTML = `
-                <img src="${photoUrl}" alt="${namaKuliner}" class="map-popup-img" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
+                <img src="${photoUrl}" alt="${namaKuliner}" class="map-popup-img" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/555555?text=Kuliner'" />
                 <h4 class="map-popup-title">${namaTempat}</h4>
                 <p class="map-popup-address">${alamat}</p>
               `;
@@ -435,7 +530,6 @@
       }
 
       // 2. LOAD KULINER CARD (TANPA N+1 REQUEST DETAIL)
-      let _kulinerLoading = false;
       async function loadKuliner(forceRefresh = false) {
         if (_kulinerLoading) return;
         _kulinerLoading = true;
@@ -481,6 +575,7 @@
           window.allKuliner = [...mappedList];
           window.currentPage = 1;
           renderKulinerWithPagination();
+          scheduleMapInit();
         } catch (error) {
           console.error("Gagal memuat data kuliner:", error);
           if (foodGrid) {
@@ -621,30 +716,53 @@
           `;
       }
 
-      // 4. LOAD KATEGORI DINAMIS DARI API kategori.php
-      async function loadKategori() {
+      function renderKategoriButtons(categories) {
+        const categoryList = document.getElementById("categoryList");
+        if (!categoryList || !Array.isArray(categories)) return;
+
+        let buttonsHTML = `<button type="button" class="category-btn active" data-category="semua">Semua</button>`;
+        categories.forEach((kat) => {
+          const namaKat = kat.nama_kategori || kat.kategori || "";
+          if (!namaKat) return;
+          buttonsHTML += `<button type="button" class="category-btn" data-category="${escapeHTML(namaKat.toLowerCase())}">${escapeHTML(namaKat)}</button>`;
+        });
+
+        categoryList.innerHTML = buttonsHTML;
+        setupCategoryEventListeners();
+      }
+
+      // 4. LOAD KATEGORI DINAMIS DARI API kategori.php (DENGAN CACHE SESI)
+      async function loadKategori(forceRefresh = false) {
         const categoryList = document.getElementById("categoryList");
         if (!categoryList) return;
 
-        try {
-          const response = await fetch(`${BASE_URL}/api/kategori.php`);
-          if (!response.ok) throw new Error("Gagal mengambil data kategori.");
-
-          const jsonResult = await response.json();
-          if (!jsonResult.status || !Array.isArray(jsonResult.data)) return;
-
-          let buttonsHTML = `<button type="button" class="category-btn active" data-category="semua">Semua</button>`;
-
-          jsonResult.data.forEach((kat) => {
-            const namaKat = kat.nama_kategori || kat.kategori || "";
-            buttonsHTML += `<button type="button" class="category-btn" data-category="${escapeHTML(namaKat.toLowerCase())}">${escapeHTML(namaKat)}</button>`;
-          });
-
-          categoryList.innerHTML = buttonsHTML;
-          setupCategoryEventListeners();
-        } catch (error) {
-          console.error("Gagal memuat kategori dari API:", error);
+        if (!forceRefresh && Array.isArray(window.cachedKategori)) {
+          renderKategoriButtons(window.cachedKategori);
+          return;
         }
+
+        if (!forceRefresh && _inflightKategoriPromise) {
+          return _inflightKategoriPromise;
+        }
+
+        _inflightKategoriPromise = (async () => {
+          try {
+            const response = await fetch(`${BASE_URL}/api/kategori.php`);
+            if (!response.ok) throw new Error("Gagal mengambil data kategori.");
+
+            const jsonResult = await response.json();
+            if (!jsonResult.status || !Array.isArray(jsonResult.data)) return;
+
+            window.cachedKategori = jsonResult.data;
+            renderKategoriButtons(window.cachedKategori);
+          } catch (error) {
+            console.error("Gagal memuat kategori dari API:", error);
+          }
+        })().finally(() => {
+          _inflightKategoriPromise = null;
+        });
+
+        return _inflightKategoriPromise;
       }
 
       // 5. EVENT LISTENER TOMBOL KATEGORI MENGGUNAKAN API filter_kuliner.php
@@ -824,20 +942,27 @@
               const paginationContainer = document.getElementById("paginationContainer");
 
               if (rawKeyword === "") {
-                if (window.selectedCategory && window.selectedCategory !== "semua") {
-                  fetch(`${BASE_URL}/api/filter_kuliner.php?kategori=${encodeURIComponent(window.selectedCategory)}`)
-                    .then((res) => res.json())
-                    .then((json) => {
-                      window.allKuliner = json.status && Array.isArray(json.data) ? json.data : [];
-                      window.currentPage = 1;
-                      renderKulinerWithPagination();
-                    });
-                } else if (Array.isArray(window.allKulinerMaster) && window.allKulinerMaster.length > 0) {
-                  window.allKuliner = [...window.allKulinerMaster];
-                  window.currentPage = 1;
-                  renderKulinerWithPagination();
-                } else {
-                  loadKuliner();
+                try {
+                  if (window.selectedCategory && window.selectedCategory !== "semua") {
+                    const res = await fetch(`${BASE_URL}/api/filter_kuliner.php?kategori=${encodeURIComponent(window.selectedCategory)}`);
+                    if (!res.ok) throw new Error("Gagal mengambil data kategori.");
+                    const json = await res.json();
+                    window.allKuliner = json.status && Array.isArray(json.data) ? json.data : [];
+                    window.currentPage = 1;
+                    renderKulinerWithPagination();
+                  } else if (Array.isArray(window.allKulinerMaster) && window.allKulinerMaster.length > 0) {
+                    window.allKuliner = [...window.allKulinerMaster];
+                    window.currentPage = 1;
+                    renderKulinerWithPagination();
+                  } else {
+                    await loadKuliner();
+                  }
+                } catch (error) {
+                  console.error("Gagal mereset pencarian:", error);
+                  if (emptyMessage) {
+                    emptyMessage.textContent = "Gagal memuat ulang data kuliner.";
+                    emptyMessage.style.display = "block";
+                  }
                 }
                 return;
               }
@@ -896,65 +1021,13 @@
           });
         }
 
-        loadKategori();
         loadKuliner();
+        loadKategori();
         checkGoogleLoginSession();
       });
     </script>
 
-    <!-- 1. Script Handler (Wajib SEBELUM script Google Maps API) -->
-    <script>
-      function showMapError() {
-        const mapContainer = document.getElementById("map");
-        if (mapContainer) {
-          mapContainer.style.padding = "0";
-          mapContainer.innerHTML = `
-            <div class="map-error-box">
-              <div class="map-error-title">Peta Gagal Di Muat</div>
-              <a class="map-error-btn" onclick="location.reload()">Coba lagi</a>
-            </div>
-          `;
-        }
-      }
-
-      window.gm_authFailure = function () {
-        showMapError();
-      };
-    </script>
-
-    <!-- 2. Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHTH_5addYM6qrSlMYvbb-38WBQDe6_ms&callback=initMap" onerror="showMapError()" async defer></script>
-
-    <!-- 3. Styling Fallback Error Box -->
-    <style>
-      .map-error-box {
-        width: 100%;
-        height: 100%;
-        min-height: 180px;
-        background-color: #d9d9d9;
-        border: 2.5px solid #0052cc;
-        border-radius: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        box-sizing: border-box;
-      }
-
-      .map-error-title {
-        color: #0b1a50;
-        font-weight: 700;
-        font-size: 15px;
-        margin-bottom: 6px;
-      }
-
-      .map-error-btn {
-        color: #7a7a7a;
-        font-size: 13px;
-        text-decoration: underline;
-        cursor: pointer;
-      }
-    </style>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxDQISpWFVekTn9vmVP3D16LUecysum0M&callback=initMap" onerror="showMapError()" async defer></script>
   </body>
 </html>

@@ -5,8 +5,9 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tambah Kuliner | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css" />
-    <link rel="stylesheet" href="css/tambah_kuliner_admin.css?v=5" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
+    <link rel="stylesheet" href="css/tambah_kuliner_admin.css?v=12" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,12 +17,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js?v=culinary-photo-1"></script>
     <!-- Script Sidebar Terpusat -->
-    <script src="js/sidebar.js?v=5" defer></script>
-    <script src="js/tambah_kuliner_admin.js?v=12" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
+    <script src="js/tambah_kuliner_admin.js?v=16" defer></script>
   </head>
   <body>
     <!-- App Utama -->
-    <div class="admin-app">
+    <div id="adminApp" class="admin-app add-culinary-page">
       <!-- PEMANGGILAN SIDEBAR DINAMIS -->
       <div id="sidebar-container"></div>
 
@@ -38,7 +39,12 @@
 
         <main class="dashboard-content add-culinary-content">
           <div class="content-header-flex" style="margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 1.5rem;">Tambah Kuliner</h1>
+            <div class="content-title-with-back">
+              <a class="admin-page-back" href="daftar_kuliner_admin.html" aria-label="Kembali ke Daftar Kuliner">
+                <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+              </a>
+              <h1 style="margin: 0; font-size: 1.5rem;">Tambah Kuliner</h1>
+            </div>
           </div>
 
           <form id="addCulinaryForm" class="add-culinary-form" novalidate>

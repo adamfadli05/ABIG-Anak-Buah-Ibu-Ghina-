@@ -5,18 +5,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Pengguna | Mangan Yukkk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://code.iconify.design" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/profile.css?v=18" />
+  <link rel="stylesheet" href="css/profile.css?v=31" />
+  <link rel="stylesheet" href="css/responsive.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js?v=profile-photo-upload-1"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase-config.js?v=profile-photo-upload-1" defer></script>
 </head>
 
 <body>
   <div id="navbar-container"></div>
   <main class="profile-page">
+      <a class="profile-back-link" href="index.html" aria-label="Kembali ke beranda">
+        <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+        <span>Profile</span>
+      </a>
       <div id="profileLoading" class="profile-notice" role="status">Memuat profil...</div>
       <div id="profileError" class="profile-notice profile-notice-error" role="alert" hidden>
         <span id="profileErrorText">Gagal memuat profil.</span>
@@ -26,7 +36,7 @@
       <div id="profileContent" class="profile-layout" hidden>
         <aside class="profile-sidebar" aria-label="Menu akun">
           <div class="profile-avatar-wrap">
-            <img id="profileAvatar" class="profile-avatar" alt="Foto profil" hidden />
+            <img id="profileAvatar" class="profile-avatar" alt="Foto profil" decoding="async" hidden />
             <span id="profileAvatarFallback" class="profile-avatar-fallback" aria-hidden="true"><i
                 class="fa-solid fa-user"></i></span>
             <button id="editPhotoButton" class="avatar-edit-button" type="button" title="Ubah foto profil"
@@ -76,8 +86,9 @@
             <p id="nameDisplayRow" class="profile-detail-line">
               <span class="profile-field-label">Nama Pengguna :</span>
               <span id="displayName"></span>
-              <button id="editNameButton" class="inline-edit-button" type="button">Ubah <i
-                  class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+              <button id="editNameButton" class="inline-edit-button" type="button">Ubah
+                <iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon>
+              </button>
             </p>
             <form id="nameEditForm" class="profile-detail-line name-edit-row" hidden novalidate>
               <label class="profile-field-label" for="nameEditInput">Nama Pengguna :</label>
@@ -182,22 +193,30 @@
       <p id="logoutSuccessMessage" class="logout-dialog-message">Anda berhasil keluar</p>
       <button id="finishLogoutButton" class="logout-success-button" type="button">Oke</button>
     </section>
+    <section id="logoutFailureDialog" class="logout-dialog logout-success-dialog logout-failure-dialog"
+      role="alertdialog" aria-modal="true" aria-labelledby="logoutFailureTitle"
+      aria-describedby="logoutFailureMessage" hidden>
+      <i class="fa-solid fa-circle-xmark logout-failure-icon" aria-hidden="true"></i>
+      <p id="logoutFailureTitle" class="logout-dialog-message">Anda gagal keluar</p>
+      <p id="logoutFailureMessage" class="logout-failure-message">Periksa koneksi internet anda</p>
+      <button id="retryLogoutButton" class="logout-success-button logout-failure-button" type="button">Coba lagi</button>
+    </section>
   </div>
 
   <!-- Modal Hapus Foto Profil -->
   <div id="removePhotoModal" class="logout-modal-overlay" hidden>
     <section id="removePhotoConfirmDialog" class="logout-dialog photo-remove-dialog" role="dialog" aria-modal="true"
       aria-labelledby="removePhotoConfirmMessage" hidden>
-      <p id="removePhotoConfirmMessage" class="logout-dialog-message">Apakah anda yakin<br />ingin menghapus foto profil ?</p>
+      <p id="removePhotoConfirmMessage" class="logout-dialog-message">Apakah anda yakin ingin menghapus foto profile ?</p>
       <div class="logout-dialog-actions">
         <button id="cancelRemovePhotoButton" class="logout-cancel-button" type="button">Batal</button>
-        <button id="confirmRemovePhotoButton" class="logout-confirm-button" type="button">OKE</button>
+        <button id="confirmRemovePhotoButton" class="logout-confirm-button" type="button">Oke</button>
       </div>
     </section>
     <section id="removePhotoResultDialog" class="logout-dialog logout-success-dialog photo-remove-result-dialog"
       role="dialog" aria-modal="true" aria-labelledby="removePhotoResultMessage" hidden>
       <i id="removePhotoResultIcon" class="fa-solid fa-circle-check logout-success-icon" aria-hidden="true"></i>
-      <p id="removePhotoResultMessage" class="logout-dialog-message">Foto profil berhasil dihapus</p>
+      <p id="removePhotoResultMessage" class="logout-dialog-message">Foto Profile berhasil di hapus</p>
       <p id="removePhotoResultSub" class="logout-error-message" role="alert" hidden></p>
       <button id="finishRemovePhotoButton" class="logout-success-button" type="button">Oke</button>
     </section>
@@ -215,15 +234,20 @@
     <section class="logout-dialog connection-error-dialog" role="alertdialog" aria-modal="true"
       aria-labelledby="connectionErrorTitle" aria-describedby="connectionErrorMessage">
       <iconify-icon class="connection-error-icon" icon="andrsrxn:wifi-off" aria-hidden="true"></iconify-icon>
+      <svg class="connection-error-icon-mobile" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M2 8.8C7.6 3.9 16.4 3.9 22 8.8M5.2 12.4c3.8-3.2 9.8-3.2 13.6 0M8.7 16c1.9-1.6 4.7-1.6 6.6 0" />
+        <path d="M12 19.5h.01" stroke-width="3.5" />
+        <path d="m3 3 18 18" />
+      </svg>
       <p id="connectionErrorTitle" class="connection-error-title">Tidak ada koneksi internet</p>
       <p id="connectionErrorMessage" class="connection-error-message">Periksa koneksi internet Anda dan coba lagi.</p>
       <button id="retryConnectionButton" class="connection-retry-button" type="button">Coba lagi</button>
     </section>
   </div>
-  <script src="js/env.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/navbar.js?v=session-api"></script>
-  <script src="js/profile.js?v=14"></script>
+  <script src="js/env.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/navbar.js?v=mobile-nav-1" defer></script>
+  <script src="js/profile.js?v=18" defer></script>
 </body>
 
 </html>

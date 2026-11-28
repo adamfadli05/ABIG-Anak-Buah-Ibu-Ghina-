@@ -7,6 +7,7 @@
 
     <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css?v=4" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -87,6 +88,16 @@
 
       .state-retry-btn:hover {
         opacity: 0.8;
+      }
+
+      .saved-page-heading {
+        display: contents;
+      }
+
+      .saved-page-back,
+      .saved-state-icon,
+      .state-description {
+        display: none;
       }
 
       /* ==========================================================================
@@ -251,6 +262,39 @@
           padding-top: 95px !important;
         }
 
+        .saved-page-heading {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        .saved-page-back {
+          display: grid;
+          width: 22px;
+          height: 22px;
+          flex: 0 0 22px;
+          place-items: center;
+          border-radius: 50%;
+          background: var(--primary);
+          color: #ffffff;
+          text-decoration: none;
+        }
+
+        .saved-page-back iconify-icon {
+          font-size: 19px;
+        }
+
+        .page-title {
+          margin: 0 !important;
+          color: #000000 !important;
+          font-size: 12px !important;
+          font-style: normal !important;
+          font-weight: 400 !important;
+          text-align: left !important;
+          text-decoration: underline;
+        }
+
         .saved-grid {
           display: grid !important;
           grid-template-columns: repeat(2, 165px) !important;
@@ -266,6 +310,7 @@
           min-width: 165px !important;
           max-width: 165px !important;
           height: 190px !important;
+          min-height: 0 !important;
           padding: 8px !important;
           background: #ffffff !important;
           border: 1px solid #d4d4d4 !important;
@@ -284,8 +329,8 @@
         }
 
         .food-name {
-          font-size: 13px !important;
-          line-height: 16px !important;
+          font-size: 10px !important;
+          line-height: 12px !important;
           margin: 0 0 2px 0 !important;
         }
 
@@ -302,6 +347,53 @@
         .food-meta {
           font-size: 10px !important;
         }
+
+        .food-meta > div {
+          font-size: 10px !important;
+        }
+
+        .food-meta > div iconify-icon {
+          font-size: 14px !important;
+        }
+
+        .state-container {
+          gap: 6px;
+          margin-top: 16px;
+        }
+
+        .saved-state-icon {
+          display: block;
+          width: 26px;
+          height: 26px;
+          color: #858585;
+          flex: 0 0 auto;
+        }
+
+        .state-text {
+          max-width: 190px;
+          font-size: 8px;
+          line-height: 1.35;
+        }
+
+        .empty-state-copy {
+          display: grid;
+          justify-items: center;
+          gap: 3px;
+        }
+
+        .state-description {
+          display: block;
+          max-width: 190px;
+          margin: 0;
+          color: #34343a;
+          font-size: 7px;
+          line-height: 1.35;
+        }
+
+        .state-retry-btn {
+          font-size: inherit;
+          line-height: inherit;
+        }
       }
     </style>
   </head>
@@ -311,15 +403,28 @@
 
     <main class="page-container" style="padding-top: 130px">
       <!-- Judul Halaman -->
-      <h1 class="page-title" style="text-align: center; font-style: italic; font-weight: 500; font-size: 18px; color: #000000; margin-bottom: 24px">Kuliner Tersimpan</h1>
+      <div class="saved-page-heading">
+        <a class="saved-page-back" href="profile.html" aria-label="Kembali ke profil">
+          <iconify-icon icon="mdi:chevron-left" aria-hidden="true"></iconify-icon>
+        </a>
+        <h1 class="page-title" style="text-align: center; font-style: italic; font-weight: 500; font-size: 18px; color: #000000; margin-bottom: 24px">Kuliner Tersimpan</h1>
+      </div>
 
       <!-- 1. Kondisi Kosong -->
       <div id="emptyState" class="state-container" style="display: none">
-        <div class="state-text">Belum ada kuliner yang tersimpan</div>
+        <svg class="saved-state-icon empty-state-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M6 3h12v18l-6-4-6 4z"></path>
+          <path d="m9 8 6 6m0-6-6 6" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1.8"></path>
+        </svg>
+        <div class="empty-state-copy">
+          <div class="state-text">Belum ada kuliner yang tersimpan.</div>
+          <p class="state-description">Yukkk, temukan dan simpan kuliner favoritmu!</p>
+        </div>
       </div>
 
       <!-- 2. Kondisi Gagal Dimuat / Koneksi Terputus -->
       <div id="errorState" class="state-container" style="display: none">
+        <iconify-icon class="saved-state-icon error-state-icon" icon="fluent:wifi-warning-20-filled" aria-hidden="true"></iconify-icon>
         <div id="errorMessageText" class="state-text">Gagal memuat daftar kuliner tersimpan, silahkan <button id="retryBtn" class="state-retry-btn">Coba Lagi</button></div>
       </div>
 
@@ -333,7 +438,7 @@
     <!-- SCRIPT NAVBAR & LOGIKA UTAMA -->
     <script src="js/env.js"></script>
     <script src="js/config.js"></script>
-    <script src="js/navbar.js?v=session-api"></script>
+    <script src="js/navbar.js?v=mobile-nav-1"></script>
     <script>
       window.allSavedKuliner = [];
       window.currentPage = 1;
@@ -550,6 +655,11 @@
         if (!paginationContainer) return;
 
         const totalPages = Math.max(1, Number(totalPagesInput) || 1);
+        if (totalPages <= 1 && window.matchMedia("(max-width: 480px)").matches) {
+          paginationContainer.innerHTML = "";
+          paginationContainer.style.display = "none";
+          return;
+        }
         paginationContainer.style.display = "flex";
 
         let html = `
@@ -558,12 +668,33 @@
           </button>
         `;
 
-        for (let i = 1; i <= totalPages; i++) {
-          html += `
-            <button class="pagination-number ${i === window.currentPage ? "active" : ""}" onclick="changePage(${i})">
-              ${i}
-            </button>
-          `;
+        const mobilePages =
+          totalPages > 5 && window.matchMedia("(max-width: 480px)").matches
+            ? [...new Set([1, window.currentPage - 1, window.currentPage, window.currentPage + 1, totalPages])]
+                .filter((page) => page >= 1 && page <= totalPages)
+                .sort((a, b) => a - b)
+            : null;
+
+        if (mobilePages) {
+          mobilePages.forEach((page, index) => {
+            if (index > 0 && page - mobilePages[index - 1] > 1) {
+              html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+            }
+
+            html += `
+              <button class="pagination-number ${page === window.currentPage ? "active" : ""}" onclick="changePage(${page})">
+                ${page}
+              </button>
+            `;
+          });
+        } else {
+          for (let page = 1; page <= totalPages; page++) {
+            html += `
+              <button class="pagination-number ${page === window.currentPage ? "active" : ""}" onclick="changePage(${page})">
+                ${page}
+              </button>
+            `;
+          }
         }
 
         html += `

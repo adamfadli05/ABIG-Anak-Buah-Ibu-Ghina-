@@ -1,4 +1,20 @@
 /* Styling Khusus Halaman Daftar Kuliner */
+.admin-page-back {
+  display: none;
+}
+
+.culinary-error-icon-mobile {
+  display: none;
+}
+
+.table-reload-icon-mobile {
+  display: none;
+}
+
+.content-title-with-back {
+  display: contents;
+}
+
 .content-header-flex {
   display: flex;
   justify-content: space-between;
@@ -934,3 +950,540 @@ tbody tr:hover {
     color: #001b7d !important;
     font-weight: 700 !important;
   }
+
+@media (max-width: 480px) {
+  .pagination-container {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    margin-top: 18px !important;
+    padding: 0 4px;
+  }
+
+  .pagination-arrow {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+  }
+
+  .pagination-number {
+    min-width: 28px;
+    min-height: 32px;
+    padding: 4px 2px;
+    font-size: 14px;
+  }
+
+  .pagination-container > span {
+    padding: 0 2px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-header-flex {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .content-title-with-back {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .admin-page-back {
+    display: inline-grid;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: #001b7d;
+    color: #fff;
+    font-size: 17px;
+    text-decoration: none;
+  }
+
+  .content-header-flex h2 {
+    margin: 0;
+    color: #111;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  #btnTambahKuliner {
+    min-height: 22px;
+    gap: 3px;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 7px;
+    white-space: nowrap;
+  }
+
+  #btnTambahKuliner iconify-icon {
+    font-size: 11px;
+  }
+
+  .search-toolbar {
+    margin-bottom: 10px;
+  }
+
+  .search-input-wrapper {
+    min-height: 23px;
+    padding: 0 7px;
+    border-radius: 14px;
+  }
+
+  .search-input-wrapper iconify-icon {
+    margin-right: 5px;
+    font-size: 12px;
+  }
+
+  .search-input-wrapper input {
+    min-height: 21px;
+    padding: 3px 0;
+    font-size: 8px;
+  }
+
+  .table-card {
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  .table-responsive {
+    overflow-x: hidden;
+  }
+
+  .kuliner-admin-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .kuliner-admin-table th,
+  .kuliner-admin-table td {
+    overflow-wrap: anywhere;
+    padding: 3px 2px;
+    font-size: 8px;
+    line-height: 1.1;
+  }
+
+  .kuliner-admin-table th {
+    padding: 3px 1px;
+    font-size: 7px;
+  }
+
+  .kuliner-admin-table th:nth-child(1),
+  .kuliner-admin-table td:nth-child(1) {
+    width: 8%;
+  }
+
+  .kuliner-admin-table th:nth-child(2),
+  .kuliner-admin-table td:nth-child(2) {
+    width: 12%;
+  }
+
+  .kuliner-admin-table th:nth-child(3),
+  .kuliner-admin-table td:nth-child(3) {
+    width: 21%;
+    white-space: normal;
+  }
+
+  .kuliner-admin-table th:nth-child(4),
+  .kuliner-admin-table td:nth-child(4) {
+    width: 14%;
+  }
+
+  .kuliner-admin-table th:nth-child(5),
+  .kuliner-admin-table td:nth-child(5) {
+    width: 27%;
+  }
+
+  .kuliner-admin-table th:nth-child(6),
+  .kuliner-admin-table td:nth-child(6) {
+    width: 18%;
+  }
+
+  .table-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+  }
+
+  .action-buttons {
+    gap: 2px;
+  }
+
+  .btn-action {
+    width: 100%;
+    min-height: 13px;
+    gap: 2px;
+    padding: 2px 3px;
+    border-radius: 7px;
+    font-size: 6px;
+  }
+
+  .btn-edit iconify-icon,
+  .btn-delete iconify-icon {
+    padding: 2px;
+    font-size: 7px;
+  }
+
+  .pagination-container {
+    gap: 4px !important;
+    margin-top: 12px !important;
+  }
+
+  .pagination-arrow {
+    width: 16px;
+    height: 16px;
+    flex-basis: 16px;
+  }
+
+  .pagination-number {
+    min-width: 16px;
+    min-height: 18px;
+    padding: 2px;
+    font-size: 8px;
+  }
+
+  .pagination-container > span {
+    font-size: 8px !important;
+  }
+
+  .culinary-empty-state {
+    min-height: 150px;
+    gap: 8px;
+    padding: 32px 10px;
+  }
+
+  .culinary-empty-state iconify-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .culinary-empty-state p {
+    font-size: 9px;
+  }
+
+  .culinary-no-data-state {
+    display: flex;
+    min-height: 220px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 42px 12px 20px;
+    text-align: center;
+  }
+
+  .culinary-no-data-state[hidden] {
+    display: none !important;
+  }
+
+  .culinary-no-data-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .culinary-no-data-state h3 {
+    margin: 0;
+    color: #111;
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .culinary-no-data-state p {
+    max-width: 230px;
+    margin: 0;
+    color: #333;
+    font-size: 7px;
+    line-height: 1.35;
+  }
+
+  .culinary-error-state {
+    min-height: calc(100vh - 150px);
+    gap: 8px;
+    padding: 18px 12px;
+  }
+
+  .culinary-error-icon-desktop {
+    display: none;
+  }
+
+  .culinary-error-icon-mobile {
+    display: block;
+    width: 34px;
+    height: 34px;
+    color: #858585;
+  }
+
+  .culinary-error-state h3 {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .culinary-error-state p {
+    max-width: 220px;
+    margin-bottom: 10px;
+    font-size: 7px;
+    line-height: 1.35;
+  }
+
+  .culinary-error-state .button-primary {
+    min-height: 22px;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 7px;
+  }
+
+  .table-reload-icon-desktop {
+    display: none;
+  }
+
+  .table-reload-icon-mobile {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+  }
+
+  /* ==========================================
+     MOBILE RESPONSIVE: EDIT KULINER & DIALOG MODAL
+     (Khusus Mobile <= 480px / 768px, Desktop Aman)
+     ========================================== */
+  .edit-culinary-container {
+    padding: 14px 12px !important;
+    margin-top: 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .edit-header {
+    margin-bottom: 12px;
+  }
+
+  .edit-header .content-title-with-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .edit-header h2 {
+    font-size: 13px !important;
+    font-weight: 500;
+    margin-bottom: 0 !important;
+  }
+
+  .edit-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .edit-photo-section {
+    grid-column: span 1;
+    margin-top: 10px !important;
+    margin-bottom: 8px;
+  }
+
+  .edit-photo-card {
+    max-width: 100%;
+    height: 160px;
+    border-radius: 12px;
+  }
+
+  .btn-change-photo {
+    padding: 7px 14px;
+    font-size: 10px;
+    border-radius: 6px;
+    gap: 5px;
+  }
+
+  .form-group-full {
+    grid-column: span 1;
+  }
+
+  .form-group label,
+  .form-field > label {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .select-wrapper select,
+  .operating-hours input[type="time"] {
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 11px;
+    border-radius: 18px;
+  }
+
+  .form-group textarea {
+    border-radius: 12px;
+  }
+
+  .operating-hours {
+    gap: 8px !important;
+  }
+
+  .operating-hours span {
+    font-size: 10px !important;
+  }
+
+  .form-alert-banner {
+    font-size: 11px;
+    gap: 6px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+
+  .form-alert-banner iconify-icon {
+    font-size: 15px;
+  }
+
+  .edit-actions {
+    margin-top: 10px;
+    gap: 8px;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    padding: 6px 16px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  /* Modal Berhasil & Gagal Edit Kuliner Mobile */
+  .success-modal-dialog,
+  .error-modal-dialog {
+    width: min(100%, 260px) !important;
+    padding: 18px 16px 12px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+  }
+
+  .success-icon-wrapper,
+  .error-icon-wrapper {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 16px !important;
+  }
+
+  .success-modal-dialog h3,
+  .error-modal-dialog h3 {
+    font-size: 12px !important;
+    color: #001b7d !important;
+    line-height: 1.3;
+  }
+
+  .error-modal-dialog p {
+    font-size: 9px !important;
+    color: #001b7d !important;
+  }
+
+  .btn-success-ok,
+  .btn-error-retry {
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+  }
+
+  /* Modal Hapus Kuliner Mobile (Konfirmasi, Progress, Berhasil, Gagal) */
+  .delete-dialog {
+    width: min(100%, 260px) !important;
+    padding: 18px 16px 14px !important;
+    border-radius: 12px !important;
+    gap: 10px !important;
+  }
+
+  #deleteConfirmState {
+    gap: 10px !important;
+  }
+
+  .delete-dialog h2 {
+    font-size: 13px !important;
+    color: #001b7d !important;
+  }
+
+  .delete-dialog-message {
+    font-size: 10px !important;
+    line-height: 1.35;
+  }
+
+  .delete-state-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 15px !important;
+  }
+
+  .delete-icon-success {
+    font-size: 28px !important;
+  }
+
+  .delete-icon-error {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 14px !important;
+  }
+
+  .delete-dialog-actions {
+    gap: 12px !important;
+    margin-top: 8px !important;
+  }
+
+  .delete-button {
+    min-height: 32px !important;
+    padding: 5px 12px !important;
+    font-size: 11px !important;
+    border-radius: 5px !important;
+  }
+
+  .delete-spinner {
+    width: 22px !important;
+    height: 22px !important;
+    border-width: 2px !important;
+  }
+
+  .delete-result-state {
+    gap: 8px !important;
+  }
+
+  .delete-result-state h2 {
+    font-size: 12px !important;
+  }
+
+  .delete-link-button {
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .culinary-list-page .content-header-flex {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .culinary-list-page .content-title-with-back {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .culinary-list-page .content-header-flex #btnTambahKuliner {
+    width: auto;
+    min-height: 32px;
+    flex: 0 0 auto;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .culinary-list-page .content-header-flex #btnTambahKuliner iconify-icon {
+    font-size: 14px;
+  }
+}

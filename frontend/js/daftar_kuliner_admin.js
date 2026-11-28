@@ -10,8 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tableCard = document.querySelector(".table-card");
   const tableLoading = document.getElementById("tableLoading");
   const tableError = document.getElementById("tableError");
+  const tableErrorTitle = document.getElementById("tableErrorTitle");
+  const tableErrorMessage = document.getElementById("tableErrorMessage");
   const tableWrapper = document.getElementById("tableWrapper");
   const tableEmpty = document.getElementById("tableEmpty");
+  const tableNoData = document.getElementById("tableNoData");
+  const searchToolbar = document.getElementById("searchToolbar");
+  const addCulinaryButton = document.getElementById("btnTambahKuliner");
   const kulinerTableBody = document.getElementById("kulinerTableBody");
   const searchInput = document.getElementById("searchKuliner");
   const tableRetryButton = document.getElementById("tableRetryButton");
@@ -40,6 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalPagesFromBE = 1;
   const itemsPerPageAdmin = 20;
   const pageDataCache = new Map();
+
+  async function parseJsonSafe(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      return {};
+    }
+  }
 
   function readKulinerCache() {
     try {
@@ -95,15 +110,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showTableConnectionLost() {
     const paginationContainer = document.getElementById("paginationContainer");
+    const isMobileLayout = window.matchMedia("(max-width: 480px)").matches;
     if (tableLoading) tableLoading.hidden = true;
     if (tableWrapper) tableWrapper.hidden = true;
     if (tableCard) tableCard.hidden = true;
     if (tableEmpty) tableEmpty.hidden = true;
+    if (tableNoData) tableNoData.hidden = true;
+    if (searchToolbar) searchToolbar.hidden = isMobileLayout;
+    if (addCulinaryButton) addCulinaryButton.hidden = isMobileLayout;
     if (paginationContainer) {
       paginationContainer.innerHTML = "";
       paginationContainer.hidden = true;
     }
     if (tableError) tableError.hidden = false;
+    if (tableErrorTitle) tableErrorTitle.textContent = "Koneksi Internet Terputus";
+    if (tableErrorMessage) {
+      tableErrorMessage.textContent = "Periksa kembali jaringan internet anda dan silahkan muat ulang halaman";
+    }
+  }
+
+  function showTableRequestError(error) {
+    showTableConnectionLost();
+    if (tableErrorTitle) tableErrorTitle.textContent = "Daftar Kuliner Gagal Dimuat";
+
+    const status = error instanceof Error ? error.message.match(/HTTP \d+/) : null;
+    if (tableErrorMessage) {
+      tableErrorMessage.textContent = status
+        ? `Server mengembalikan ${status[0]}. Periksa backend dan database lokal, lalu coba lagi.`
+        : "Backend lokal gagal memuat data. Periksa sesi Admin dan database, lalu coba lagi.";
+    }
   }
 
   async function checkAdminAccessSilent() {
@@ -128,7 +163,14 @@ document.addEventListener("DOMContentLoaded", () => {
         credentials: "include",
         headers: { Accept: "application/json" },
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
+
+      if (response.status >= 500) {
+        if (adminApp) adminApp.hidden = false;
+        if (authState) authState.hidden = true;
+        initAdminApp();
+        return;
+      }
 
       if (!response.ok || !result.status || result.role !== "admin") {
         localStorage.removeItem("user");
@@ -189,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (!response.ok) throw new Error("Gagal mengambil semua data kuliner.");
 
-        const result = await response.json();
+        const result = await parseJsonSafe(response);
         let combined = Array.isArray(result.data)
           ? [...result.data]
           : Array.isArray(result)
@@ -205,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { Accept: "application/json" },
                 credentials: "include",
               })
-                .then((res) => (res.ok ? res.json() : null))
+                .then((res) => (res.ok ? parseJsonSafe(res) : null))
                 .catch(() => null)
             );
           }
@@ -262,6 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tableError) tableError.hidden = true;
       if (tableWrapper) tableWrapper.hidden = true;
       if (tableEmpty) tableEmpty.hidden = true;
+      if (tableNoData) tableNoData.hidden = true;
+      if (searchToolbar) searchToolbar.hidden = false;
+      if (addCulinaryButton) addCulinaryButton.hidden = false;
       if (paginationContainer) paginationContainer.innerHTML = "";
     }
 
@@ -272,9 +317,21 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Gagal mengambil data dari server.");
+      if (!response.ok) {
+        if (
+          window.matchMedia("(max-width: 480px)").matches &&
+          (response.status === 401 || response.status === 403)
+        ) {
+          localStorage.removeItem("user");
+          localStorage.removeItem("role");
+          localStorage.removeItem("admin_logged_in");
+          window.location.replace("index.html");
+          return;
+        }
+        throw new Error(`Gagal mengambil data dari server (HTTP ${response.status}).`);
+      }
 
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
       const rawData = Array.isArray(result.data)
         ? result.data
         : Array.isArray(result)
@@ -299,8 +356,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("Error fetching culinary data:", error);
-      if (!navigator.onLine || error instanceof TypeError || !initialData || initialData.length === 0) {
+      if (!navigator.onLine || error instanceof TypeError) {
         showTableConnectionLost();
+      } else if (!initialData || initialData.length === 0) {
+        if (window.matchMedia("(max-width: 480px)").matches) {
+          showTableRequestError(error);
+        } else {
+          showTableConnectionLost();
+        }
       }
     }
   }
@@ -327,7 +390,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!filteredData || filteredData.length === 0) {
       if (tableCard) tableCard.hidden = true;
-      if (tableEmpty) tableEmpty.hidden = false;
+      const showNoData =
+        window.matchMedia("(max-width: 480px)").matches && !hasKeyword && culinaryData.length === 0;
+      if (tableEmpty) tableEmpty.hidden = showNoData;
+      if (tableNoData) tableNoData.hidden = !showNoData;
+      if (searchToolbar) searchToolbar.hidden = showNoData;
+      if (addCulinaryButton) {
+        addCulinaryButton.hidden = window.matchMedia("(max-width: 480px)").matches && hasKeyword;
+      }
       if (paginationContainer) {
         paginationContainer.innerHTML = "";
         paginationContainer.hidden = true;
@@ -337,6 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tableCard) tableCard.hidden = false;
     if (tableEmpty) tableEmpty.hidden = true;
+    if (tableNoData) tableNoData.hidden = true;
+    if (searchToolbar) searchToolbar.hidden = false;
+    if (addCulinaryButton) addCulinaryButton.hidden = false;
     if (tableWrapper) tableWrapper.hidden = false;
     if (kulinerTableBody) kulinerTableBody.replaceChildren();
 
@@ -361,9 +434,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (fotoUrl) {
         const img = document.createElement("img");
         img.src = fotoUrl;
-        img.alt = namaKuliner;
+        img.alt = `Foto ${namaKuliner}`;
         img.className = "table-img";
         img.loading = "eager";
+        img.decoding = "async";
         img.addEventListener(
           "error",
           () => {
@@ -388,13 +462,17 @@ document.addEventListener("DOMContentLoaded", () => {
       actionWrap.className = "action-buttons";
 
       const btnEdit = document.createElement("button");
+      btnEdit.type = "button";
       btnEdit.className = "btn-action btn-edit";
       btnEdit.setAttribute("data-id", itemId);
+      btnEdit.setAttribute("aria-label", `Edit ${namaKuliner}`);
       btnEdit.innerHTML = '<iconify-icon icon="boxicons:pencil-draw-filled" aria-hidden="true"></iconify-icon> Edit';
 
       const btnDelete = document.createElement("button");
+      btnDelete.type = "button";
       btnDelete.className = "btn-action btn-delete";
       btnDelete.setAttribute("data-id", itemId);
+      btnDelete.setAttribute("aria-label", `Hapus ${namaKuliner}`);
       btnDelete.innerHTML = '<iconify-icon icon="bi:trash-fill" aria-hidden="true"></iconify-icon> Hapus';
 
       actionWrap.append(btnEdit, btnDelete);
@@ -429,8 +507,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let html = `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman sebelumnya" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -441,19 +519,20 @@ document.addEventListener("DOMContentLoaded", () => {
         i === totalPages ||
         (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
       ) {
+        const isCurrent = i === currentAdminPage;
         html += `
-          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+          <button type="button" class="pagination-number ${isCurrent ? "active" : ""}" aria-label="Halaman ${i}" ${isCurrent ? 'aria-current="page"' : ""} onclick="changeAdminPage(${i})">
             ${i}
           </button>
         `;
       } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
-        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+        html += `<span aria-hidden="true" style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
       }
     }
 
     html += `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman berikutnya" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -550,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
-      const result = await response.json();
+      const result = await parseJsonSafe(response);
 
       if (!response.ok || !result.status) {
         throw new Error(result.message || "Periksa koneksi internet Anda.");

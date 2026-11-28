@@ -3,6 +3,9 @@
   const adminApp = document.getElementById("adminApp");
   const authState = document.getElementById("authState");
   const authRetryButton = document.getElementById("authRetryButton");
+  const dashboardContent = document.getElementById("dashboardContent");
+  const dashboardOfflineState = document.getElementById("dashboardOfflineState");
+  const dashboardReloadButton = document.getElementById("dashboardReloadButton");
   const summaryCards = document.getElementById("summaryCards");
   const totalCulinary = document.getElementById("totalCulinary");
   const totalCategories = document.getElementById("totalCategories");
@@ -17,6 +20,16 @@
   let allKulinerData = [];
   let currentAdminPage = 1;
   const itemsPerPageAdmin = 20;
+
+  function showDashboardOffline() {
+    if (dashboardContent) dashboardContent.hidden = true;
+    if (dashboardOfflineState) dashboardOfflineState.hidden = false;
+  }
+
+  function hideDashboardOffline() {
+    if (dashboardOfflineState) dashboardOfflineState.hidden = true;
+    if (dashboardContent) dashboardContent.hidden = false;
+  }
 
   function readDashboardCache() {
     try {
@@ -35,21 +48,42 @@
     } catch (_) {}
   }
 
+  function setStorageItemSafe(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (_) {}
+  }
+
+  function removeStorageItemSafe(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (_) {}
+  }
+
   async function getJson(url, options = {}) {
     const response = await fetch(url, { ...options, credentials: "include" });
-    let result;
+    const rawText = await response.text();
+    let result = {};
 
-    try {
-      result = await response.json();
-    } catch {
-      const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
-      error.status = response.status;
-      throw error;
+    if (rawText) {
+      try {
+        result = JSON.parse(rawText);
+      } catch {
+        const error = new Error(`Respons server tidak valid (HTTP ${response.status}).`);
+        error.status = response.status;
+        error.isServerError = response.status >= 500;
+        throw error;
+      }
     }
 
     if (!response.ok) {
-      const error = new Error(result.message || `Permintaan gagal (HTTP ${response.status}).`);
+      const fallbackMsg =
+        response.status >= 500
+          ? `Gangguan server sementara (HTTP ${response.status}).`
+          : `Permintaan gagal (HTTP ${response.status}).`;
+      const error = new Error(result.message || fallbackMsg);
       error.status = response.status;
+      error.isServerError = response.status >= 500;
       throw error;
     }
 
@@ -60,6 +94,11 @@
   async function checkAdminAccess() {
     if (authState) authState.hidden = true;
     if (adminApp) adminApp.hidden = false;
+    if (!navigator.onLine) {
+      showDashboardOffline();
+      return;
+    }
+    hideDashboardOffline();
 
     const cached = readDashboardCache();
     if (cached) {
@@ -81,23 +120,27 @@
       }
 
       if (result.role !== "admin") {
-        localStorage.removeItem("user");
-        localStorage.setItem("role", result.role);
+        removeStorageItemSafe("user");
+        setStorageItemSafe("role", result.role);
         window.location.replace("index.html");
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(result.data || {}));
-      localStorage.setItem("role", result.role);
+      setStorageItemSafe("user", JSON.stringify(result.data || {}));
+      setStorageItemSafe("role", result.role);
     } catch (error) {
       if (error.status === 401) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
+        removeStorageItemSafe("user");
+        removeStorageItemSafe("role");
         const returnTo = encodeURIComponent("Dashboard_Admin.html");
         window.location.replace(`login.html?returnTo=${returnTo}`);
         return;
       }
-      console.error("Validasi sesi senyap gagal:", error);
+      if (error.isServerError || (error.status && error.status >= 500)) {
+        console.warn("Endpoint me.php mengembalikan error server (5xx), mempertahankan tampilan dashboard:", error);
+      } else {
+        console.error("Validasi sesi senyap gagal:", error);
+      }
     }
   }
 
@@ -163,12 +206,13 @@
     const fragment = document.createDocumentFragment();
 
     paginatedItems.forEach((item) => {
-      const title = item.nama_kuliner || item.nama_tempat || "Kuliner";
+      const title = String(item.nama_kuliner || item.nama_tempat || "").trim() || "Kuliner";
       const card = document.createElement("div");
       card.className = "culinary-card culinary-card-static";
 
       const photo = document.createElement("img");
       photo.className = "culinary-photo";
+      photo.decoding = "async";
       photo.src = resolvePhoto(item.foto);
       photo.alt = title;
       photo.addEventListener(
@@ -237,8 +281,8 @@
     }
 
     let html = `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-left" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman sebelumnya" onclick="changeAdminPage(${currentAdminPage - 1})" ${currentAdminPage === 1 ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-left" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -249,19 +293,20 @@
         i === totalPages ||
         (i >= currentAdminPage - 1 && i <= currentAdminPage + 1)
       ) {
+        const isCurrent = i === currentAdminPage;
         html += `
-          <button class="pagination-number ${i === currentAdminPage ? "active" : ""}" onclick="changeAdminPage(${i})">
+          <button type="button" class="pagination-number ${isCurrent ? "active" : ""}" aria-label="Halaman ${i}" ${isCurrent ? 'aria-current="page"' : ""} onclick="changeAdminPage(${i})">
             ${i}
           </button>
         `;
       } else if (i === currentAdminPage - 2 || i === currentAdminPage + 2) {
-        html += `<span style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
+        html += `<span aria-hidden="true" style="padding: 0 4px; color: rgba(0, 0, 0, 0.5); font-weight: 500; font-size: 16px;">...</span>`;
       }
     }
 
     html += `
-      <button class="pagination-arrow" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
-        <iconify-icon icon="mdi:chevron-right" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
+      <button type="button" class="pagination-arrow" aria-label="Halaman berikutnya" onclick="changeAdminPage(${currentAdminPage + 1})" ${currentAdminPage === totalPages ? "disabled" : ""}>
+        <iconify-icon icon="mdi:chevron-right" aria-hidden="true" style="font-size: 14px; display: flex; align-items: center; justify-content: center;"></iconify-icon>
       </button>
     `;
 
@@ -272,11 +317,26 @@
     if (summaryCards) summaryCards.setAttribute("aria-busy", "true");
 
     try {
+      if (!navigator.onLine) {
+        showDashboardOffline();
+        return;
+      }
+
       const [dashSettled, culinarySettled] = await Promise.allSettled([
         getJson(`${API_BASE_URL}/api/admin/dashboard.php`),
         getJson(`${API_BASE_URL}/api/tempat_kuliner.php`),
       ]);
 
+      const requestResults = [dashSettled, culinarySettled];
+      const networkFailures = requestResults.filter(
+        (result) => result.status === "rejected" && result.reason instanceof TypeError
+      ).length;
+      if (!navigator.onLine || networkFailures === requestResults.length) {
+        showDashboardOffline();
+        return;
+      }
+
+      hideDashboardOffline();
       let nextSummary = cachedData?.summary || null;
       let nextCulinary = Array.isArray(cachedData?.culinary) ? cachedData.culinary : null;
 
@@ -323,9 +383,12 @@
   }
 
   if (authRetryButton) authRetryButton.addEventListener("click", checkAdminAccess);
+  if (dashboardReloadButton) {
+    dashboardReloadButton.addEventListener("click", () => window.location.reload());
+  }
 
   window.addEventListener("offline", () => {
-    if (adminApp && !adminApp.hidden) loadDashboardSummary(readDashboardCache());
+    if (adminApp && !adminApp.hidden) showDashboardOffline();
   });
   window.addEventListener("online", () => {
     if (adminApp && !adminApp.hidden) checkAdminAccess();

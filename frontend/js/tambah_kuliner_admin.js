@@ -111,24 +111,35 @@ document.addEventListener("DOMContentLoaded", () => {
   function showFormAlert(message, retryCategories) {
     alertMessage.textContent = message;
     retryCategoriesButton.hidden = !retryCategories;
+    alertBanner.classList.remove("photo-missing-alert");
     alertBanner.hidden = false;
   }
 
   function hideFormAlert() {
     alertBanner.hidden = true;
     retryCategoriesButton.hidden = true;
+    alertBanner.classList.remove("photo-missing-alert");
   }
 
   function showPhotoValidation(message) {
     photoValidationMessage = message;
     photoPicker.classList.add("input-error");
+    photoPicker.classList.remove("missing-photo-error");
     photoHelp.classList.add("input-error-text");
-    photoHelp.textContent = message;
+    photoHelp.textContent = window.matchMedia("(min-width: 769px)").matches ? photoHelpText : message;
+  }
+
+  function showMissingPhotoValidation() {
+    photoPicker.classList.add("input-error", "missing-photo-error");
+    photoHelp.classList.remove("input-error-text");
+    photoHelp.textContent = photoHelpText;
+    showFormAlert("Mohon unggah foto kuliner sebelum menyimpan.", false);
+    alertBanner.classList.add("photo-missing-alert");
   }
 
   function clearPhotoValidation() {
     photoValidationMessage = "";
-    photoPicker.classList.remove("input-error");
+    photoPicker.classList.remove("input-error", "missing-photo-error");
     photoHelp.classList.remove("input-error-text");
     photoHelp.textContent = photoHelpText;
   }
@@ -351,7 +362,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (photoValidationMessage) {
       showPhotoValidation(photoValidationMessage);
-      showFormAlert(photoValidationMessage, false);
+      if (window.matchMedia("(min-width: 769px)").matches) {
+        hideFormAlert();
+      } else {
+        showFormAlert(photoValidationMessage, false);
+      }
       return;
     }
 
@@ -376,6 +391,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!deskripsi) missingFields.push(deskripsiInput);
     if (!latitudeValue) missingFields.push(latitudeInput);
     if (!longitudeValue) missingFields.push(longitudeInput);
+
+    if (photoMissing && window.matchMedia("(min-width: 769px)").matches) {
+      showMissingPhotoValidation();
+      photoPicker.focus();
+      return;
+    }
 
     if (missingFields.length || photoMissing) {
       missingFields.forEach((field) => field.classList.add("input-error"));

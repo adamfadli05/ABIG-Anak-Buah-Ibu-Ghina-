@@ -5,17 +5,19 @@
     <meta name="theme-color" content="#001b7d" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Admin | Mangan Yukkk</title>
-    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=3" />
+    <link rel="stylesheet" href="css/Dashboard_Admin.css?v=7" />
+    <link rel="stylesheet" href="css/responsive.css?v=11" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://code.iconify.design" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <script src="js/env.js"></script>
-    <script src="js/config.js?v=2"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" defer></script>
+    <script src="js/env.js" defer></script>
+    <script src="js/config.js?v=2" defer></script>
     
     <!-- Panggil script sidebar agar otomatis termuat -->
-    <script src="js/sidebar.js?v=5" defer></script>
-    <script src="js/Dashboard_Admin.js?v=3" defer></script>
+    <script src="js/sidebar.js?v=9" defer></script>
+    <script src="js/Dashboard_Admin.js?v=4" defer></script>
   </head>
   <body>
     <!-- State Autentikasi / Loading Awal -->
@@ -34,7 +36,7 @@
       <div id="sidebar-container"></div>
 
       <!-- Panel Konten Utama -->
-      <section class="main-panel">
+      <section class="main-panel" aria-label="Konten utama dashboard admin">
         <header class="topbar">
           <div class="topbar-right-panel" style="margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 16px 32px;">
             <div style="text-align: right; display: grid; gap: 2px;">
@@ -45,7 +47,21 @@
           </div>
         </header>
 
-        <div class="dashboard-content">
+        <section id="dashboardOfflineState" class="dashboard-offline-state" role="alert" aria-live="assertive" hidden>
+          <svg class="dashboard-offline-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M2.5 8.5a15 15 0 0 1 19 0M5.5 12a10 10 0 0 1 5.3-2.7M8.8 15.5a5 5 0 0 1 2.4-1.3" />
+            <path d="M12 19h.01M3 3l18 18" />
+            <path d="M18.5 15.5v3M18.5 21h.01" />
+          </svg>
+          <h1 class="dashboard-offline-title">Koneksi Internet Terputus</h1>
+          <p class="dashboard-offline-description">Periksa kembali jaringan internet anda dan silahkan muat ulang halaman</p>
+          <button id="dashboardReloadButton" class="button button-secondary dashboard-reload-button" type="button">
+            <iconify-icon icon="lucide:refresh-cw" aria-hidden="true"></iconify-icon>
+            Muat Ulang
+          </button>
+        </section>
+
+        <div id="dashboardContent" class="dashboard-content">
           <section class="summary-section" aria-labelledby="summaryTitle">
             <h2 id="summaryTitle" class="sr-only">Ringkasan</h2>
 
@@ -73,10 +89,10 @@
           <section class="culinary-section" aria-labelledby="culinaryTitle">
             <h2 id="culinaryTitle" class="sr-only">Daftar Kuliner</h2>
             <div id="culinaryCards" class="culinary-grid" hidden></div>
-            <p id="culinaryEmpty" class="culinary-empty" role="status" hidden>Belum ada data kuliner.</p>
+            <p id="culinaryEmpty" class="culinary-empty sr-only" role="status" hidden>Belum ada data kuliner.</p>
             
             <!-- Kontainer Pagination Kuliner Admin -->
-            <div id="paginationContainer" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></div>
+            <nav id="paginationContainer" class="pagination-container" aria-label="Navigasi halaman kuliner" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 30px;"></nav>
           </section>
         </div>
       </section>

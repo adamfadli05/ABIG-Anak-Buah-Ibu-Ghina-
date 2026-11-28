@@ -493,3 +493,392 @@ td:nth-child(3) { text-align: center !important; }
 .btn-reload-figma iconify-icon {
   font-size: 1.35rem;
 }
+
+.category-page-back,
+.offline-wifi-icon-mobile,
+.category-state-icon-mobile,
+.category-empty-mobile {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  #adminApp .dashboard-content {
+    padding: 14px 12px 30px;
+  }
+
+  #adminApp .dashboard-content .content-header-flex {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .category-title-with-back {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .category-page-back {
+    display: inline-grid;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    place-items: center;
+    border-radius: 50%;
+    background: #001b7d;
+    color: #fff;
+    font-size: 12px;
+    text-decoration: none;
+  }
+
+  #adminApp .dashboard-content .content-header-flex h2 {
+    margin: 0;
+    color: #111;
+    font-size: 9px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  #btnAddKategori {
+    min-height: 15px;
+    gap: 2px;
+    padding: 3px 4px;
+    border-radius: 2px;
+    box-shadow: none;
+    font-size: 6px;
+    white-space: nowrap;
+  }
+
+  #btnAddKategori iconify-icon {
+    font-size: 8px;
+  }
+
+  #tableCardContainer {
+    border-radius: 3px;
+    box-shadow: none;
+  }
+
+  #tableCardContainer .table-wrapper {
+    overflow: hidden;
+  }
+
+  #tableCardContainer table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  #tableCardContainer th,
+  #tableCardContainer td {
+    overflow-wrap: anywhere;
+    padding: 3px 2px !important;
+    font-size: 7px !important;
+    line-height: 1.15;
+  }
+
+  #tableCardContainer th:nth-child(1),
+  #tableCardContainer td:nth-child(1) {
+    width: 10% !important;
+  }
+
+  #tableCardContainer th:nth-child(2),
+  #tableCardContainer td:nth-child(2) {
+    width: 34%;
+  }
+
+  #tableCardContainer th:nth-child(3),
+  #tableCardContainer td:nth-child(3) {
+    width: 29%;
+    text-align: center;
+  }
+
+  #tableCardContainer th:nth-child(4),
+  #tableCardContainer td:nth-child(4) {
+    width: 27% !important;
+  }
+
+  .action-buttons {
+    flex-direction: row !important;
+    gap: 3px !important;
+  }
+
+  .btn-action {
+    width: 16px !important;
+    height: 14px;
+    min-height: 14px;
+    justify-content: center !important;
+    gap: 0 !important;
+    padding: 1px !important;
+    font-size: 0 !important;
+  }
+
+  .btn-action iconify-icon {
+    padding: 2px !important;
+    font-size: 7px !important;
+  }
+
+  .table-status-msg {
+    padding: 16px 8px;
+    font-size: 8px;
+  }
+
+  .category-empty-mobile {
+    display: flex;
+    min-height: calc(100vh - 126px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 26px 12px 18px;
+    color: #111;
+    text-align: center;
+  }
+
+  .category-empty-mobile[hidden] {
+    display: none !important;
+  }
+
+  .category-empty-icon {
+    width: 18px;
+    height: 18px;
+    color: #666;
+  }
+
+  .category-empty-mobile h3 {
+    margin: 0;
+    font-size: 7px;
+    font-weight: 500;
+  }
+
+  .category-empty-mobile p {
+    max-width: 180px;
+    margin: 0;
+    color: #444;
+    font-size: 5px;
+    line-height: 1.35;
+  }
+
+  .offline-state-container {
+    min-height: calc(100vh - 118px);
+    justify-content: center;
+    gap: 5px;
+    padding: 10px 12px;
+  }
+
+  .offline-wifi-icon-desktop {
+    display: none;
+  }
+
+  .offline-wifi-icon-mobile {
+    display: block;
+    width: 25px;
+    height: 25px;
+    margin: 0 0 3px;
+    color: #858585;
+  }
+
+  .offline-title {
+    margin: 0;
+    font-size: 7px;
+    font-weight: 500;
+  }
+
+  .offline-desc {
+    max-width: 190px;
+    margin: 0 0 4px;
+    font-size: 5px;
+    line-height: 1.35;
+  }
+
+  .btn-reload-figma {
+    min-height: 15px;
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-size: 6px;
+    font-weight: 500;
+  }
+
+  .btn-reload-figma iconify-icon {
+    font-size: 7px;
+  }
+
+  .modal-overlay,
+  .success-modal-overlay,
+  .error-modal-overlay {
+    padding: 16px !important;
+    background: rgb(217 217 217 / 70%) !important;
+  }
+
+  .modal-dialog {
+    width: min(86vw, 350px) !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 3px 12px rgb(15 23 42 / 14%) !important;
+  }
+
+  .modal-dialog h3 {
+    margin-bottom: 8px !important;
+    font-size: 9px !important;
+  }
+
+  .form-group {
+    margin-bottom: 10px !important;
+  }
+
+  .form-group label {
+    margin-bottom: 4px !important;
+    font-size: 7px !important;
+  }
+
+  .form-group input {
+    min-height: 22px;
+    padding: 4px 8px !important;
+    font-size: 7px !important;
+  }
+
+  .form-alert-banner {
+    gap: 3px !important;
+    margin-top: 4px !important;
+    font-size: 6px !important;
+  }
+
+  .form-alert-banner iconify-icon {
+    font-size: 8px !important;
+  }
+
+  .modal-actions {
+    gap: 6px !important;
+  }
+
+  .btn-cancel-figma,
+  .btn-save-figma,
+  .btn-delete-figma {
+    min-height: 17px;
+    padding: 3px 8px !important;
+    border-radius: 2px !important;
+    font-size: 6px !important;
+  }
+
+  .success-modal-dialog,
+  .error-modal-dialog {
+    width: min(86vw, 350px) !important;
+    min-height: 72px;
+    gap: 5px !important;
+    padding: 10px 12px 7px !important;
+    border-radius: 9px !important;
+    box-shadow: 0 3px 12px rgb(15 23 42 / 14%) !important;
+  }
+
+  .success-icon-wrapper,
+  .error-icon-wrapper {
+    width: 15px !important;
+    height: 15px !important;
+    flex: 0 0 15px;
+    margin: 0 !important;
+    font-size: 10px !important;
+  }
+
+  .category-state-icon-desktop {
+    display: none;
+  }
+
+  .category-state-icon-mobile {
+    display: block;
+    width: 9px;
+    height: 9px;
+    color: #fff;
+  }
+
+  .success-modal-dialog h3,
+  .error-modal-dialog h3 {
+    font-size: 8px !important;
+    line-height: 1.25;
+  }
+
+  .error-modal-dialog p {
+    font-size: 6px !important;
+    line-height: 1.3;
+  }
+
+  .btn-success-ok,
+  .btn-error-retry {
+    margin-top: auto !important;
+    padding: 1px 3px !important;
+    font-size: 7px !important;
+  }
+
+  .delete-confirm-dialog {
+    width: min(86vw, 350px) !important;
+    gap: 6px !important;
+    padding: 12px !important;
+  }
+
+  .delete-icon-wrapper {
+    width: 16px !important;
+    height: 16px !important;
+    flex: 0 0 16px;
+    margin: 0 !important;
+    font-size: 8px !important;
+  }
+
+  .delete-icon-wrapper iconify-icon {
+    font-size: 8px !important;
+  }
+
+  .delete-confirm-dialog h3 {
+    margin: 0 !important;
+    font-size: 8px !important;
+  }
+
+  .delete-confirm-dialog p,
+  #categoryInUseModal p {
+    margin: 0 !important;
+    font-size: 6px !important;
+    line-height: 1.35 !important;
+  }
+
+  .modal-actions-figma {
+    width: auto !important;
+    gap: 8px !important;
+    margin-top: 2px !important;
+  }
+
+  .modal-actions-figma .btn-cancel-figma,
+  .modal-actions-figma .btn-delete-figma {
+    min-width: 46px;
+    min-height: 16px;
+    padding: 3px 8px !important;
+  }
+
+  #categoryInUseModal .success-modal-dialog {
+    width: min(86vw, 350px) !important;
+    min-height: 72px;
+    gap: 5px !important;
+    padding: 10px 12px 7px !important;
+  }
+
+  #categoryInUseModal .error-icon-wrapper {
+    border: 1px solid #ef4444;
+    background: #fff !important;
+    color: #ef4444 !important;
+  }
+
+  #categoryInUseModal .category-state-icon-mobile {
+    color: #ef4444;
+  }
+
+  #categoryInUseModal .success-modal-dialog h3 {
+    font-size: 8px !important;
+    line-height: 1.25;
+  }
+
+  #categoryInUseModal .btn-success-ok {
+    margin-top: auto !important;
+    padding: 1px 3px !important;
+    font-size: 7px !important;
+  }
+}
